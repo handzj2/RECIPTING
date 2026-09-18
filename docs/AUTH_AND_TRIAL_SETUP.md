@@ -77,3 +77,37 @@ They see it on next refresh. To give someone more trial instead:
 `update businesses set trial_ends_at = now() + interval '5 days' where ...`
 
 Billing is manual on purpose — mobile money and bank transfer are how your market actually pays. When you want it automated, the hook is one column (`subscribed_until`) and a webhook that writes to it.
+
+---
+
+# Where a new account actually goes
+
+A signup writes to **two** places, both in your Supabase project:
+
+1. `auth.users` — the login itself (email + a hashed password). Supabase manages this table; you can see it under **Authentication → Users**. You never see their password, and neither does the app.
+2. `businesses` — their tenant row: name, tagline, contacts, receipt prefix, `owner_id` pointing back at that user, and `trial_ends_at = now() + 5 days`.
+
+Everything they then create (`receipts`, `receipt_sequences`) carries their `business_id`, which is how row level security keeps them apart.
+
+Nothing is sent to you automatically. That's what the owner dashboard is for.
+
+# Owner dashboard — `/admin.html`
+
+Run `sql/003_admin_dashboard.sql` (edit the email at the bottom to yours first). Then open `/admin.html` while signed in.
+
+It shows every business that has ever signed up: when they joined, whether they're on trial, how many days are left, how many receipts they've actually issued, the total value of those receipts, and when they were last active. New signups since your previous visit are tagged **NEW**.
+
+The counters across the top are the ones worth watching daily: *trials ending ≤3d* is your call list, *trial ended* is who to chase, and *receipts issued* tells you who is genuinely using it versus who signed up and went quiet.
+
+Four buttons per row do the billing work — **+1 month**, **+1 year**, **+5d trial**, **Cancel**. No SQL needed; the change reaches the client on their next refresh.
+
+Access is enforced in the database, not the page. Every admin function starts with `is_platform_admin()`, so a tenant who opens `/admin.html` (or calls the API directly) gets zero rows and a refusal. Add another admin with:
+
+```sql
+insert into platform_admins (user_id, email)
+select id, email from auth.users where email = 'colleague@example.com';
+```
+
+## Getting told about signups without opening the dashboard
+
+The dashboard is pull, not push. If you want a ping, Supabase → **Database → Webhooks** → new webhook on `businesses` / INSERT, pointed at an email or WhatsApp service (Resend, Make, Zapier). The row it sends already contains the business name and email. That's a small add-on whenever you want it — the dashboard works without it.

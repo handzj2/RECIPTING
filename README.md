@@ -10,6 +10,7 @@ Then open:
 
 - Landing (CTA): http://localhost:3000/
 - Sign in / sign up: http://localhost:3000/login.html
+- Owner dashboard: http://localhost:3000/admin.html (platform owner only)
 - Receipt app: http://localhost:3000/app.html (redirects to login when signed out)
 
 ## Features
@@ -17,6 +18,7 @@ Then open:
 - **Multi-client SaaS**: each business signs up with email + password and gets its own isolated data
 - **5-day free trial** per signup, enforced in the database — then a subscribe prompt
 - **Per-tenant branding**: each business sets its own name, tagline, contacts, logo and receipt prefix in Settings
+- **Owner dashboard** at `/admin.html`: every subscriber, trial countdowns, usage, one-click activation
 - Branded digital receipts + logo
 - Issue / void / search log
 - PDF + QR verification
@@ -41,6 +43,7 @@ Or import the folder on [vercel.com](https://vercel.com).
 2. SQL Editor → run `sql/supabase_schema.sql`  
 3. Copy URL + anon key into `.env.local` (see `.env.example`)  
 4. SQL Editor → run `sql/002_auth_multitenant.sql` (accounts, isolation, trial)
+   then `sql/003_admin_dashboard.sql` (owner dashboard — edit the admin email at the bottom)
 5. Edit `public/config.js` with URL + anon key (see `docs/SUPABASE_SETUP.md`)
 6. Follow `docs/AUTH_AND_TRIAL_SETUP.md` to enable email auth and claim your existing data
 
