@@ -164,15 +164,18 @@ tbody tr:hover td{background:var(--panel-2)}
 
   <!-- ===== app chrome ===== -->
   <div class="topbar noprint" id="topbar">
-    <img id="topLogo" alt="HandzJ Tech Solutions">
+    <img id="topLogo" alt="">
     <div class="grow">
-      <div class="t1">HANDZJ TECH SOLUTIONS</div>
-      <div class="t2">Digital Receipt System &middot; V1</div>
+      <div class="t1" id="topName">DIGITAL RECEIPTS</div>
+      <div class="t2"><span id="topSub">Digital Receipt System &middot; V1</span> <span id="trialPill"></span></div>
     </div>
     <div class="tabs" id="tabs">
       <button data-tab="new" aria-selected="true">New receipt</button>
       <button data-tab="log" aria-selected="false">Receipt log</button>
+      <button data-tab="settings" aria-selected="false">Settings</button>
     </div>
+    <button class="btn" id="btnSignOut" type="button"
+      style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#eaf6fb;padding:8px 13px;font-size:13px">Sign out</button>
   </div>
 
   <div id="dbNotice" class="noprint" style="margin-top:14px"></div>
@@ -245,6 +248,9 @@ tbody tr:hover td{background:var(--panel-2)}
   <!-- ===== admin-locked notice ===== -->
   <div id="tab-locked" class="noprint" style="display:none;margin-top:18px"></div>
 
+  <!-- ===== tab: business settings ===== -->
+  <div id="tab-settings" class="noprint" style="display:none;margin-top:18px"></div>
+
   <!-- ===== tab: log ===== -->
   <div id="tab-log" class="card noprint" style="display:none;margin-top:18px">
     <div class="card-h"><h2>Receipt log</h2><span class="hint" id="logCount"></span></div>
@@ -294,13 +300,21 @@ tbody tr:hover td{background:var(--panel-2)}
 
 var LOGO = "/logo.jpg";
 
+/* Branding is per-tenant now: these are only fallbacks until the signed-in
+   business is loaded from the database. */
 var CO = {
-  name: "HANDZJ TECH SOLUTIONS",
-  tagline: "We Build Brands. We Power Systems. We Drive Growth.",
-  phone: "0781 909 507",
-  whatsapp: "0757 632 884",
-  email: "handzj2@gmail.com"
+  name: "DIGITAL RECEIPTS",
+  tagline: "",
+  phone: "",
+  whatsapp: "",
+  email: ""
 };
+
+/* Signed-in tenant + trial state */
+var authUser = null;
+var biz = null;                       /* the businesses row */
+var trial = { active: true, expired: false, daysLeft: null, subscribed: false, checked: false };
+var RECEIPT_PREFIX = "HJT";
 
 var CURRENCY = {
   UGX: { unit: "Uganda Shillings", sub: "Cents", dp: 0 },
@@ -501,36 +515,90 @@ function receiptToRow(r) {
   };
 }
 
-async function ensureBusiness() {
-  var c = cfg();
-  if (c.BUSINESS_ID) {
-    businessId = c.BUSINESS_ID;
-    return businessId;
-  }
-  var { data, error } = await sb.from("businesses").select("id,name").eq("name", CO.name).limit(1);
-  if (error) throw error;
-  if (data && data.length) {
-    businessId = data[0].id;
-    return businessId;
-  }
-  var ins = await sb.from("businesses").insert({
-    name: CO.name,
-    tagline: CO.tagline,
-    phone: CO.phone,
-    whatsapp: CO.whatsapp,
-    email: CO.email,
-    plan: "business"
-  }).select("id").single();
-  if (ins.error) throw ins.error;
-  businessId = ins.data.id;
-  return businessId;
+/* ---- auth ---------------------------------------------------------------- */
+
+function isVerifyRoute() {
+  return /^#\/verify\//.test(location.hash || "");
 }
+
+function gotoLogin() {
+  var next = encodeURIComponent(location.pathname + location.search + location.hash);
+  location.replace("/login.html?next=" + next);
+}
+
+/* Creates the tenant the first time a confirmed-by-email user signs in. */
+async function ensureBusinessForUser() {
+  var { data, error } = await sb
+    .from("businesses")
+    .select("*")
+    .eq("owner_id", authUser.id)
+    .maybeSingle();
+  if (error) throw error;
+  if (data) return data;
+
+  var pending = null;
+  try { pending = JSON.parse(localStorage.getItem("handzj_pending_business") || "null"); } catch (e) {}
+  var meta = (authUser.user_metadata || {});
+  var name = (pending && pending.name) || meta.business_name || (authUser.email || "My business").split("@")[0];
+
+  var rpc = await sb.rpc("signup_business", {
+    p_name: name,
+    p_tagline: (pending && pending.tagline) || null,
+    p_phone: (pending && pending.phone) || null,
+    p_whatsapp: (pending && pending.whatsapp) || null,
+    p_email: authUser.email || null,
+    p_prefix: null
+  });
+  if (rpc.error) throw rpc.error;
+  try { localStorage.removeItem("handzj_pending_business"); } catch (e) {}
+  return Array.isArray(rpc.data) ? rpc.data[0] : rpc.data;
+}
+
+function applyBusiness(row) {
+  biz = row;
+  businessId = row.id;
+  CO.name = row.name || "DIGITAL RECEIPTS";
+  CO.tagline = row.tagline || "";
+  CO.phone = row.phone || "";
+  CO.whatsapp = row.whatsapp || "";
+  CO.email = row.email || "";
+  RECEIPT_PREFIX = row.prefix || "BIZ";
+  if (row.logo_url) LOGO = row.logo_url;
+  computeTrial();
+}
+
+function computeTrial() {
+  if (!biz) { trial = { active: true, expired: false, daysLeft: null, subscribed: false, checked: false }; return; }
+  var status = biz.subscription_status || "trialing";
+  var until = biz.subscribed_until ? new Date(biz.subscribed_until) : null;
+  var subscribed = status === "active" && (!until || until.getTime() > Date.now());
+
+  var ends = biz.trial_ends_at ? new Date(biz.trial_ends_at) : null;
+  var msLeft = ends ? ends.getTime() - Date.now() : -1;
+  var daysLeft = ends ? Math.max(0, Math.ceil(msLeft / 86400000)) : 0;
+
+  trial = {
+    subscribed: subscribed,
+    active: subscribed || msLeft > 0,
+    expired: !subscribed && msLeft <= 0,
+    daysLeft: subscribed ? null : daysLeft,
+    endsAt: ends,
+    checked: true
+  };
+}
+
+/* ---- cloud init ---------------------------------------------------------- */
 
 async function initSupabase() {
   if (!supabaseConfigured()) return false;
   var c = cfg();
-  sb = window.supabase.createClient(c.SUPABASE_URL, c.SUPABASE_ANON_KEY);
-  await ensureBusiness();
+  if (!sb) sb = window.supabase.createClient(c.SUPABASE_URL, c.SUPABASE_ANON_KEY);
+
+  var sess = await sb.auth.getSession();
+  authUser = (sess && sess.data && sess.data.session) ? sess.data.session.user : null;
+  if (!authUser) return false;          /* boot() redirects to /login.html */
+
+  applyBusiness(await ensureBusinessForUser());
   cloudMode = true;
   return true;
 }
@@ -555,43 +623,57 @@ async function cloudSaveReceipt(r) {
 }
 
 async function cloudNextReceiptNo() {
-  var year = new Date().getFullYear();
-  var mk = function (n) { return "HJT-" + year + "-" + String(n).padStart(6, "0"); };
-
-  // Try sequence table first
-  var { data: seqRow } = await sb.from("receipt_sequences")
-    .select("seq")
-    .eq("business_id", businessId)
-    .eq("year", year)
-    .maybeSingle();
-
-  var seq = seqRow && typeof seqRow.seq === "number" ? seqRow.seq : 0;
-
-  for (var i = 0; i < 80; i++) {
-    seq += 1;
-    var no = mk(seq);
-    var { data: exists } = await sb.from("receipts")
-      .select("receipt_no")
-      .eq("business_id", businessId)
-      .eq("receipt_no", no)
-      .maybeSingle();
-    if (!exists) {
-      await sb.from("receipt_sequences").upsert({
-        business_id: businessId,
-        year: year,
-        seq: seq
-      }, { onConflict: "business_id,year" });
-      return no;
-    }
-  }
-  throw new Error("Could not allocate a receipt number");
+  /* Allocated atomically in the database, scoped to this business, and refused
+     outright once the trial is over. */
+  var { data, error } = await sb.rpc("next_receipt_no");
+  if (error) throw error;
+  return data;
 }
 
 function cloudNoticeHTML() {
-  return "Cloud sync <b>ON</b> (Supabase). Receipts are shared online. " +
-    "Verification works from any device. Business id: <code>" +
-    esc(String(businessId || "").slice(0, 8)) + "…</code>";
+  var who = esc(CO.name);
+  if (!trial.checked) return "Signed in. Receipts are stored in your own account.";
+  if (trial.subscribed) {
+    return "Signed in as <b>" + who + "</b> — subscription active. Receipts are private to your business.";
+  }
+  if (trial.expired) {
+    return "<b>Your 5-day free trial has ended.</b> Your receipts are safe and you can still view, " +
+      "verify, print and void them — but issuing new receipts needs a subscription. " +
+      "<a href=\"#\" id=\"lnkSubscribe\">See subscription options</a>.";
+  }
+  var d = trial.daysLeft;
+  return "Free trial: <b>" + d + " day" + (d === 1 ? "" : "s") + " left</b> for <b>" + who + "</b>. " +
+    "<a href=\"#\" id=\"lnkSubscribe\">Subscribe</a> any time to keep issuing receipts.";
 }
+
+function trialNoticeClass() {
+  if (!trial.checked || trial.subscribed) return "good";
+  if (trial.expired) return "warn";
+  return trial.daysLeft <= 2 ? "warn" : "good";
+}
+
+function paintTrialPill() {
+  var el = $("trialPill");
+  if (!el) return;
+  if (!trial.checked || trial.subscribed) { el.textContent = ""; return; }
+  var text = trial.expired
+    ? "TRIAL ENDED"
+    : "TRIAL · " + trial.daysLeft + " DAY" + (trial.daysLeft === 1 ? "" : "S") + " LEFT";
+  el.textContent = text;
+  el.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;" +
+    "font-size:10.5px;font-weight:700;letter-spacing:.08em;" +
+    (trial.expired
+      ? "background:#fbe7e7;color:#a32020"
+      : "background:rgba(255,255,255,.16);color:#eaf6fb");
+}
+
+function paintChrome() {
+  $("topName").textContent = CO.name || "DIGITAL RECEIPTS";
+  $("topSub").textContent = "Digital Receipt System" + (CO.tagline ? " · " + CO.tagline : "");
+  $("topLogo").src = LOGO;
+  paintTrialPill();
+}
+
 
 
 /* ---- local folder (File System Access API): a real designated folder on this
@@ -744,7 +826,9 @@ async function initStore() {
     if (await initSupabase()) {
       cache = await cloudLoadReceipts();
       local.replaceAll(cache); /* keep offline mirror */
-      notice(cloudNoticeHTML(), "good");
+      paintChrome();
+      notice(cloudNoticeHTML(), trialNoticeClass());
+      applyTrialLock();
       render();
       return;
     }
@@ -793,12 +877,12 @@ async function saveReceipt(r) {
 
 async function nextReceiptNo() {
   var year = new Date().getFullYear();
-  var mk = function (n) { return "HJT-" + year + "-" + String(n).padStart(6, "0"); };
+  var mk = function (n) { return RECEIPT_PREFIX + "-" + year + "-" + String(n).padStart(6, "0"); };
   if (cloudMode && sb) {
     return cloudNextReceiptNo();
   }
   if (!db) {
-    var mine = cache.filter(function (r) { return r.receiptNo.indexOf("HJT-" + year + "-") === 0; })
+    var mine = cache.filter(function (r) { return r.receiptNo.indexOf(RECEIPT_PREFIX + "-" + year + "-") === 0; })
       .map(function (r) { return parseInt(r.receiptNo.slice(-6), 10) || 0; });
     return mk((mine.length ? Math.max.apply(null, mine) : 0) + 1);
   }
@@ -892,17 +976,19 @@ function receiptHTML(r, opts) {
   '<div class="paper">' +
     '<div class="wm" aria-hidden="true">' +
       '<img src="' + LOGO + '" alt="">' +
-      '<div class="wmtext"><div class="a">HANDZJ TECH SOLUTIONS</div><div class="b">DIGITAL RECEIPT</div>' +
+      '<div class="wmtext"><div class="a">' + esc(CO.name) + '</div><div class="b">DIGITAL RECEIPT</div>' +
         '<div class="c">' + esc(draft ? "PREVIEW" : "Receipt No: " + r.receiptNo) + '</div></div>' +
     '</div>' +
     '<div class="stamp ' + stampClass + '">' + esc(stampText) + '</div>' +
     '<div class="rhead">' +
       '<img class="logo" src="' + LOGO + '" alt="HandzJ Tech Solutions">' +
       '<div class="co">' +
-        '<div class="name">' + CO.name + '</div>' +
-        '<div class="tag">' + CO.tagline + '</div>' +
-        '<div class="contact">Phone: ' + CO.phone + ' &nbsp;&middot;&nbsp; WhatsApp: ' + CO.whatsapp +
-          '<br>Email: ' + CO.email + '</div>' +
+        '<div class="name">' + esc(CO.name) + '</div>' +
+        (CO.tagline ? '<div class="tag">' + esc(CO.tagline) + '</div>' : '') +
+        '<div class="contact">' +
+          [CO.phone ? "Phone: " + esc(CO.phone) : "", CO.whatsapp ? "WhatsApp: " + esc(CO.whatsapp) : ""]
+            .filter(Boolean).join(" &nbsp;&middot;&nbsp; ") +
+          (CO.email ? '<br>Email: ' + esc(CO.email) : '') + '</div>' +
       '</div>' +
     '</div>' +
     '<div class="rtitle">' +
@@ -922,12 +1008,12 @@ function receiptHTML(r, opts) {
     (r.status === "VOIDED" ?
       '<p class="words"><b>VOIDED:</b> ' + esc(r.voidReason || "No reason recorded") + ' — ' + esc(fmtStamp(r.voidedAt)) + '</p>' : '') +
     '<div class="rfoot">' +
-      '<div class="sig">Received by: <b>' + esc(r.receivedBy) + '</b><br>For and on behalf of ' + CO.name +
+      '<div class="sig">Received by: <b>' + esc(r.receivedBy) + '</b><br>For and on behalf of ' + esc(CO.name) +
         '<div class="line">Authorised signature</div></div>' +
       '<div class="qrbox"><div class="qr" data-qr="' + esc(draft ? "" : verifyUrl(r)) + '"></div>' +
         '<div class="cap">Scan to verify<br>' + esc(draft ? "(available once issued)" : verifyUrl(r)) + '</div></div>' +
     '</div>' +
-    '<div class="issued">Digitally issued by ' + CO.name + '. This is a computer-generated receipt and is valid without a physical stamp.<br>' +
+    '<div class="issued">Digitally issued by ' + esc(CO.name) + '. This is a computer-generated receipt and is valid without a physical stamp.<br>' +
       'Verification ID: ' + esc(draft ? "—" : r.verifyId) + ' &nbsp;&middot;&nbsp; Document status: ' + esc(draft ? "PREVIEW" : r.status) + '</div>' +
   '</div>';
 }
@@ -960,20 +1046,125 @@ function showDoc(hostId, r, opts) {
 /* ---------------- tabs / routing ---------------- */
 
 async function initAccess() {
-  var user = null;
-  try { user = (window.claude && claude.use) ? await claude.use("user") : null; } catch (e) { user = null; }
-  if (!user) { access = { canEdit: true, checked: false }; return; } /* capability unavailable: leave admin open, db rules still apply */
-  var can = false;
-  try { can = !!user.canEdit(); } catch (e) { can = false; }
-  access = { canEdit: can, checked: true };
+  /* Legacy capability check kept as a no-op fallback; real access control is
+     now Supabase Auth + row level security. */
+  access = { canEdit: true, checked: false };
 }
 
 function lockedNotice() {
   return '<div class="card"><div class="card-b">' +
     '<h2 style="font-size:16px;margin-bottom:8px">Editor access required</h2>' +
-    '<p class="hint">Issuing receipts and viewing the log is limited to people with edit access to this tool. ' +
-    'Ask the owner to give you “Can edit” access, or use a shared verification link to check a specific receipt.</p>' +
+    '<p class="hint">Issuing receipts and viewing the log is limited to the account that owns this business.</p>' +
     '</div></div>';
+}
+
+/* ---------------- trial gate ---------------- */
+
+function subscribePanelHTML() {
+  var ends = trial.endsAt ? fmtDate(trial.endsAt.toISOString()) : "—";
+  return '<div class="card"><div class="card-b">' +
+    '<h2 style="font-size:17px;margin-bottom:6px">Your free trial has ended</h2>' +
+    '<p class="hint" style="font-size:13.5px;margin-top:0">Your 5-day trial ran out on ' + esc(ends) + '. ' +
+      'Nothing has been deleted — every receipt you issued is still in your log, still printable, ' +
+      'and every verification link you sent to a customer still works. ' +
+      'To issue <b>new</b> receipts, pick a plan below.</p>' +
+    '<div class="grid" style="margin-top:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">' +
+      planCard("Starter", "UGX 30,000", "per month", ["Unlimited receipts", "Verification links + QR", "PDF download & WhatsApp send"]) +
+      planCard("Business", "UGX 300,000", "per year — 2 months free", ["Everything in Starter", "Your logo and branding", "Priority support"]) +
+    '</div>' +
+    '<p class="hint" style="margin-top:14px">To activate, contact us on ' +
+      esc(cfg().SUPPORT_CONTACT || "the number on your invoice") +
+      '. Once payment clears, your account is switched on again immediately — no data to re-enter.</p>' +
+    '</div></div>';
+}
+
+function planCard(name, price, per, features) {
+  return '<div class="card" style="box-shadow:none"><div class="card-b">' +
+    '<div style="font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--ink-soft)">' + esc(name) + '</div>' +
+    '<div style="font-size:24px;font-weight:700;margin:6px 0 2px">' + esc(price) + '</div>' +
+    '<div class="hint" style="margin:0 0 10px">' + esc(per) + '</div>' +
+    '<ul style="margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-soft)">' +
+      features.map(function (f) { return "<li>" + esc(f) + "</li>"; }).join("") +
+    '</ul></div></div>';
+}
+
+/* Disable issuing everywhere once the trial is over. The database refuses the
+   insert too — this just makes the refusal visible before the click. */
+function applyTrialLock() {
+  var locked = trial.checked && trial.expired;
+  var issueBtn = $("btnIssue");
+  if (issueBtn) {
+    issueBtn.disabled = locked;
+    issueBtn.title = locked ? "Subscribe to issue new receipts" : "";
+    issueBtn.textContent = locked ? "Trial ended — subscribe to issue" : "Issue receipt";
+  }
+  paintTrialPill();
+}
+
+/* ---------------- business settings ---------------- */
+
+function renderSettings() {
+  var host = $("tab-settings");
+  if (!biz) { host.innerHTML = lockedNotice(); return; }
+  var f = function (v) { return esc(v || ""); };
+  host.innerHTML =
+    '<div class="card"><div class="card-h"><h2>Business profile</h2>' +
+      '<span class="hint">Appears on every receipt you issue</span></div>' +
+    '<div class="card-b">' +
+      '<div class="field"><label>Business name</label><input id="s_name" value="' + f(biz.name) + '"></div>' +
+      '<div class="field"><label>Tagline</label><input id="s_tagline" value="' + f(biz.tagline) + '"></div>' +
+      '<div class="two">' +
+        '<div class="field"><label>Phone</label><input id="s_phone" value="' + f(biz.phone) + '"></div>' +
+        '<div class="field"><label>WhatsApp</label><input id="s_whatsapp" value="' + f(biz.whatsapp) + '"></div>' +
+      '</div>' +
+      '<div class="two">' +
+        '<div class="field"><label>Email</label><input id="s_email" value="' + f(biz.email) + '"></div>' +
+        '<div class="field"><label>Receipt prefix</label><input id="s_prefix" maxlength="4" value="' + f(biz.prefix) + '">' +
+          '<div class="hint" style="margin-top:4px">Receipt numbers look like ' +
+            esc((biz.prefix || "BIZ") + "-" + new Date().getFullYear() + "-000001") + '</div></div>' +
+      '</div>' +
+      '<div class="field"><label>Logo URL <span style="text-transform:none;font-weight:400">(optional)</span></label>' +
+        '<input id="s_logo" value="' + f(biz.logo_url) + '" placeholder="https://…/logo.png"></div>' +
+      '<div class="row-actions"><button class="btn primary" id="btnSaveBiz" type="button">Save profile</button></div>' +
+    '</div></div>' +
+    '<div class="card" style="margin-top:18px"><div class="card-h"><h2>Account</h2></div><div class="card-b">' +
+      '<div class="kv" style="display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13.5px">' +
+        '<div class="hint" style="margin:0">Signed in as</div><div>' + f(authUser && authUser.email) + '</div>' +
+        '<div class="hint" style="margin:0">Plan</div><div>' +
+          (trial.subscribed ? "Subscribed" : trial.expired ? "Trial ended" : "Free trial — " + trial.daysLeft + " day(s) left") + '</div>' +
+      '</div></div></div>' +
+    (trial.expired ? '<div style="margin-top:18px">' + subscribePanelHTML() + '</div>' : '');
+
+  $("btnSaveBiz").addEventListener("click", saveBusinessProfile);
+}
+
+async function saveBusinessProfile() {
+  if (!sb || !biz) return;
+  var btn = $("btnSaveBiz");
+  var patch = {
+    name: $("s_name").value.trim(),
+    tagline: $("s_tagline").value.trim() || null,
+    phone: $("s_phone").value.trim() || null,
+    whatsapp: $("s_whatsapp").value.trim() || null,
+    email: $("s_email").value.trim() || null,
+    prefix: ($("s_prefix").value.trim().toUpperCase().replace(/[^A-Z]/g, "") || "BIZ").slice(0, 4),
+    logo_url: $("s_logo").value.trim() || null
+  };
+  if (!patch.name) { say("A business name is required.", "warn"); return; }
+  btn.disabled = true; btn.textContent = "Saving…";
+  try {
+    var { data, error } = await sb.from("businesses").update(patch).eq("id", biz.id).select("*").single();
+    if (error) throw error;
+    applyBusiness(data);
+    paintChrome();
+    renderSettings();
+    peekNextNumber();
+    say("Business profile saved. New receipts use these details.", "good");
+  } catch (e) {
+    say("Could not save: " + esc(e && e.message ? e.message : "unknown error"), "warn");
+  } finally {
+    btn.disabled = false; btn.textContent = "Save profile";
+  }
 }
 
 function showTab(name) {
@@ -982,6 +1173,7 @@ function showTab(name) {
   $("tab-log").style.display = (name === "log" && !locked) ? "" : "none";
   $("tab-view").style.display = name === "view" ? "" : "none";
   $("tab-verify").style.display = name === "verify" ? "" : "none";
+  $("tab-settings").style.display = name === "settings" ? "" : "none";
   $("tab-locked").style.display = locked ? "" : "none";
   $("topbar").style.display = name === "verify" ? "none" : "";
   Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function (b) {
@@ -989,6 +1181,8 @@ function showTab(name) {
   });
   if (locked) $("tab-locked").innerHTML = lockedNotice();
   if (name === "log" && !locked) renderLog();
+  if (name === "settings") renderSettings();
+  if (name === "new") applyTrialLock();
 }
 
 async function route() {
@@ -1031,13 +1225,51 @@ function renderLog() {
 
 /* ---------------- verification ---------------- */
 
-async function lookup(no) {
+async function lookup(no, vid) {
+  /* Owner viewing their own receipt: it's already in the loaded log. */
   var hit = cache.filter(function (r) { return r.receiptNo === no; })[0];
-  if (hit) return hit;
+  if (hit && (!vid || hit.verifyId === vid)) return hit;
+
+  /* Anyone else (a customer following the QR/link): the receipts table is
+     closed to them by row level security, so go through the verification RPC,
+     which needs BOTH the number and the verification id and returns masked
+     fields only. */
+  if (sb || supabaseConfigured()) {
+    try {
+      if (!sb) sb = window.supabase.createClient(cfg().SUPABASE_URL, cfg().SUPABASE_ANON_KEY);
+      var { data, error } = await sb.rpc("verify_receipt", { p_receipt_no: no, p_verify_id: vid || "" });
+      if (error) throw error;
+      var row = Array.isArray(data) ? data[0] : data;
+      if (!row) return null;
+      return {
+        _masked: true,
+        receiptNo: row.receipt_no,
+        verifyId: vid || "",
+        status: row.status,
+        kind: row.kind,
+        item: row.item,
+        customer: row.customer_masked,
+        txn: row.txn_masked,
+        amount: Number(row.amount) || 0,
+        currency: row.currency || "UGX",
+        method: row.method || "",
+        paidOn: row.paid_on || "",
+        createdAt: row.created_at || null,
+        voidedAt: row.voided_at || null,
+        issuer: {
+          name: row.business_name || "",
+          phone: row.business_phone || "",
+          email: row.business_email || "",
+          logo: row.business_logo || LOGO
+        }
+      };
+    } catch (e) { return null; }
+  }
+
   if (db) {
     try {
-      var s = await db.doc("receipts/" + no).get();
-      if (s.exists) return s.data();
+      var s2 = await db.doc("receipts/" + no).get();
+      if (s2.exists) return s2.data();
     } catch (e) {}
   }
   return null;
@@ -1046,41 +1278,44 @@ async function lookup(no) {
 async function renderVerify(no, vid) {
   var host = $("tab-verify");
   host.innerHTML = '<div class="card verify"><div class="card-b">Checking receipt…</div></div>';
-  var r = await lookup(no);
-  var ok = !!r && (!vid || r.verifyId === vid) && r.status === "VALID";
-  var genuine = !!r && (!vid || r.verifyId === vid);
+  var r = await lookup(no, vid);
+  var issuer = (r && r.issuer) ? r.issuer : { name: CO.name, phone: CO.phone, email: CO.email, logo: LOGO };
+  var who = issuer.name || "the issuing business";
+  var genuine = !!r && (!vid || r._masked || r.verifyId === vid);
   var head, dot, msg;
   if (!r || !genuine) { head = "NOT VERIFIED"; dot = "unk";
-    msg = "No receipt matching this number and verification ID was found in HandzJ Tech records."; }
+    msg = "No receipt matching this number and verification ID was found."; }
   else if (r.status === "VOIDED") { head = "VOIDED RECEIPT"; dot = "bad";
-    msg = "This receipt was issued by HandzJ Tech Solutions but has since been voided. It is not proof of a valid payment."; }
+    msg = "This receipt was issued by " + esc(who) + " but has since been voided. It is not proof of a valid payment."; }
   else { head = "VALID RECEIPT"; dot = "ok";
-    msg = "This receipt was issued by HandzJ Tech Solutions and is currently valid."; }
+    msg = "This receipt was issued by " + esc(who) + " and is currently valid."; }
 
   var body = "";
   if (r && genuine) {
+    var custShown = r._masked ? r.customer : maskName(r.customer);
+    var refShown  = r._masked ? r.txn : maskRef(r.txn);
     body = '<div class="block" style="background:transparent;margin-top:16px"><div class="kv">' +
       '<div>Receipt number</div><div>' + esc(r.receiptNo) + '</div>' +
       '<div>Issued</div><div>' + esc(fmtStamp(r.createdAt)) + '</div>' +
       '<div>Payment date</div><div>' + esc(fmtDate(r.paidOn)) + '</div>' +
-      '<div>Issued to</div><div>' + esc(maskName(r.customer)) + '</div>' +
+      '<div>Issued to</div><div>' + esc(custShown) + '</div>' +
       '<div>' + (r.kind === "software" ? "Software / product" : "Service") + '</div><div>' + esc(r.item) + '</div>' +
       '<div>Amount</div><div>' + esc(money(r.amount, r.currency)) + '</div>' +
       '<div>Payment method</div><div>' + esc(r.method) + '</div>' +
-      '<div>Payment reference</div><div>' + esc(maskRef(r.txn)) + '</div>' +
+      '<div>Payment reference</div><div>' + esc(refShown) + '</div>' +
       '<div>Status</div><div><b>' + esc(r.status) + '</b></div>' +
       '</div></div>' +
-      '<p class="hint">Customer details are partially hidden by design. To confirm the full details, contact HandzJ Tech on ' +
-      CO.phone + ' or ' + CO.email + '.</p>';
+      '<p class="hint">Customer details are partially hidden by design. To confirm the full details, contact ' +
+      esc(who) + (issuer.phone ? " on " + esc(issuer.phone) : "") +
+      (issuer.email ? " or " + esc(issuer.email) : "") + '.';
   }
   host.innerHTML =
     '<div class="verify">' +
-      '<div class="topbar" style="margin-bottom:6px"><img src="' + LOGO + '" alt="">' +
-        '<div class="grow"><div class="t1">' + CO.name + '</div><div class="t2">Receipt verification</div></div></div>' +
+      '<div class="topbar" style="margin-bottom:6px"><img src="' + esc(issuer.logo || LOGO) + '" alt="">' +
+        '<div class="grow"><div class="t1">' + esc(who) + '</div><div class="t2">Receipt verification</div></div></div>' +
       '<div class="card" style="margin-top:14px"><div class="card-b">' +
         '<div class="vbig"><span class="dot ' + dot + '"></span>' + head + '</div>' +
         '<p class="hint" style="font-size:13.5px">' + msg + '</p>' + body +
-        '<div class="row-actions" style="margin-top:16px"><a class="btn" href="' + baseUrl() + '">Open the receipt tool</a></div>' +
       '</div></div>' +
     '</div>';
 }
@@ -1146,22 +1381,21 @@ async function downloadReceipt(r, silent) {
 
 function genReference() {
   var d = new Date(), p = function (n) { return String(n).padStart(2, "0"); };
-  return "HJT-REF-" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + randId(4);
+  return RECEIPT_PREFIX + "-REF-" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + randId(4);
 }
 async function peekNextNumber() {
   var el = $("nextNo");
   if (!el) return;
   el.textContent = "checking…";
   var year = new Date().getFullYear();
-  var mk = function (n) { return "HJT-" + year + "-" + String(n).padStart(6, "0"); };
+  var mk = function (n) { return RECEIPT_PREFIX + "-" + year + "-" + String(n).padStart(6, "0"); };
   try {
-    if (db) {
-      var s = await db.doc("meta/sequence").get();
-      var d = s.exists ? s.data() : {};
-      var seq = (d && d.year === year && typeof d.seq === "number") ? d.seq : 0;
-      el.textContent = mk(seq + 1);
+    if (cloudMode && sb) {
+      var { data, error } = await sb.rpc("peek_receipt_no");
+      if (error) throw error;
+      el.textContent = data || "—";
     } else {
-      var mine = cache.filter(function (r) { return r.receiptNo.indexOf("HJT-" + year + "-") === 0; })
+      var mine = cache.filter(function (r) { return r.receiptNo.indexOf(RECEIPT_PREFIX + "-" + year + "-") === 0; })
         .map(function (r) { return parseInt(r.receiptNo.slice(-6), 10) || 0; });
       el.textContent = mk((mine.length ? Math.max.apply(null, mine) : 0) + 1);
     }
@@ -1171,6 +1405,11 @@ async function peekNextNumber() {
 /* ---- issue / void ---- */
 
 async function issue() {
+  if (trial.checked && trial.expired) {
+    say("Your free trial has ended. Subscribe to issue new receipts — your existing records are untouched.", "warn");
+    showTab("settings");
+    return;
+  }
   var d = readForm(), errs = validate(d);
   if (errs.length) { say("Please provide: " + esc(errs.join(", ")) + ".", "warn"); return; }
   var btn = $("btnIssue"); btn.disabled = true; btn.textContent = "Issuing…";
@@ -1195,9 +1434,20 @@ async function issue() {
     var ok = await downloadReceipt(r, false);
     if (ok) say("Receipt <b>" + esc(no) + "</b> issued, recorded and downloaded.", "good");
   } catch (e) {
-    say("Could not issue the receipt: " + esc(e && e.message ? e.message : "unknown error"), "warn");
+    var em = (e && e.message) ? e.message : "unknown error";
+    if (/TRIAL_EXPIRED/i.test(em) || /row-level security/i.test(em)) {
+      trial.expired = true; trial.active = false;
+      notice(cloudNoticeHTML(), "warn");
+      applyTrialLock();
+      say("Your free trial has ended, so this receipt was not issued. Subscribe to continue — nothing already issued is affected.", "warn");
+      showTab("settings");
+    } else {
+      say("Could not issue the receipt: " + esc(em), "warn");
+    }
   } finally {
-    btn.disabled = false; btn.textContent = "Issue receipt";
+    btn.disabled = false;
+    applyTrialLock();
+    if (!(trial.checked && trial.expired)) btn.textContent = "Issue receipt";
   }
 }
 
@@ -1318,10 +1568,22 @@ function boot() {
     $(id).addEventListener("change", updateWords);
   });
 
+  $("btnSignOut").addEventListener("click", async function () {
+    try { if (sb) await sb.auth.signOut(); } catch (e) {}
+    try { localStorage.removeItem("handzj_receipts_v1"); } catch (e) {}
+    location.replace("/login.html");
+  });
+
   $("btnGenRef").addEventListener("click", function () { $("f_txn").value = genReference(); });
   $("btnRefreshNo").addEventListener("click", peekNextNumber);
 
   $("dbNotice").addEventListener("click", async function (e) {
+    if (e.target && e.target.id === "lnkSubscribe") {
+      e.preventDefault();
+      showTab("settings");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     if (e.target && e.target.id === "btnConnectFolder") {
       try {
         await folder.connect();
@@ -1401,9 +1663,45 @@ function boot() {
   window.addEventListener("hashchange", route);
   $("topLogo").src = LOGO;
   updateWords();
-  route(); /* first paint, before access is known — verify route works immediately either way */
-  initAccess().then(route);
-  initStore().then(peekNextNumber);
+
+  /* A customer opening a verification link must never be asked to log in. */
+  if (isVerifyRoute()) { route(); return; }
+
+  guardAndStart();
+}
+
+/* Require a signed-in account for everything except verification links. */
+async function guardAndStart() {
+  if (!supabaseConfigured()) {
+    /* No cloud configured at all: fall back to the old local-only behaviour
+       so the tool still works offline / during setup. */
+    notice("Not connected to Supabase — running in local-only mode. Add your keys in <code>config.js</code> " +
+           "and run <code>sql/002_auth_multitenant.sql</code> to enable accounts.", "warn");
+    route();
+    initAccess().then(route);
+    initStore().then(peekNextNumber);
+    return;
+  }
+
+  var c = cfg();
+  sb = window.supabase.createClient(c.SUPABASE_URL, c.SUPABASE_ANON_KEY);
+  var sess = await sb.auth.getSession();
+  if (!(sess && sess.data && sess.data.session)) { gotoLogin(); return; }
+
+  /* Signed out in another tab → bounce out of here too. */
+  sb.auth.onAuthStateChange(function (event) {
+    if (event === "SIGNED_OUT" && !isVerifyRoute()) gotoLogin();
+  });
+
+  route();
+  await initAccess();
+  route();
+  try {
+    await initStore();
+  } catch (e) {
+    notice("Could not load your account: " + esc(e && e.message ? e.message : e), "warn");
+  }
+  peekNextNumber();
 }
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

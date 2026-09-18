@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — HandzJ Digital Receipts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6f9; --panel:#ffffff; --panel-2:#fbfcfe; --ink:#101826; --ink-soft:#4a586e;
+  --line:#dde3ec; --line-soft:#eaeff6; --brand:#0a1628; --brand-2:#132a47; --accent:#0d9dc7;
+  --accent-soft:#e3f4fa; --ok:#0f7b52; --ok-soft:#e2f4ec; --bad:#a32020; --bad-soft:#fbe7e7;
+  --shadow:0 1px 2px rgba(16,24,38,.06),0 8px 24px rgba(16,24,38,.07);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c111a; --panel:#141b26; --panel-2:#101823; --ink:#e8edf5; --ink-soft:#9dabc0;
+    --line:#26303f; --line-soft:#1c2533; --accent:#3fc0e6; --accent-soft:#12303c;
+    --ok:#5fd6a4; --ok-soft:#10301f; --bad:#ff8a8a; --bad-soft:#341414;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:460px;margin:0 auto;padding:40px 16px 64px}
+.brandbar{display:flex;align-items:center;gap:13px;background:linear-gradient(135deg,var(--brand) 0%,var(--brand-2) 100%);
+  color:#eaf6fb;border-radius:14px;padding:14px 18px;box-shadow:var(--shadow)}
+.brandbar img{width:48px;height:48px;border-radius:10px;object-fit:cover;flex:none}
+.brandbar .t1{font-family:"Barlow Condensed",Inter,sans-serif;font-size:23px;font-weight:700;letter-spacing:.06em;line-height:1.1}
+.brandbar .t2{font-size:12px;color:#9fd8ea;letter-spacing:.03em}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin-top:18px}
+.card-b{padding:20px}
+.seg{display:flex;gap:6px;background:var(--panel-2);border:1px solid var(--line);padding:4px;border-radius:10px;margin-bottom:18px}
+.seg button{flex:1;background:transparent;border:0;color:var(--ink-soft);padding:9px 10px;border-radius:7px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit}
+.seg button[aria-selected="true"]{background:var(--brand);color:#eaf6fb}
+h1{font-size:19px;margin:0 0 4px}
+.sub{font-size:13.5px;color:var(--ink-soft);margin:0 0 18px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px}
+.field input{width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;outline:none;font:inherit;color:inherit}
+.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.two{grid-template-columns:1fr}}
+.btn{background:var(--panel-2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px 16px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#04222c;width:100%}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.hint{font-size:12.5px;color:var(--ink-soft)}
+.msg{border-radius:10px;padding:11px 13px;font-size:13.5px;margin-bottom:16px;display:none;border:1px solid transparent}
+.msg.warn{display:block;background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.msg.good{display:block;background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.trialnote{background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:11px 13px;font-size:13px;margin-bottom:16px}
+.foot{text-align:center;margin-top:18px;font-size:13px;color:var(--ink-soft)}
+.foot a{color:var(--accent)}
+.linky{background:none;border:0;color:var(--accent);font:inherit;cursor:pointer;padding:0;text-decoration:underline}
+</style>
+<script src="/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brandbar">
+    <img src="/logo.jpg" alt="">
+    <div>
+      <div class="t1">DIGITAL RECEIPTS</div>
+      <div class="t2">Issue · Verify · Keep records</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-b">
+
+      <div class="seg" id="seg">
+        <button data-mode="in" aria-selected="true" type="button">Sign in</button>
+        <button data-mode="up" aria-selected="false" type="button">Create account</button>
+      </div>
+
+      <div id="msg" class="msg"></div>
+
+      <!-- ===== sign in ===== -->
+      <div id="pane-in">
+        <h1>Welcome back</h1>
+        <p class="sub">Sign in to issue and manage your receipts.</p>
+        <div class="field"><label>Email</label><input id="in_email" type="email" autocomplete="email" placeholder="you@business.com"></div>
+        <div class="field"><label>Password</label><input id="in_pass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+        <button class="btn primary" id="btnSignIn" type="button">Sign in</button>
+        <p class="hint" style="margin-top:12px">
+          Forgot your password? <button class="linky" id="btnReset" type="button">Email me a reset link</button>
+        </p>
+      </div>
+
+      <!-- ===== sign up ===== -->
+      <div id="pane-up" style="display:none">
+        <h1>Start your free trial</h1>
+        <p class="sub">Your own branded receipts, verification links and records.</p>
+        <div class="trialnote"><b>5 days free.</b> No card needed. Your receipts stay yours after the trial — you just need a subscription to keep issuing new ones.</div>
+
+        <div class="field"><label>Business name</label><input id="up_biz" placeholder="ABC Microfinance Ltd"></div>
+        <div class="field"><label>Tagline <span style="text-transform:none;font-weight:400">(optional — shown on receipts)</span></label><input id="up_tag" placeholder="Fast. Fair. Trusted."></div>
+        <div class="two">
+          <div class="field"><label>Phone</label><input id="up_phone" placeholder="0700 000 000"></div>
+          <div class="field"><label>WhatsApp</label><input id="up_wa" placeholder="0700 000 000"></div>
+        </div>
+        <div class="field"><label>Email</label><input id="up_email" type="email" autocomplete="email" placeholder="you@business.com"></div>
+        <div class="two">
+          <div class="field"><label>Password</label><input id="up_pass" type="password" autocomplete="new-password" placeholder="At least 8 characters"></div>
+          <div class="field"><label>Confirm password</label><input id="up_pass2" type="password" autocomplete="new-password" placeholder="Repeat it"></div>
+        </div>
+        <button class="btn primary" id="btnSignUp" type="button">Create account &amp; start trial</button>
+        <p class="hint" style="margin-top:12px">By creating an account you agree that receipts you issue are your own records and your responsibility.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="foot"><a href="/">← Back to the website</a></div>
+</div>
+
+<script>
+"use strict";
+
+var $ = function (id) { return document.getElementById(id); };
+var cfg = window.HANDZJ_CONFIG || {};
+var sb = null;
+
+function msg(text, cls) {
+  var m = $("msg");
+  m.className = "msg " + (cls || "");
+  m.innerHTML = text || "";
+  if (!text) m.style.display = "none";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function setMode(mode) {
+  $("pane-in").style.display = mode === "in" ? "" : "none";
+  $("pane-up").style.display = mode === "up" ? "" : "none";
+  Array.prototype.forEach.call(document.querySelectorAll("#seg button"), function (b) {
+    b.setAttribute("aria-selected", String(b.dataset.mode === mode));
+  });
+  msg("");
+}
+
+function busy(btn, on, label) {
+  btn.disabled = on;
+  btn.textContent = on ? label : btn.dataset.label;
+}
+
+function nextUrl() {
+  var m = /[?&]next=([^&]+)/.exec(location.search);
+  return m ? decodeURIComponent(m[1]) : "/app.html";
+}
+
+function friendly(err) {
+  var s = (err && err.message ? err.message : String(err || "Something went wrong"));
+  if (/invalid login credentials/i.test(s)) return "That email and password don't match an account.";
+  if (/email not confirmed/i.test(s)) return "Please confirm your email first — check your inbox for the confirmation link.";
+  if (/already registered|already been registered/i.test(s)) return "An account with that email already exists. Try signing in instead.";
+  if (/password should be at least/i.test(s)) return "Please use a longer password (at least 6 characters).";
+  return s;
+}
+
+/* ---------------- boot ---------------- */
+if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY || !window.supabase) {
+  msg("This app isn't connected to its database yet. Add your Supabase URL and anon key in <code>config.js</code>.", "warn");
+} else {
+  sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+
+  /* already signed in? go straight through */
+  sb.auth.getSession().then(function (res) {
+    if (res && res.data && res.data.session) location.replace(nextUrl());
+  });
+}
+
+Array.prototype.forEach.call(document.querySelectorAll("#seg button"), function (b) {
+  b.addEventListener("click", function () { setMode(b.dataset.mode); });
+});
+if (/[?&]mode=signup/.test(location.search)) setMode("up");
+
+["btnSignIn", "btnSignUp", "btnReset"].forEach(function (id) {
+  $(id).dataset.label = $(id).textContent;
+});
+
+/* ---------------- sign in ---------------- */
+$("btnSignIn").addEventListener("click", async function () {
+  if (!sb) return;
+  var email = $("in_email").value.trim(), pass = $("in_pass").value;
+  if (!email || !pass) { msg("Enter your email and password.", "warn"); return; }
+  busy(this, true, "Signing in…");
+  try {
+    var res = await sb.auth.signInWithPassword({ email: email, password: pass });
+    if (res.error) throw res.error;
+    location.replace(nextUrl());
+  } catch (e) {
+    msg(friendly(e), "warn");
+    busy(this, false);
+  }
+});
+
+/* ---------------- sign up ---------------- */
+$("btnSignUp").addEventListener("click", async function () {
+  if (!sb) return;
+  var biz = $("up_biz").value.trim(),
+      email = $("up_email").value.trim(),
+      pass = $("up_pass").value,
+      pass2 = $("up_pass2").value;
+
+  if (biz.length < 2) { msg("Enter your business name — it appears on every receipt.", "warn"); return; }
+  if (!email) { msg("Enter an email address.", "warn"); return; }
+  if (pass.length < 8) { msg("Use a password of at least 8 characters.", "warn"); return; }
+  if (pass !== pass2) { msg("The two passwords don't match.", "warn"); return; }
+
+  busy(this, true, "Creating your account…");
+  try {
+    var up = await sb.auth.signUp({
+      email: email,
+      password: pass,
+      options: { data: { business_name: biz } }
+    });
+    if (up.error) throw up.error;
+
+    /* If email confirmation is ON, there is no session yet — the business is
+       created on first sign-in instead (app.html handles that). */
+    if (!up.data.session) {
+      /* stash the details so the business is created with them after confirming */
+      try {
+        localStorage.setItem("handzj_pending_business", JSON.stringify({
+          name: biz,
+          tagline: $("up_tag").value.trim(),
+          phone: $("up_phone").value.trim(),
+          whatsapp: $("up_wa").value.trim(),
+          email: email
+        }));
+      } catch (e) {}
+      busy(this, false);
+      setMode("in");
+      $("in_email").value = email;
+      msg("Account created. Check <b>" + email.replace(/[<>&]/g, "") +
+          "</b> for a confirmation link, then sign in to start your 5-day trial.", "good");
+      return;
+    }
+
+    /* session exists → create the tenant + start the trial now */
+    var rpc = await sb.rpc("signup_business", {
+      p_name: biz,
+      p_tagline: $("up_tag").value.trim() || null,
+      p_phone: $("up_phone").value.trim() || null,
+      p_whatsapp: $("up_wa").value.trim() || null,
+      p_email: email,
+      p_prefix: null
+    });
+    if (rpc.error) throw rpc.error;
+    try { localStorage.removeItem("handzj_pending_business"); } catch (e) {}
+    location.replace(nextUrl());
+  } catch (e) {
+    msg(friendly(e), "warn");
+    busy(this, false);
+  }
+});
+
+/* ---------------- password reset ---------------- */
+$("btnReset").addEventListener("click", async function () {
+  if (!sb) return;
+  var email = $("in_email").value.trim();
+  if (!email) { msg("Type your email above first, then press the reset link.", "warn"); return; }
+  busy(this, true, "Sending…");
+  try {
+    var res = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: location.origin + "/login.html"
+    });
+    if (res.error) throw res.error;
+    msg("If that email has an account, a reset link is on its way.", "good");
+  } catch (e) {
+    msg(friendly(e), "warn");
+  }
+  busy(this, false);
+});
+
+/* Enter key submits the visible pane */
+document.addEventListener("keydown", function (e) {
+  if (e.key !== "Enter") return;
+  if ($("pane-in").style.display !== "none") $("btnSignIn").click();
+  else $("btnSignUp").click();
+});
+</script>
+</body>
+</html>
