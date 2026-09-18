@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HandzJ Digital Receipts — Online Receipts for Your Business</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c111a; --panel:#141b26; --ink:#e8edf5; --muted:#9dabc0;
+  --brand:#0d9dc7; --ok:#5fd6a4; --line:#26303f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+a{color:var(--brand);text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 18px 80px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:8px 0 28px}
+.nav .brand{display:flex;align-items:center;gap:12px}
+.nav img{width:48px;height:48px;border-radius:10px;object-fit:cover}
+.nav .name{font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:700;letter-spacing:.06em}
+.nav .links{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-block;padding:11px 18px;border-radius:10px;font-weight:600;font-size:14px;border:1px solid var(--line);color:var(--ink);background:transparent;cursor:pointer}
+.btn:hover{border-color:var(--brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#061018}
+.btn.ghost{background:rgba(255,255,255,.06)}
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:36px;align-items:center;padding:20px 0 48px}
+@media(max-width:860px){.hero{grid-template-columns:1fr}}
+.hero h1{font-family:"Barlow Condensed",sans-serif;font-size:clamp(32px,5vw,48px);line-height:1.08;letter-spacing:.03em;margin-bottom:14px}
+.hero p.lead{color:var(--muted);font-size:17px;margin-bottom:22px;max-width:520px}
+.hero .cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.hero .note{font-size:13px;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.card h3{font-size:15px;margin-bottom:10px;letter-spacing:.04em}
+.card ul{margin:0;padding-left:18px;color:var(--muted);font-size:14px}
+.card li{margin:6px 0}
+.section{padding:28px 0}
+.section h2{font-family:"Barlow Condensed",sans-serif;font-size:28px;letter-spacing:.04em;margin-bottom:8px}
+.section .sub{color:var(--muted);margin-bottom:22px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:800px){.grid3{grid-template-columns:1fr}}
+.feature{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.feature .ico{font-size:22px;margin-bottom:8px}
+.feature h3{font-size:15px;margin-bottom:6px}
+.feature p{font-size:13.5px;color:var(--muted)}
+.who{background:linear-gradient(135deg,#132a47,#0a1628);border:1px solid var(--line);border-radius:16px;padding:28px}
+.who h2{margin-bottom:10px}
+.who p{color:var(--muted);margin-bottom:14px}
+.who ul{color:var(--ink);padding-left:18px}
+.who li{margin:6px 0}
+.pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:800px){.pricing{grid-template-columns:1fr}}
+.price{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column}
+.price.featured{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.price .plan{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.price .amt{font-family:"Barlow Condensed",sans-serif;font-size:36px;margin:8px 0}
+.price .amt span{font-size:14px;color:var(--muted)}
+.price ul{flex:1;margin:12px 0 18px;padding-left:18px;color:var(--muted);font-size:13.5px}
+.price li{margin:5px 0}
+.cta-band{margin-top:36px;text-align:center;padding:36px 22px;border-radius:16px;background:linear-gradient(135deg,#0d9dc7,#132a47);border:1px solid #1a4a66}
+.cta-band h2{font-family:"Barlow Condensed",sans-serif;font-size:30px;margin-bottom:8px}
+.cta-band p{opacity:.9;margin-bottom:18px}
+.footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="nav">
+    <div class="brand">
+      <img src="/logo.jpg" alt="HandzJ">
+      <div class="name">HANDZJ DIGITAL RECEIPTS</div>
+    </div>
+    <div class="links">
+      <a class="btn ghost" href="#features">Features</a>
+      <a class="btn ghost" href="#pricing">Pricing</a>
+      <a class="btn primary" href="/app.html">Open app →</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div>
+      <h1>Professional digital receipts for any business — generate, send, verify.</h1>
+      <p class="lead">
+        Built for shops, freelancers, software sellers, clinics, and service companies
+        that still use paper or WhatsApp photos as “receipts”. Issue branded PDFs,
+        send them to clients by email or WhatsApp, and let anyone verify authenticity online.
+      </p>
+      <div class="cta">
+        <a class="btn primary" href="/app.html">Start issuing receipts</a>
+        <a class="btn" href="#who">Is this for me?</a>
+      </div>
+      <p class="note">Local mode works immediately. Connect Supabase + Vercel when you are ready for the cloud.</p>
+    </div>
+    <div class="card">
+      <h3>What you get</h3>
+      <ul>
+        <li>Branded digital payment receipts (PDF)</li>
+        <li>Receipt numbers + verification QR</li>
+        <li>Send to client via <b>Email</b> or <b>WhatsApp</b></li>
+        <li>Searchable receipt log (VALID / VOIDED)</li>
+        <li>Works for software, products, and services</li>
+        <li>Ready for multi-business (commercial) use</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <h2>Everything a receipting service needs</h2>
+    <p class="sub">From first payment to client proof — without paper.</p>
+    <div class="grid3">
+      <div class="feature">
+        <div class="ico">📄</div>
+        <h3>Generate</h3>
+        <p>Issue permanent receipt numbers, amount in words, logo, and a clean A4 PDF in seconds.</p>
+      </div>
+      <div class="feature">
+        <div class="ico">📤</div>
+        <h3>Send</h3>
+        <p>One click to WhatsApp the client, or open email with the receipt details. Cloud email API optional.</p>
+      </div>
+      <div class="feature">
+        <div class="ico">✅</div>
+        <h3>Verify</h3>
+        <p>Clients scan the QR code to confirm the receipt is VALID and issued by your business.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="who">
+    <div class="who">
+      <h2>Who this is for</h2>
+      <p>Target clients: businesses that collect payments but have no professional receipting service.</p>
+      <ul>
+        <li>Retail shops &amp; wholesalers</li>
+        <li>Software / SaaS / license sellers</li>
+        <li>Freelancers &amp; agencies</li>
+        <li>Clinics, schools, churches, NGOs</li>
+        <li>Any business still sending payment “proof” as a chat photo</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="pricing">
+    <h2>Simple commercial plans</h2>
+    <p class="sub">Adjust prices for your market. Shown as a starting template.</p>
+    <div class="pricing">
+      <div class="price">
+        <div class="plan">Starter</div>
+        <div class="amt">Free <span>/ local</span></div>
+        <ul>
+          <li>Local browser storage</li>
+          <li>Unlimited drafts on one device</li>
+          <li>PDF + WhatsApp share</li>
+          <li>Logo on receipts</li>
+        </ul>
+        <a class="btn" href="/app.html">Use free local</a>
+      </div>
+      <div class="price featured">
+        <div class="plan">Business</div>
+        <div class="amt">UGX 50,000 <span>/ mo</span></div>
+        <ul>
+          <li>Cloud log (Supabase)</li>
+          <li>Team access</li>
+          <li>Online verification links</li>
+          <li>Email receipts to clients</li>
+          <li>Priority support</li>
+        </ul>
+        <a class="btn primary" href="mailto:handzj2@gmail.com?subject=HandzJ%20Receipts%20Business%20Plan">Contact sales</a>
+      </div>
+      <div class="price">
+        <div class="plan">Enterprise</div>
+        <div class="amt">Custom</div>
+        <ul>
+          <li>Multi-branch / multi-business</li>
+          <li>Custom domain &amp; branding</li>
+          <li>API access</li>
+          <li>SLA &amp; onboarding</li>
+        </ul>
+        <a class="btn" href="mailto:handzj2@gmail.com?subject=HandzJ%20Receipts%20Enterprise">Talk to us</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band" id="cta">
+    <h2>Stop sending payment screenshots. Start issuing real digital receipts.</h2>
+    <p>Open the app, issue your first receipt, and send it to a client on WhatsApp in under a minute.</p>
+    <a class="btn primary" href="/app.html" style="background:#fff;color:#0a1628;border-color:#fff">Launch receipt system →</a>
+  </section>
+
+  <footer class="footer">
+    <div>© HandzJ Tech Solutions · Digital Receipt System</div>
+    <div>Phone 0781 909 507 · WhatsApp 0757 632 884 · handzj2@gmail.com</div>
+  </footer>
+</div>
+</body>
+</html>

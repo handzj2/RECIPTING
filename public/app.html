@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HandzJ Digital Receipt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6f9; --panel:#ffffff; --panel-2:#fbfcfe; --ink:#101826; --ink-soft:#4a586e;
+  --line:#dde3ec; --line-soft:#eaeff6; --brand:#0a1628; --brand-2:#132a47; --accent:#0d9dc7;
+  --accent-soft:#e3f4fa; --ok:#0f7b52; --ok-soft:#e2f4ec; --bad:#a32020; --bad-soft:#fbe7e7;
+  --shadow:0 1px 2px rgba(16,24,38,.06),0 8px 24px rgba(16,24,38,.07);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c111a; --panel:#141b26; --panel-2:#101823; --ink:#e8edf5; --ink-soft:#9dabc0;
+    --line:#26303f; --line-soft:#1c2533; --brand:#0a1628; --brand-2:#132a47; --accent:#3fc0e6;
+    --accent-soft:#12303c; --ok:#5fd6a4; --ok-soft:#10301f; --bad:#ff8a8a; --bad-soft:#341414;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c111a; --panel:#141b26; --panel-2:#101823; --ink:#e8edf5; --ink-soft:#9dabc0;
+  --line:#26303f; --line-soft:#1c2533; --brand:#0a1628; --brand-2:#132a47; --accent:#3fc0e6;
+  --accent-soft:#12303c; --ok:#5fd6a4; --ok-soft:#10301f; --bad:#ff8a8a; --bad-soft:#341414;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:18px 16px 64px}
+h1,h2,h3{margin:0}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+
+/* ---------- app header ---------- */
+.topbar{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,var(--brand) 0%,var(--brand-2) 100%);
+  color:#eaf6fb;border-radius:14px;padding:14px 18px;box-shadow:var(--shadow);flex-wrap:wrap}
+.topbar img{width:54px;height:54px;border-radius:10px;flex:none;object-fit:cover}
+.topbar .t1{font-family:"Barlow Condensed",Inter,sans-serif;font-size:26px;font-weight:700;letter-spacing:.06em;line-height:1.1}
+.topbar .t2{font-size:12px;color:#9fd8ea;letter-spacing:.03em}
+.topbar .grow{flex:1 1 180px}
+.tabs{display:flex;gap:6px;background:rgba(255,255,255,.08);padding:4px;border-radius:10px}
+.tabs button{background:transparent;border:0;color:#cfe8f2;padding:8px 14px;border-radius:7px;font-weight:600;font-size:13.5px}
+.tabs button[aria-selected="true"]{background:#eaf6fb;color:#0a1628}
+
+/* ---------- layout ---------- */
+.grid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:18px;margin-top:18px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.card-h{padding:14px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-h h2{font-size:14px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.card-b{padding:16px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.field textarea{min-height:64px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+.hint{font-size:12px;color:var(--ink-soft);margin-top:4px}
+.seg{display:flex;gap:6px;background:var(--panel-2);border:1px solid var(--line);padding:4px;border-radius:10px}
+.seg button{flex:1;border:0;background:transparent;color:var(--ink-soft);padding:8px;border-radius:7px;font-weight:600;font-size:13.5px}
+.seg button[aria-pressed="true"]{background:var(--brand);color:#eaf6fb}
+.btn{border:1px solid var(--line);background:var(--panel-2);color:var(--ink);padding:10px 15px;border-radius:9px;font-weight:600;font-size:14px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#eaf6fb}
+.btn.danger{color:var(--bad);border-color:var(--line)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row-actions{display:flex;gap:9px;flex-wrap:wrap}
+.notice{padding:10px 12px;border-radius:9px;font-size:13.5px;margin-bottom:12px;border:1px solid var(--line)}
+.notice.warn{background:var(--bad-soft);border-color:transparent;color:var(--bad)}
+.notice.good{background:var(--ok-soft);border-color:transparent;color:var(--ok)}
+
+/* ---------- table ---------- */
+.tools{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+.tools input,.tools select{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+.tools input{flex:1 1 220px}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:720px}
+th{text-align:left;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:9px 10px;border-bottom:1px solid var(--line)}
+td{padding:10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--panel-2)}
+.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.05em}
+.pill.valid{background:var(--ok-soft);color:var(--ok)}
+.pill.void{background:var(--bad-soft);color:var(--bad)}
+.empty{padding:28px;text-align:center;color:var(--ink-soft);font-size:14px}
+
+/* ---------- receipt document ---------- */
+.paper-scroll{overflow-x:auto}
+.paper{position:relative;width:794px;max-width:100%;margin:0 auto;background:#ffffff;color:#101826;
+  border:1px solid #d7dee8;border-radius:10px;padding:34px 38px 26px;overflow:hidden;box-shadow:var(--shadow)}
+.paper *{position:relative;z-index:1}
+.wm{position:absolute;inset:0;z-index:0;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden}
+.wm img{width:460px;max-width:80%;opacity:.055;filter:grayscale(1)}
+.wm .wmtext{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-24deg);text-align:center;
+  font-family:"Barlow Condensed",Inter,sans-serif;letter-spacing:.18em;color:#0a1628;opacity:.06;white-space:nowrap}
+.wm .wmtext .a{font-size:46px;font-weight:700}
+.wm .wmtext .b{font-size:22px;font-weight:600}
+.wm .wmtext .c{font-size:18px;font-weight:600;letter-spacing:.24em}
+.rhead{display:flex;gap:18px;align-items:center;border-bottom:3px solid #0a1628;padding-bottom:16px}
+.rhead img.logo{width:96px;height:96px;object-fit:cover;border-radius:8px;flex:none}
+.rhead .co{flex:1;min-width:0}
+.rhead .co .name{font-family:"Barlow Condensed",Inter,sans-serif;font-size:34px;font-weight:700;letter-spacing:.05em;line-height:1.05;color:#0a1628}
+.rhead .co .tag{font-size:12.5px;color:#2d4260;font-style:italic;margin-top:3px}
+.rhead .co .contact{font-size:11.5px;color:#4a586e;margin-top:7px;line-height:1.6}
+.rtitle{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:16px 0 14px;flex-wrap:wrap}
+.rtitle .lbl{font-family:"Barlow Condensed",Inter,sans-serif;font-size:23px;font-weight:700;letter-spacing:.16em;color:#0a1628}
+.rtitle .meta{text-align:right;font-size:12.5px;color:#2d4260;line-height:1.7}
+.rtitle .meta b{font-size:15px;color:#0a1628;letter-spacing:.04em}
+.block{border:1px solid #d7dee8;border-radius:8px;overflow:hidden;margin-bottom:14px;background:rgba(255,255,255,.72)}
+.block .bh{background:#f0f4f9;padding:7px 12px;font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:#2d4260;border-bottom:1px solid #d7dee8}
+.kv{display:grid;grid-template-columns:190px 1fr;gap:0}
+.kv>div{padding:8px 12px;border-bottom:1px solid #eef2f7;font-size:13px}
+.kv>div:nth-child(odd){color:#4a586e;font-weight:600;background:rgba(240,244,249,.45)}
+.kv>div:nth-last-child(-n+2){border-bottom:0}
+.amountbar{display:flex;justify-content:space-between;align-items:center;gap:16px;background:#0a1628;color:#eaf6fb;
+  border-radius:8px;padding:14px 18px;margin-bottom:6px;flex-wrap:wrap}
+.amountbar .l{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#9fd8ea}
+.amountbar .v{font-family:"Barlow Condensed",Inter,sans-serif;font-size:32px;font-weight:700;letter-spacing:.03em}
+.words{font-size:12.5px;color:#2d4260;margin:0 0 14px;padding:0 2px}
+.words b{color:#0a1628}
+.rfoot{display:flex;gap:18px;align-items:flex-start;justify-content:space-between;border-top:1px solid #d7dee8;padding-top:14px;margin-top:6px;flex-wrap:wrap}
+.rfoot .sig{flex:1 1 300px;font-size:12px;color:#4a586e;line-height:1.7}
+.rfoot .sig .line{margin-top:26px;border-top:1px solid #9aa8bd;width:210px;padding-top:4px}
+.qrbox{text-align:center;flex:none;width:170px}
+.qrbox .qr{width:132px;height:132px;margin:0 auto;background:#fff;padding:5px;border:1px solid #d7dee8;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.qrbox .qr img,.qrbox .qr canvas{width:100%!important;height:100%!important;display:block}
+.qrbox .cap{font-size:9.5px;color:#4a586e;margin-top:5px;line-height:1.45;word-break:break-all}
+.stamp{position:absolute;top:150px;right:44px;z-index:2;transform:rotate(-16deg);border:4px double;border-radius:8px;
+  padding:5px 16px;font-family:"Barlow Condensed",Inter,sans-serif;font-size:31px;font-weight:700;letter-spacing:.14em;opacity:.78}
+.stamp.valid{color:#0f7b52;border-color:#0f7b52}
+.stamp.void{color:#a32020;border-color:#a32020}
+.stamp.draft{color:#7a8699;border-color:#7a8699}
+.issued{text-align:center;font-size:10.5px;color:#4a586e;border-top:1px dashed #cdd6e2;margin-top:14px;padding-top:9px;line-height:1.6}
+
+/* ---------- verification view ---------- */
+.verify{max-width:620px;margin:22px auto}
+.verify .vbig{display:flex;align-items:center;gap:12px;font-family:"Barlow Condensed",Inter,sans-serif;font-size:27px;font-weight:700;letter-spacing:.08em}
+.dot{width:13px;height:13px;border-radius:50%;flex:none}
+.dot.ok{background:var(--ok)} .dot.bad{background:var(--bad)} .dot.unk{background:#8c97a8}
+
+/* ---------- print ---------- */
+@media print{
+  @page{size:A4;margin:11mm}
+  body{background:#fff}
+  .noprint{display:none!important}
+  .wrap{max-width:none;padding:0}
+  .paper{width:auto;max-width:none;border:0;border-radius:0;box-shadow:none;padding:0 0 8px}
+  .paper,.paper *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .paper-scroll{overflow:visible}
+}
+</style>
+  <script src="/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== app chrome ===== -->
+  <div class="topbar noprint" id="topbar">
+    <img id="topLogo" alt="HandzJ Tech Solutions">
+    <div class="grow">
+      <div class="t1">HANDZJ TECH SOLUTIONS</div>
+      <div class="t2">Digital Receipt System &middot; V1</div>
+    </div>
+    <div class="tabs" id="tabs">
+      <button data-tab="new" aria-selected="true">New receipt</button>
+      <button data-tab="log" aria-selected="false">Receipt log</button>
+    </div>
+  </div>
+
+  <div id="dbNotice" class="noprint" style="margin-top:14px"></div>
+
+  <!-- ===== tab: new receipt ===== -->
+  <div id="tab-new" class="grid noprint">
+    <div class="card">
+      <div class="card-h"><h2>Payment details</h2></div>
+      <div class="card-b">
+        <div class="field">
+          <label>Receipt for</label>
+          <div class="seg" id="kindSeg">
+            <button type="button" data-kind="software" aria-pressed="true">Software / product</button>
+            <button type="button" data-kind="service" aria-pressed="false">Service</button>
+          </div>
+        </div>
+        <div class="field"><label>Customer / company</label><input id="f_customer" placeholder="ABC Microfinance Ltd"></div>
+        <div class="two">
+          <div class="field"><label>Customer email <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custEmail" type="email" placeholder="name@company.com"></div>
+          <div class="field"><label>Customer phone <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custPhone" placeholder="0700 000 000"></div>
+        </div>
+        <div class="field" id="w_product"><label>Software / product</label><input id="f_item" placeholder="HZ SENTE"></div>
+        <div class="two" id="w_soft">
+          <div class="field"><label>License / package</label><input id="f_package" placeholder="Annual Software License"></div>
+          <div class="field"><label>License period</label><input id="f_period" placeholder="18 Sep 2026 – 17 Sep 2027"></div>
+        </div>
+        <div class="field" id="w_ref" style="display:none"><label>Project / service reference</label><input id="f_projref" placeholder="HJT-PRJ-014"></div>
+        <div class="field"><label>Description</label><textarea id="f_desc" placeholder="What exactly was paid for"></textarea></div>
+        <div class="two">
+          <div class="field"><label>Amount paid</label><input id="f_amount" inputmode="decimal" placeholder="2500000"></div>
+          <div class="field"><label>Currency</label>
+            <select id="f_currency"><option>UGX</option><option>USD</option><option>KES</option><option>EUR</option><option>GBP</option></select>
+          </div>
+        </div>
+        <div class="field"><div class="hint" id="wordsPreview">Amount in words appears here.</div></div>
+        <div class="two">
+          <div class="field"><label>Payment method</label>
+            <select id="f_method">
+              <option>Mobile Money</option><option>Bank Transfer</option><option>Cash</option>
+              <option>Card</option><option>Cheque</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Payment reference / txn ID</label><input id="f_txn" placeholder="TXN458921"></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Payment date</label><input id="f_date" type="date"></div>
+          <div class="field"><label>Received by</label><input id="f_by" placeholder="Full name"></div>
+        </div>
+        <div class="field"><label>Notes</label><textarea id="f_notes" placeholder="Optional — visible on the receipt"></textarea></div>
+        <div class="row-actions">
+          <button class="btn" id="btnPreview" type="button">Preview</button>
+          <button class="btn primary" id="btnIssue" type="button">Issue receipt</button>
+          <button class="btn" id="btnClear" type="button">Clear</button>
+        </div>
+        <div class="hint" style="margin-top:9px">Issuing assigns a permanent receipt number and records it in the log. Issued receipts are never deleted — only voided.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <h2 id="previewLabel">Preview</h2>
+        <div class="row-actions"><button class="btn" id="btnPrintPreview" type="button" disabled>Print / Save PDF</button></div>
+      </div>
+      <div class="card-b">
+        <div id="previewHost" class="paper-scroll"><div class="empty">Fill the form and press Preview.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== admin-locked notice ===== -->
+  <div id="tab-locked" class="noprint" style="display:none;margin-top:18px"></div>
+
+  <!-- ===== tab: log ===== -->
+  <div id="tab-log" class="card noprint" style="display:none;margin-top:18px">
+    <div class="card-h"><h2>Receipt log</h2><span class="hint" id="logCount"></span></div>
+    <div class="card-b">
+      <div class="tools">
+        <input id="q" placeholder="Search receipt no, customer, product/service, reference…">
+        <select id="fStatus"><option value="">All statuses</option><option value="VALID">VALID</option><option value="VOIDED">VOIDED</option></select>
+        <input id="fFrom" type="date" title="From date"><input id="fTo" type="date" title="To date">
+      </div>
+      <div class="tblwrap">
+        <table>
+          <thead><tr><th>Receipt</th><th>Date</th><th>Customer</th><th>Product / service</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+      <div id="logEmpty" class="empty">No receipts yet.</div>
+    </div>
+  </div>
+
+  <!-- ===== single receipt view (also used for print) ===== -->
+  <div id="tab-view" style="display:none;margin-top:18px">
+    <div class="row-actions noprint" style="margin-bottom:14px">
+      <button class="btn" id="btnBack" type="button">← Back to log</button>
+      <button class="btn primary" id="btnDownload" type="button">Download PDF</button>
+      <button class="btn" id="btnPrintOne" type="button">Print</button>
+      <button class="btn" id="btnCopyVerify" type="button">Copy verification link</button>
+      <button class="btn primary" id="btnWhatsApp" type="button">Send WhatsApp</button>
+      <button class="btn" id="btnEmail" type="button">Send Email</button>
+      <button class="btn danger" id="btnVoid" type="button">Void receipt</button>
+    </div>
+    <div id="viewHost" class="paper-scroll"></div>
+  </div>
+
+  <!-- ===== verification view ===== -->
+  <div id="tab-verify" class="noprint" style="display:none"></div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+"use strict";
+
+/* ============================================================
+   HandzJ Digital Receipt — V1
+   Flow: Create → Record → Generate → Print/PDF → Verify → Void
+   ============================================================ */
+
+var LOGO = "/logo.jpg";
+
+var CO = {
+  name: "HANDZJ TECH SOLUTIONS",
+  tagline: "We Build Brands. We Power Systems. We Drive Growth.",
+  phone: "0781 909 507",
+  whatsapp: "0757 632 884",
+  email: "handzj2@gmail.com"
+};
+
+var CURRENCY = {
+  UGX: { unit: "Uganda Shillings", sub: "Cents", dp: 0 },
+  USD: { unit: "US Dollars", sub: "Cents", dp: 2 },
+  KES: { unit: "Kenya Shillings", sub: "Cents", dp: 2 },
+  EUR: { unit: "Euros", sub: "Cents", dp: 2 },
+  GBP: { unit: "Pounds Sterling", sub: "Pence", dp: 2 }
+};
+
+var $ = function (id) { return document.getElementById(id); };
+var db = null, canWriteShared = true, current = null, kind = "software", cache = [];
+var access = { canEdit: true, checked: false }; /* default open until checked, then locked down if not editor */
+
+/* ---------------- helpers ---------------- */
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+function todayISO() {
+  var d = new Date(), p = function (n) { return String(n).padStart(2, "0"); };
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+}
+function fmtDate(iso) {
+  if (!iso) return "—";
+  var p = String(iso).slice(0, 10).split("-");
+  if (p.length !== 3) return iso;
+  var M = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var mi = parseInt(p[1], 10) - 1;
+  if (isNaN(mi) || !M[mi]) return iso;
+  return parseInt(p[2], 10) + " " + M[mi] + " " + p[0];
+}
+function fmtStamp(ts) {
+  if (!ts) return "—";
+  var d = new Date(ts);
+  if (isNaN(d.getTime())) return "—";
+  var p = function (n) { return String(n).padStart(2, "0"); };
+  return fmtDate(d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate())) +
+    " at " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+function money(amount, code) {
+  var dp = (CURRENCY[code] || CURRENCY.UGX).dp;
+  var n = Number(amount);
+  if (!isFinite(n)) n = 0;
+  return code + " " + n.toLocaleString("en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp });
+}
+
+var ONES = ["", "One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve",
+  "Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+var TENS = ["", "", "Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+var SCALE = ["", "Thousand", "Million", "Billion", "Trillion"];
+
+function under1000(n) {
+  var out = [];
+  if (n >= 100) { out.push(ONES[Math.floor(n / 100)], "Hundred"); n = n % 100; if (n) out.push("and"); }
+  if (n >= 20) { out.push(TENS[Math.floor(n / 10)]); if (n % 10) out.push(ONES[n % 10]); }
+  else if (n > 0) out.push(ONES[n]);
+  return out.join(" ");
+}
+function intToWords(n) {
+  n = Math.floor(Math.abs(n));
+  if (n === 0) return "Zero";
+  if (n > 999999999999999) return "Amount too large";
+  var groups = [], i = 0;
+  while (n > 0) { groups.push(n % 1000); n = Math.floor(n / 1000); }
+  var parts = [];
+  for (i = groups.length - 1; i >= 0; i--) {
+    if (!groups[i]) continue;
+    parts.push(under1000(groups[i]) + (SCALE[i] ? " " + SCALE[i] : ""));
+  }
+  return parts.join(" ").replace(/\s+/g, " ").trim();
+}
+function amountInWords(amount, code) {
+  var c = CURRENCY[code] || CURRENCY.UGX;
+  var n = Number(amount);
+  if (!isFinite(n)) return "—";
+  var whole = Math.floor(Math.abs(n));
+  var cents = Math.round((Math.abs(n) - whole) * 100);
+  var s = intToWords(whole) + " " + c.unit;
+  if (cents > 0) s += " and " + intToWords(cents) + " " + c.sub;
+  return s + " Only";
+}
+
+function randId(len) {
+  var b = new Uint8Array(len), i, s = "";
+  (window.crypto || window.msCrypto).getRandomValues(b);
+  for (i = 0; i < b.length; i++) s += "0123456789ABCDEF"[b[i] % 16];
+  return s;
+}
+function baseUrl() {
+  var c = (window.HANDZJ_CONFIG || {});
+  if (c.APP_URL) return String(c.APP_URL).replace(/\/$/, "");
+  return location.origin + location.pathname.replace(/\/app\.html$/, "/");
+}
+function verifyUrl(r) {
+  return baseUrl() + "#/verify/" + r.receiptNo + "/" + r.verifyId;
+}
+function maskName(name) {
+  var w = String(name || "").trim().split(/\s+/);
+  if (!w[0]) return "—";
+  if (w.length === 1) return w[0].slice(0, 2) + "•••";
+  return w[0] + " " + w.slice(1).map(function (x) { return x[0].toUpperCase() + "•"; }).join(" ");
+}
+function maskRef(ref) {
+  var s = String(ref || "").trim();
+  if (!s) return "—";
+  return s.length <= 4 ? "••" + s.slice(-2) : "••••" + s.slice(-4);
+}
+
+/* ---------------- storage ---------------- */
+
+var local = {
+  key: "handzj_receipts_v1",
+  all: function () {
+    try { return JSON.parse(localStorage.getItem(this.key) || "[]"); } catch (e) { return []; }
+  },
+  put: function (r) {
+    try {
+      var a = this.all().filter(function (x) { return x.receiptNo !== r.receiptNo; });
+      a.push(r); localStorage.setItem(this.key, JSON.stringify(a));
+    } catch (e) {}
+  },
+  replaceAll: function (arr) {
+    try { localStorage.setItem(this.key, JSON.stringify(arr)); } catch (e) {}
+  }
+};
+
+
+/* ---------------- Supabase cloud sync ---------------- */
+
+var sb = null;           // supabase client
+var businessId = null;   // current tenant
+var cloudMode = false;
+
+function cfg() {
+  return window.HANDZJ_CONFIG || {};
+}
+
+function supabaseConfigured() {
+  var c = cfg();
+  return !!(c.SUPABASE_URL && c.SUPABASE_ANON_KEY && window.supabase);
+}
+
+function rowToReceipt(row) {
+  if (!row) return null;
+  return {
+    receiptNo: row.receipt_no,
+    verifyId: row.verify_id,
+    status: row.status,
+    kind: row.kind,
+    customer: row.customer,
+    custEmail: row.cust_email || "",
+    custPhone: row.cust_phone || "",
+    item: row.item,
+    pkg: row.pkg || "",
+    period: row.period || "",
+    projRef: row.proj_ref || "",
+    description: row.description || "",
+    amount: Number(row.amount) || 0,
+    currency: row.currency || "UGX",
+    method: row.method || "",
+    txn: row.txn || "",
+    paidOn: row.paid_on || "",
+    receivedBy: row.received_by || "",
+    notes: row.notes || "",
+    createdAt: row.created_at || null,
+    voidedAt: row.voided_at || null,
+    voidReason: row.void_reason || ""
+  };
+}
+
+function receiptToRow(r) {
+  return {
+    business_id: businessId,
+    receipt_no: r.receiptNo,
+    verify_id: r.verifyId,
+    status: r.status || "VALID",
+    kind: r.kind || "software",
+    customer: r.customer,
+    cust_email: r.custEmail || null,
+    cust_phone: r.custPhone || null,
+    item: r.item,
+    pkg: r.pkg || null,
+    period: r.period || null,
+    proj_ref: r.projRef || null,
+    description: r.description || null,
+    amount: r.amount,
+    currency: r.currency || "UGX",
+    method: r.method || null,
+    txn: r.txn || null,
+    paid_on: r.paidOn || null,
+    received_by: r.receivedBy || null,
+    notes: r.notes || null,
+    created_at: r.createdAt || new Date().toISOString(),
+    voided_at: r.voidedAt || null,
+    void_reason: r.voidReason || null
+  };
+}
+
+async function ensureBusiness() {
+  var c = cfg();
+  if (c.BUSINESS_ID) {
+    businessId = c.BUSINESS_ID;
+    return businessId;
+  }
+  var { data, error } = await sb.from("businesses").select("id,name").eq("name", CO.name).limit(1);
+  if (error) throw error;
+  if (data && data.length) {
+    businessId = data[0].id;
+    return businessId;
+  }
+  var ins = await sb.from("businesses").insert({
+    name: CO.name,
+    tagline: CO.tagline,
+    phone: CO.phone,
+    whatsapp: CO.whatsapp,
+    email: CO.email,
+    plan: "business"
+  }).select("id").single();
+  if (ins.error) throw ins.error;
+  businessId = ins.data.id;
+  return businessId;
+}
+
+async function initSupabase() {
+  if (!supabaseConfigured()) return false;
+  var c = cfg();
+  sb = window.supabase.createClient(c.SUPABASE_URL, c.SUPABASE_ANON_KEY);
+  await ensureBusiness();
+  cloudMode = true;
+  return true;
+}
+
+async function cloudLoadReceipts() {
+  var { data, error } = await sb.from("receipts")
+    .select("*")
+    .eq("business_id", businessId)
+    .order("created_at", { ascending: false })
+    .limit(500);
+  if (error) throw error;
+  return (data || []).map(rowToReceipt);
+}
+
+async function cloudSaveReceipt(r) {
+  var row = receiptToRow(r);
+  // upsert on (business_id, receipt_no)
+  var { error } = await sb.from("receipts").upsert(row, {
+    onConflict: "business_id,receipt_no"
+  });
+  if (error) throw error;
+}
+
+async function cloudNextReceiptNo() {
+  var year = new Date().getFullYear();
+  var mk = function (n) { return "HJT-" + year + "-" + String(n).padStart(6, "0"); };
+
+  // Try sequence table first
+  var { data: seqRow } = await sb.from("receipt_sequences")
+    .select("seq")
+    .eq("business_id", businessId)
+    .eq("year", year)
+    .maybeSingle();
+
+  var seq = seqRow && typeof seqRow.seq === "number" ? seqRow.seq : 0;
+
+  for (var i = 0; i < 80; i++) {
+    seq += 1;
+    var no = mk(seq);
+    var { data: exists } = await sb.from("receipts")
+      .select("receipt_no")
+      .eq("business_id", businessId)
+      .eq("receipt_no", no)
+      .maybeSingle();
+    if (!exists) {
+      await sb.from("receipt_sequences").upsert({
+        business_id: businessId,
+        year: year,
+        seq: seq
+      }, { onConflict: "business_id,year" });
+      return no;
+    }
+  }
+  throw new Error("Could not allocate a receipt number");
+}
+
+function cloudNoticeHTML() {
+  return "Cloud sync <b>ON</b> (Supabase). Receipts are shared online. " +
+    "Verification works from any device. Business id: <code>" +
+    esc(String(businessId || "").slice(0, 8)) + "…</code>";
+}
+
+
+/* ---- local folder (File System Access API): a real designated folder on this
+   device, chosen once, remembered across sessions via an IndexedDB-stored handle.
+   Only used as the fallback store when shared `db` storage is unavailable, and only
+   in browsers that support it (desktop Chrome/Edge). ---- */
+var folder = {
+  handle: null,
+  supported: typeof window.showDirectoryPicker === "function",
+  fileName: "handzj-receipts.json",
+
+  _idb: function () {
+    return new Promise(function (resolve, reject) {
+      var req = indexedDB.open("handzj_fs_v1", 1);
+      req.onupgradeneeded = function () { req.result.createObjectStore("handles"); };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+  },
+  _getStored: function () {
+    return this._idb().then(function (db) {
+      return new Promise(function (resolve) {
+        var tx = db.transaction("handles", "readonly").objectStore("handles").get("folder");
+        tx.onsuccess = function () { resolve(tx.result || null); };
+        tx.onerror = function () { resolve(null); };
+      });
+    }).catch(function () { return null; });
+  },
+  _setStored: function (h) {
+    return this._idb().then(function (db) {
+      return new Promise(function (resolve) {
+        var tx = db.transaction("handles", "readwrite").objectStore("handles").put(h, "folder");
+        tx.oncomplete = function () { resolve(true); };
+        tx.onerror = function () { resolve(false); };
+      });
+    }).catch(function () { return false; });
+  },
+
+  init: async function () {
+    if (!this.supported) return;
+    var h = await this._getStored();
+    if (!h) return;
+    try {
+      var perm = await h.queryPermission({ mode: "readwrite" });
+      if (perm === "granted") this.handle = h;
+      /* if "prompt" or "denied", leave handle unset — needs a click to re-grant (see reconnect()) */
+    } catch (e) {}
+  },
+  connect: async function () {
+    if (!this.supported) throw new Error("not_supported");
+    var h = await window.showDirectoryPicker({ mode: "readwrite" });
+    var perm = await h.requestPermission({ mode: "readwrite" });
+    if (perm !== "granted") throw new Error("permission_denied");
+    await this._setStored(h);
+    this.handle = h;
+    var existing = await this.read();
+    if (existing.length) { cache = existing; local.replaceAll(existing); }
+    else if (cache.length) { await this.write(cache); }
+    return true;
+  },
+  reconnect: async function () {
+    var h = await this._getStored();
+    if (!h) return this.connect();
+    var perm = await h.requestPermission({ mode: "readwrite" });
+    if (perm !== "granted") throw new Error("permission_denied");
+    this.handle = h;
+    var existing = await this.read();
+    if (existing.length) { cache = existing; local.replaceAll(existing); }
+    return true;
+  },
+  disconnect: async function () {
+    this.handle = null;
+    await this._setStored(null);
+  },
+  write: async function (arr) {
+    if (!this.handle) return;
+    var fh = await this.handle.getFileHandle(this.fileName, { create: true });
+    var w = await fh.createWritable();
+    await w.write(JSON.stringify(arr, null, 2));
+    await w.close();
+  },
+  read: async function () {
+    if (!this.handle) return [];
+    try {
+      var fh = await this.handle.getFileHandle(this.fileName, { create: false });
+      var f = await fh.getFile();
+      var text = await f.text();
+      var arr = JSON.parse(text);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+};
+
+function storageNoticeHTML() {
+  if (folder.handle) {
+    return "Receipts are being saved to a folder on this device (<code>" + esc(folder.fileName) +
+      "</code> in your chosen folder), plus a copy in this browser. " +
+      "Verification links only resolve on this device until shared storage is available.";
+  }
+  var connectBtn = folder.supported
+    ? ' <button class="btn" id="btnConnectFolder" type="button" style="padding:3px 9px;font-size:12px;margin-left:4px">Connect a folder</button>'
+    : "";
+  return "Shared storage is unavailable in this view, so receipts are kept only in this browser" +
+    (folder.supported ? " unless you connect a folder." : ".") + connectBtn +
+    ' <button class="btn" id="btnExportBackup" type="button" style="padding:3px 9px;font-size:12px;margin-left:4px">Download backup (.json)</button>' +
+    '<input id="importBackup" type="file" accept="application/json" style="display:none">' +
+    ' <button class="btn" id="btnImportBackup" type="button" style="padding:3px 9px;font-size:12px;margin-left:4px">Import backup</button>' +
+    "<br>Verification links will not resolve for anyone else until shared storage is available.";
+}
+
+async function exportBackup() {
+  var data = JSON.stringify(cache, null, 2);
+  var dl = null;
+  try { dl = (window.claude && claude.use) ? await claude.use("downloads") : null; } catch (e) { dl = null; }
+  var fname = "handzj-receipts-backup-" + todayISO() + ".json";
+  if (dl) {
+    try { await dl.save({ filename: fname, data: data }); return; } catch (e) {}
+  }
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([data], { type: "application/json" }));
+  a.download = fname; a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+}
+
+function importBackupFile(file) {
+  var reader = new FileReader();
+  reader.onload = async function () {
+    var arr;
+    try { arr = JSON.parse(String(reader.result)); } catch (e) { say("That file isn't valid JSON.", "warn"); return; }
+    if (!Array.isArray(arr)) { say("Backup file doesn't look like a receipts export.", "warn"); return; }
+    var byNo = {}; cache.forEach(function (r) { byNo[r.receiptNo] = r; });
+    arr.forEach(function (r) { if (r && r.receiptNo) byNo[r.receiptNo] = r; });
+    cache = Object.keys(byNo).map(function (k) { return byNo[k]; })
+      .sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); });
+    local.replaceAll(cache);
+    if (folder.handle) { try { await folder.write(cache); } catch (e) {} }
+    renderLog(); peekNextNumber();
+    say("Imported " + arr.length + " receipt(s) from backup.", "good");
+  };
+  reader.readAsText(file);
+}
+
+function notice(html, cls) {
+  $("dbNotice").innerHTML = html ? '<div class="notice ' + (cls || "") + '">' + html + "</div>" : "";
+}
+
+async function initStore() {
+  /* 1) Supabase cloud (preferred when configured) */
+  try {
+    if (await initSupabase()) {
+      cache = await cloudLoadReceipts();
+      local.replaceAll(cache); /* keep offline mirror */
+      notice(cloudNoticeHTML(), "good");
+      render();
+      return;
+    }
+  } catch (e) {
+    notice("Supabase connected but failed to load: " + esc(e && e.message ? e.message : e) +
+      ". Falling back to local storage.", "warn");
+  }
+
+  /* 2) Legacy shared db (Claude / internal) */
+  try { db = (window.claude && claude.use) ? await claude.use("db") : null; } catch (e) { db = null; }
+  if (!db) {
+    await folder.init();
+    if (folder.handle) {
+      cache = await folder.read();
+      if (!cache.length) cache = local.all();
+    } else {
+      cache = local.all();
+    }
+    notice(storageNoticeHTML(), folder.handle ? "good" : "warn");
+  } else {
+    try {
+      var snap = await db.collection("receipts").orderBy("createdAt", "desc").limit(500).get();
+      cache = snap.docs.map(function (d) { return d.data(); });
+      notice("");
+    } catch (e) {
+      cache = [];
+      notice("Could not load the receipt log (" + esc(e && e.code ? e.code : "error") + ").", "warn");
+    }
+  }
+  render();
+}
+
+async function saveReceipt(r) {
+  if (cloudMode && sb) {
+    await cloudSaveReceipt(r);
+    local.put(r); /* offline mirror */
+  } else if (db) {
+    await db.doc("receipts/" + r.receiptNo).set(r);
+  } else {
+    local.put(r);
+    if (folder.handle) { try { await folder.write(local.all()); } catch (e) {} }
+  }
+  cache = cache.filter(function (x) { return x.receiptNo !== r.receiptNo; });
+  cache.unshift(r);
+}
+
+async function nextReceiptNo() {
+  var year = new Date().getFullYear();
+  var mk = function (n) { return "HJT-" + year + "-" + String(n).padStart(6, "0"); };
+  if (cloudMode && sb) {
+    return cloudNextReceiptNo();
+  }
+  if (!db) {
+    var mine = cache.filter(function (r) { return r.receiptNo.indexOf("HJT-" + year + "-") === 0; })
+      .map(function (r) { return parseInt(r.receiptNo.slice(-6), 10) || 0; });
+    return mk((mine.length ? Math.max.apply(null, mine) : 0) + 1);
+  }
+  var ref = db.doc("meta/sequence"), snap = await ref.get();
+  var data = snap.exists ? snap.data() : {};
+  var seq = (data && data.year === year && typeof data.seq === "number") ? data.seq : 0;
+  for (var i = 0; i < 60; i++) {
+    seq += 1;
+    var no = mk(seq);
+    var probe = await db.doc("receipts/" + no).get();
+    if (!probe.exists) {
+      await ref.set({ year: year, seq: seq, updatedAt: new Date().toISOString() });
+      return no;
+    }
+  }
+  throw new Error("Could not allocate a receipt number");
+}
+
+/* ---------------- form ---------------- */
+
+function readForm() {
+  return {
+    kind: kind,
+    customer: $("f_customer").value.trim(),
+    custEmail: $("f_custEmail").value.trim(),
+    custPhone: $("f_custPhone").value.trim(),
+    item: $("f_item").value.trim(),
+    pkg: $("f_package").value.trim(),
+    period: $("f_period").value.trim(),
+    projRef: $("f_projref").value.trim(),
+    description: $("f_desc").value.trim(),
+    amount: Number(String($("f_amount").value).replace(/[^0-9.\-]/g, "")) || 0,
+    currency: $("f_currency").value,
+    method: $("f_method").value,
+    txn: $("f_txn").value.trim(),
+    paidOn: $("f_date").value || todayISO(),
+    receivedBy: $("f_by").value.trim(),
+    notes: $("f_notes").value.trim()
+  };
+}
+function validate(d) {
+  var errs = [];
+  if (!d.customer) errs.push("customer / company name");
+  if (!d.item) errs.push(kind === "software" ? "software / product" : "service provided");
+  if (!(d.amount > 0)) errs.push("a valid amount");
+  if (!d.receivedBy) errs.push("who received the payment");
+  return errs;
+}
+function setKind(k) {
+  kind = k;
+  Array.prototype.forEach.call(document.querySelectorAll("#kindSeg button"), function (b) {
+    b.setAttribute("aria-pressed", String(b.dataset.kind === k));
+  });
+  var soft = k === "software";
+  $("w_soft").style.display = soft ? "" : "none";
+  $("w_ref").style.display = soft ? "none" : "";
+  $("w_product").querySelector("label").textContent = soft ? "Software / product" : "Service provided";
+  $("f_item").placeholder = soft ? "HZ SENTE" : "Website design & deployment";
+}
+function updateWords() {
+  var d = readForm();
+  $("wordsPreview").innerHTML = d.amount > 0
+    ? "<b>Amount in words:</b> " + esc(amountInWords(d.amount, d.currency))
+    : "Amount in words appears here.";
+}
+
+/* ---------------- receipt document ---------------- */
+
+function receiptHTML(r, opts) {
+  opts = opts || {};
+  var draft = !!opts.draft;
+  var rows = [];
+  var push = function (k, v) { if (v) rows.push("<div>" + esc(k) + "</div><div>" + esc(v) + "</div>"); };
+
+  push(r.kind === "software" ? "Software / product" : "Service provided", r.item);
+  if (r.kind === "software") { push("License / package", r.pkg); push("License period", r.period); }
+  else { push("Project / service reference", r.projRef); }
+  push("Description", r.description);
+
+  var pay = [];
+  pay.push("<div>Payment method</div><div>" + esc(r.method) + "</div>");
+  pay.push("<div>Payment reference</div><div>" + esc(r.txn || "—") + "</div>");
+  pay.push("<div>Payment date</div><div>" + esc(fmtDate(r.paidOn)) + "</div>");
+  if (r.notes) pay.push("<div>Notes</div><div>" + esc(r.notes) + "</div>");
+
+  var stampClass = draft ? "draft" : (r.status === "VOIDED" ? "void" : "valid");
+  var stampText = draft ? "PREVIEW" : r.status;
+  var no = draft ? "— not yet issued —" : r.receiptNo;
+
+  return '' +
+  '<div class="paper">' +
+    '<div class="wm" aria-hidden="true">' +
+      '<img src="' + LOGO + '" alt="">' +
+      '<div class="wmtext"><div class="a">HANDZJ TECH SOLUTIONS</div><div class="b">DIGITAL RECEIPT</div>' +
+        '<div class="c">' + esc(draft ? "PREVIEW" : "Receipt No: " + r.receiptNo) + '</div></div>' +
+    '</div>' +
+    '<div class="stamp ' + stampClass + '">' + esc(stampText) + '</div>' +
+    '<div class="rhead">' +
+      '<img class="logo" src="' + LOGO + '" alt="HandzJ Tech Solutions">' +
+      '<div class="co">' +
+        '<div class="name">' + CO.name + '</div>' +
+        '<div class="tag">' + CO.tagline + '</div>' +
+        '<div class="contact">Phone: ' + CO.phone + ' &nbsp;&middot;&nbsp; WhatsApp: ' + CO.whatsapp +
+          '<br>Email: ' + CO.email + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="rtitle">' +
+      '<div class="lbl">DIGITAL PAYMENT RECEIPT</div>' +
+      '<div class="meta">Receipt No: <b>' + esc(no) + '</b><br>' +
+        'Issued: ' + esc(draft ? fmtDate(todayISO()) : fmtStamp(r.createdAt)) + '</div>' +
+    '</div>' +
+    '<div class="block"><div class="bh">Received from</div><div class="kv">' +
+      '<div>Customer / company</div><div>' + esc(r.customer) + '</div>' +
+      (r.custEmail ? '<div>Email</div><div>' + esc(r.custEmail) + '</div>' : '') +
+      (r.custPhone ? '<div>Phone</div><div>' + esc(r.custPhone) + '</div>' : '') +
+    '</div></div>' +
+    '<div class="block"><div class="bh">Payment for</div><div class="kv">' + rows.join("") + '</div></div>' +
+    '<div class="amountbar"><div class="l">Amount paid</div><div class="v">' + esc(money(r.amount, r.currency)) + '</div></div>' +
+    '<p class="words"><b>Amount in words:</b> ' + esc(amountInWords(r.amount, r.currency)) + '</p>' +
+    '<div class="block"><div class="bh">Payment details</div><div class="kv">' + pay.join("") + '</div></div>' +
+    (r.status === "VOIDED" ?
+      '<p class="words"><b>VOIDED:</b> ' + esc(r.voidReason || "No reason recorded") + ' — ' + esc(fmtStamp(r.voidedAt)) + '</p>' : '') +
+    '<div class="rfoot">' +
+      '<div class="sig">Received by: <b>' + esc(r.receivedBy) + '</b><br>For and on behalf of ' + CO.name +
+        '<div class="line">Authorised signature</div></div>' +
+      '<div class="qrbox"><div class="qr" data-qr="' + esc(draft ? "" : verifyUrl(r)) + '"></div>' +
+        '<div class="cap">Scan to verify<br>' + esc(draft ? "(available once issued)" : verifyUrl(r)) + '</div></div>' +
+    '</div>' +
+    '<div class="issued">Digitally issued by ' + CO.name + '. This is a computer-generated receipt and is valid without a physical stamp.<br>' +
+      'Verification ID: ' + esc(draft ? "—" : r.verifyId) + ' &nbsp;&middot;&nbsp; Document status: ' + esc(draft ? "PREVIEW" : r.status) + '</div>' +
+  '</div>';
+}
+
+function paintQRs(host) {
+  Array.prototype.forEach.call(host.querySelectorAll("[data-qr]"), function (el) {
+    var url = el.getAttribute("data-qr");
+    el.innerHTML = "";
+    if (!url) { el.style.opacity = ".25"; return; }
+    el.style.opacity = "1";
+    if (typeof QRCode === "undefined") {
+      el.innerHTML = '<span style="font-size:9px;padding:6px;line-height:1.4">QR unavailable — use the link below</span>';
+      return;
+    }
+    try {
+      new QRCode(el, { text: url, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.M,
+        colorDark: "#0a1628", colorLight: "#ffffff" });
+    } catch (e) {
+      el.innerHTML = '<span style="font-size:9px;padding:6px">QR error</span>';
+    }
+  });
+}
+
+function showDoc(hostId, r, opts) {
+  var host = $(hostId);
+  host.innerHTML = receiptHTML(r, opts);
+  paintQRs(host);
+}
+
+/* ---------------- tabs / routing ---------------- */
+
+async function initAccess() {
+  var user = null;
+  try { user = (window.claude && claude.use) ? await claude.use("user") : null; } catch (e) { user = null; }
+  if (!user) { access = { canEdit: true, checked: false }; return; } /* capability unavailable: leave admin open, db rules still apply */
+  var can = false;
+  try { can = !!user.canEdit(); } catch (e) { can = false; }
+  access = { canEdit: can, checked: true };
+}
+
+function lockedNotice() {
+  return '<div class="card"><div class="card-b">' +
+    '<h2 style="font-size:16px;margin-bottom:8px">Editor access required</h2>' +
+    '<p class="hint">Issuing receipts and viewing the log is limited to people with edit access to this tool. ' +
+    'Ask the owner to give you “Can edit” access, or use a shared verification link to check a specific receipt.</p>' +
+    '</div></div>';
+}
+
+function showTab(name) {
+  var locked = access.checked && !access.canEdit && (name === "new" || name === "log");
+  $("tab-new").style.display = (name === "new" && !locked) ? "" : "none";
+  $("tab-log").style.display = (name === "log" && !locked) ? "" : "none";
+  $("tab-view").style.display = name === "view" ? "" : "none";
+  $("tab-verify").style.display = name === "verify" ? "" : "none";
+  $("tab-locked").style.display = locked ? "" : "none";
+  $("topbar").style.display = name === "verify" ? "none" : "";
+  Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function (b) {
+    b.setAttribute("aria-selected", String(b.dataset.tab === name));
+  });
+  if (locked) $("tab-locked").innerHTML = lockedNotice();
+  if (name === "log" && !locked) renderLog();
+}
+
+async function route() {
+  var m = /^#\/verify\/([^/]+)(?:\/([^/]+))?/.exec(location.hash || "");
+  if (m) { await renderVerify(decodeURIComponent(m[1]), m[2] ? decodeURIComponent(m[2]) : ""); showTab("verify"); }
+  else if (current) showTab("view");
+  else showTab(access.checked && !access.canEdit ? "log" : "new");
+}
+
+/* ---------------- log ---------------- */
+
+function filtered() {
+  var q = $("q").value.trim().toLowerCase(),
+      st = $("fStatus").value, from = $("fFrom").value, to = $("fTo").value;
+  return cache.filter(function (r) {
+    if (st && r.status !== st) return false;
+    if (from && String(r.paidOn) < from) return false;
+    if (to && String(r.paidOn) > to) return false;
+    if (!q) return true;
+    return [r.receiptNo, r.customer, r.custEmail, r.custPhone, r.item, r.pkg, r.projRef, r.txn, r.description, r.receivedBy]
+      .join(" ").toLowerCase().indexOf(q) !== -1;
+  });
+}
+function renderLog() {
+  var rows = filtered();
+  $("logCount").textContent = rows.length + " of " + cache.length + " receipt" + (cache.length === 1 ? "" : "s");
+  $("logEmpty").style.display = rows.length ? "none" : "";
+  $("logBody").innerHTML = rows.map(function (r) {
+    return '<tr data-no="' + esc(r.receiptNo) + '">' +
+      '<td class="mono"><b>' + esc(r.receiptNo) + '</b></td>' +
+      '<td class="mono">' + esc(String(r.paidOn).slice(0, 10)) + '</td>' +
+      '<td>' + esc(r.customer) + '</td>' +
+      '<td>' + esc(r.item) + (r.pkg ? ' <span style="opacity:.6">— ' + esc(r.pkg) + '</span>' : '') + '</td>' +
+      '<td class="mono">' + esc(money(r.amount, r.currency)) + '</td>' +
+      '<td>' + esc(r.method) + '</td>' +
+      '<td><span class="pill ' + (r.status === "VOIDED" ? "void" : "valid") + '">' + esc(r.status) + '</span></td>' +
+      '</tr>';
+  }).join("");
+}
+
+/* ---------------- verification ---------------- */
+
+async function lookup(no) {
+  var hit = cache.filter(function (r) { return r.receiptNo === no; })[0];
+  if (hit) return hit;
+  if (db) {
+    try {
+      var s = await db.doc("receipts/" + no).get();
+      if (s.exists) return s.data();
+    } catch (e) {}
+  }
+  return null;
+}
+
+async function renderVerify(no, vid) {
+  var host = $("tab-verify");
+  host.innerHTML = '<div class="card verify"><div class="card-b">Checking receipt…</div></div>';
+  var r = await lookup(no);
+  var ok = !!r && (!vid || r.verifyId === vid) && r.status === "VALID";
+  var genuine = !!r && (!vid || r.verifyId === vid);
+  var head, dot, msg;
+  if (!r || !genuine) { head = "NOT VERIFIED"; dot = "unk";
+    msg = "No receipt matching this number and verification ID was found in HandzJ Tech records."; }
+  else if (r.status === "VOIDED") { head = "VOIDED RECEIPT"; dot = "bad";
+    msg = "This receipt was issued by HandzJ Tech Solutions but has since been voided. It is not proof of a valid payment."; }
+  else { head = "VALID RECEIPT"; dot = "ok";
+    msg = "This receipt was issued by HandzJ Tech Solutions and is currently valid."; }
+
+  var body = "";
+  if (r && genuine) {
+    body = '<div class="block" style="background:transparent;margin-top:16px"><div class="kv">' +
+      '<div>Receipt number</div><div>' + esc(r.receiptNo) + '</div>' +
+      '<div>Issued</div><div>' + esc(fmtStamp(r.createdAt)) + '</div>' +
+      '<div>Payment date</div><div>' + esc(fmtDate(r.paidOn)) + '</div>' +
+      '<div>Issued to</div><div>' + esc(maskName(r.customer)) + '</div>' +
+      '<div>' + (r.kind === "software" ? "Software / product" : "Service") + '</div><div>' + esc(r.item) + '</div>' +
+      '<div>Amount</div><div>' + esc(money(r.amount, r.currency)) + '</div>' +
+      '<div>Payment method</div><div>' + esc(r.method) + '</div>' +
+      '<div>Payment reference</div><div>' + esc(maskRef(r.txn)) + '</div>' +
+      '<div>Status</div><div><b>' + esc(r.status) + '</b></div>' +
+      '</div></div>' +
+      '<p class="hint">Customer details are partially hidden by design. To confirm the full details, contact HandzJ Tech on ' +
+      CO.phone + ' or ' + CO.email + '.</p>';
+  }
+  host.innerHTML =
+    '<div class="verify">' +
+      '<div class="topbar" style="margin-bottom:6px"><img src="' + LOGO + '" alt="">' +
+        '<div class="grow"><div class="t1">' + CO.name + '</div><div class="t2">Receipt verification</div></div></div>' +
+      '<div class="card" style="margin-top:14px"><div class="card-b">' +
+        '<div class="vbig"><span class="dot ' + dot + '"></span>' + head + '</div>' +
+        '<p class="hint" style="font-size:13.5px">' + msg + '</p>' + body +
+        '<div class="row-actions" style="margin-top:16px"><a class="btn" href="' + baseUrl() + '">Open the receipt tool</a></div>' +
+      '</div></div>' +
+    '</div>';
+}
+
+/* ---------------- actions ---------------- */
+
+/* No native alert/confirm/prompt anywhere: they are blocked in this frame. */
+
+function say(msg, cls) { notice(msg, cls || ""); window.scrollTo({ top: 0, behavior: "smooth" }); }
+
+/* ---- PDF ---- */
+
+function offscreen(html) {
+  var box = document.createElement("div");
+  box.style.cssText = "position:fixed;left:-20000px;top:0;width:794px;background:#fff;z-index:-1";
+  box.innerHTML = html;
+  document.body.appendChild(box);
+  return box;
+}
+
+async function buildPdfBlob(r) {
+  if (typeof html2pdf === "undefined") return null;
+  var box = offscreen(receiptHTML(r, {}));
+  paintQRs(box);
+  await new Promise(function (res) { setTimeout(res, 120); });
+  try {
+    return await html2pdf().set({
+      margin: [10, 8, 10, 8],
+      image: { type: "jpeg", quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+    }).from(box.firstElementChild).outputPdf("blob");
+  } finally {
+    box.remove();
+  }
+}
+
+async function downloadReceipt(r, silent) {
+  var blob = null;
+  try { blob = await buildPdfBlob(r); } catch (e) { blob = null; }
+  if (!blob) {
+    if (!silent) say("PDF builder unavailable — opening the print dialog instead (choose “Save as PDF”).", "warn");
+    window.print();
+    return false;
+  }
+  var dl = null;
+  try { dl = (window.claude && claude.use) ? await claude.use("downloads") : null; } catch (e) { dl = null; }
+  if (!dl) {
+    if (!silent) say("Automatic download is unavailable here — use Print / Save PDF.", "warn");
+    return false;
+  }
+  try {
+    await dl.save({ filename: r.receiptNo + " - " + (r.customer || "receipt").replace(/[^\w \-]/g, "") + ".pdf", data: blob });
+    return true;
+  } catch (e) {
+    var code = e && e.code ? e.code : "error";
+    if (code !== "declined") say("Download failed (" + esc(code) + "). Use Print / Save PDF instead.", "warn");
+    return false;
+  }
+}
+
+/* ---- reference + number generation ---- */
+
+function genReference() {
+  var d = new Date(), p = function (n) { return String(n).padStart(2, "0"); };
+  return "HJT-REF-" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + randId(4);
+}
+async function peekNextNumber() {
+  var el = $("nextNo");
+  if (!el) return;
+  el.textContent = "checking…";
+  var year = new Date().getFullYear();
+  var mk = function (n) { return "HJT-" + year + "-" + String(n).padStart(6, "0"); };
+  try {
+    if (db) {
+      var s = await db.doc("meta/sequence").get();
+      var d = s.exists ? s.data() : {};
+      var seq = (d && d.year === year && typeof d.seq === "number") ? d.seq : 0;
+      el.textContent = mk(seq + 1);
+    } else {
+      var mine = cache.filter(function (r) { return r.receiptNo.indexOf("HJT-" + year + "-") === 0; })
+        .map(function (r) { return parseInt(r.receiptNo.slice(-6), 10) || 0; });
+      el.textContent = mk((mine.length ? Math.max.apply(null, mine) : 0) + 1);
+    }
+  } catch (e) { el.textContent = "—"; }
+}
+
+/* ---- issue / void ---- */
+
+async function issue() {
+  var d = readForm(), errs = validate(d);
+  if (errs.length) { say("Please provide: " + esc(errs.join(", ")) + ".", "warn"); return; }
+  var btn = $("btnIssue"); btn.disabled = true; btn.textContent = "Issuing…";
+  try {
+    if (!d.txn) { d.txn = genReference(); $("f_txn").value = d.txn; }
+    var no = await nextReceiptNo();
+    var r = Object.assign({}, d, {
+      receiptNo: no,
+      verifyId: randId(10),
+      status: "VALID",
+      createdAt: new Date().toISOString(),
+      voidedAt: null,
+      voidReason: ""
+    });
+    await saveReceipt(r);
+    current = r;
+    showDoc("viewHost", r, {});
+    showTab("view");
+    say("Receipt <b>" + esc(no) + "</b> issued and recorded. Preparing the PDF…", "good");
+    peekNextNumber();
+    btn.textContent = "Preparing PDF…";
+    var ok = await downloadReceipt(r, false);
+    if (ok) say("Receipt <b>" + esc(no) + "</b> issued, recorded and downloaded.", "good");
+  } catch (e) {
+    say("Could not issue the receipt: " + esc(e && e.message ? e.message : "unknown error"), "warn");
+  } finally {
+    btn.disabled = false; btn.textContent = "Issue receipt";
+  }
+}
+
+function voidBar(show) {
+  var bar = $("voidBar");
+  bar.style.display = show ? "" : "none";
+  if (show) { $("voidReason").value = ""; $("voidReason").focus(); }
+}
+
+async function confirmVoid() {
+  if (!current) return;
+  var reason = $("voidReason").value.trim();
+  if (!reason) { say("A reason is required to void a receipt.", "warn"); return; }
+  var r = Object.assign({}, current, { status: "VOIDED", voidReason: reason, voidedAt: new Date().toISOString() });
+  try {
+    await saveReceipt(r);
+    current = r;
+    showDoc("viewHost", r, {});
+    voidBar(false);
+    say("Receipt <b>" + esc(r.receiptNo) + "</b> voided. It remains in the log.", "warn");
+  } catch (e) {
+    say("Could not void the receipt: " + esc(e && e.message ? e.message : "unknown error"), "warn");
+  }
+}
+
+function render() { renderLog(); }
+
+
+/* ---- commercial: send receipt to client ---- */
+function buildClientMessage(r) {
+  var lines = [];
+  lines.push("*" + CO.name + "*");
+  lines.push("Digital Payment Receipt");
+  lines.push("");
+  lines.push("Receipt No: " + r.receiptNo);
+  lines.push("Customer: " + r.customer);
+  lines.push("For: " + r.item + (r.pkg ? " (" + r.pkg + ")" : ""));
+  lines.push("Amount: " + money(r.amount, r.currency));
+  lines.push("Payment date: " + fmtDate(r.paidOn));
+  lines.push("Method: " + r.method);
+  if (r.txn) lines.push("Reference: " + r.txn);
+  lines.push("Status: " + r.status);
+  lines.push("");
+  lines.push("Verify online:");
+  lines.push(verifyUrl(r));
+  lines.push("");
+  lines.push("Thank you for your business.");
+  return lines.join("\n");
+}
+
+function sendWhatsApp() {
+  if (!current) return;
+  var phone = (current.custPhone || "").replace(/[^\d+]/g, "");
+  var text = encodeURIComponent(buildClientMessage(current));
+  var url = phone
+    ? ("https://wa.me/" + phone.replace(/^\+/, "") + "?text=" + text)
+    : ("https://wa.me/?text=" + text);
+  window.open(url, "_blank");
+  say("WhatsApp opened with the receipt message. Attach the PDF if needed.", "good");
+}
+
+function sendEmail() {
+  if (!current) return;
+  var to = current.custEmail || "";
+  var subject = encodeURIComponent(CO.name + " — Receipt " + current.receiptNo);
+  var body = encodeURIComponent(buildClientMessage(current) + "\n\n(Attach the PDF receipt if you downloaded it.)");
+  window.location.href = "mailto:" + to + "?subject=" + subject + "&body=" + body;
+  say("Email draft opened. Attach the PDF from your downloads if required.", "good");
+}
+
+/* ---------------- wiring ---------------- */
+
+function injectExtras() {
+  /* auto-reference button next to the payment reference field */
+  var txn = $("f_txn");
+  var wrap = document.createElement("div");
+  wrap.style.cssText = "display:flex;gap:8px;align-items:center;margin-top:6px";
+  wrap.innerHTML = '<button class="btn" type="button" id="btnGenRef" style="padding:6px 10px;font-size:12.5px">Generate reference</button>' +
+    '<span class="hint" style="margin:0">Leave blank and one is generated on issue.</span>';
+  txn.parentNode.appendChild(wrap);
+
+  /* next receipt number readout above the action buttons */
+  var actions = $("btnPreview").parentNode;
+  var nn = document.createElement("div");
+  nn.className = "hint";
+  nn.style.cssText = "width:100%;display:flex;gap:8px;align-items:center;margin:0 0 10px";
+  nn.innerHTML = 'Next receipt number: <b class="mono" id="nextNo">—</b>' +
+    '<button class="btn" type="button" id="btnRefreshNo" style="padding:4px 9px;font-size:12px">Refresh</button>';
+  actions.insertBefore(nn, actions.firstChild);
+
+  /* void reason bar in the receipt view */
+  var bar = document.createElement("div");
+  bar.id = "voidBar";
+  bar.className = "noprint";
+  bar.style.cssText = "display:none;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center";
+  bar.style.display = "none";
+  bar.innerHTML = '<input id="voidReason" placeholder="Reason for voiding (kept on record)" ' +
+    'style="flex:1 1 280px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:9px 11px">' +
+    '<button class="btn danger" type="button" id="btnVoidConfirm">Confirm void</button>' +
+    '<button class="btn" type="button" id="btnVoidCancel">Cancel</button>';
+  var tools = $("btnBack").parentNode;
+  tools.parentNode.insertBefore(bar, tools.nextSibling);
+}
+
+function boot() {
+  $("f_date").value = todayISO();
+  setKind("software");
+  injectExtras();
+
+  Array.prototype.forEach.call(document.querySelectorAll("#kindSeg button"), function (b) {
+    b.addEventListener("click", function () { setKind(b.dataset.kind); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function (b) {
+    b.addEventListener("click", function () { showTab(b.dataset.tab); });
+  });
+  ["f_amount", "f_currency"].forEach(function (id) {
+    $(id).addEventListener("input", updateWords);
+    $(id).addEventListener("change", updateWords);
+  });
+
+  $("btnGenRef").addEventListener("click", function () { $("f_txn").value = genReference(); });
+  $("btnRefreshNo").addEventListener("click", peekNextNumber);
+
+  $("dbNotice").addEventListener("click", async function (e) {
+    if (e.target && e.target.id === "btnConnectFolder") {
+      try {
+        await folder.connect();
+        notice(storageNoticeHTML(), "good");
+        say("Folder connected. Receipts will be written there from now on.", "good");
+      } catch (err) {
+        if (err && err.name !== "AbortError") say("Could not connect that folder in this browser.", "warn");
+      }
+    } else if (e.target && e.target.id === "btnExportBackup") {
+      exportBackup();
+    } else if (e.target && e.target.id === "btnImportBackup") {
+      $("importBackup").click();
+    }
+  });
+  $("dbNotice").addEventListener("change", function (e) {
+    if (e.target && e.target.id === "importBackup" && e.target.files[0]) {
+      importBackupFile(e.target.files[0]);
+      e.target.value = "";
+    }
+  });
+
+  $("btnPreview").addEventListener("click", function () {
+    var d = readForm(), errs = validate(d);
+    if (errs.length) { say("Please provide: " + esc(errs.join(", ")) + ".", "warn"); return; }
+    showDoc("previewHost", d, { draft: true });
+    $("btnPrintPreview").disabled = false;
+    $("previewLabel").textContent = "Preview — not yet issued";
+    notice("");
+  });
+  $("btnPrintPreview").addEventListener("click", function () { window.print(); });
+  $("btnIssue").addEventListener("click", issue);
+  $("btnClear").addEventListener("click", function () {
+    ["f_customer","f_custEmail","f_custPhone","f_item","f_package","f_period","f_projref","f_desc","f_amount","f_txn","f_by","f_notes"]
+      .forEach(function (id) { $(id).value = ""; });
+    $("f_date").value = todayISO();
+    $("previewHost").innerHTML = '<div class="empty">Fill the form and press Preview.</div>';
+    $("btnPrintPreview").disabled = true;
+    $("previewLabel").textContent = "Preview";
+    updateWords(); notice("");
+  });
+
+  $("logBody").addEventListener("click", function (e) {
+    var tr = e.target.closest("tr[data-no]"); if (!tr) return;
+    var r = cache.filter(function (x) { return x.receiptNo === tr.dataset.no; })[0];
+    if (!r) return;
+    current = r; showDoc("viewHost", r, {}); voidBar(false); showTab("view");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  ["q", "fStatus", "fFrom", "fTo"].forEach(function (id) {
+    $(id).addEventListener("input", renderLog); $(id).addEventListener("change", renderLog);
+  });
+
+  $("btnBack").addEventListener("click", function () { current = null; voidBar(false); notice(""); showTab("log"); });
+  $("btnPrintOne").addEventListener("click", function () { window.print(); });
+  $("btnDownload").addEventListener("click", function () { if (current) downloadReceipt(current, false); });
+  $("btnVoid").addEventListener("click", function () {
+    if (!current) return;
+    if (current.status === "VOIDED") { say("This receipt is already voided.", "warn"); return; }
+    voidBar(true);
+  });
+  $("btnVoidConfirm").addEventListener("click", confirmVoid);
+  $("btnVoidCancel").addEventListener("click", function () { voidBar(false); });
+  
+  $("btnWhatsApp").addEventListener("click", sendWhatsApp);
+  $("btnEmail").addEventListener("click", sendEmail);
+
+  $("btnCopyVerify").addEventListener("click", function () {
+    if (!current) return;
+    var url = verifyUrl(current);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(
+        function () { say("Verification link copied.", "good"); },
+        function () { say("Verification link: " + esc(url), ""); });
+    } else { say("Verification link: " + esc(url), ""); }
+  });
+
+  window.addEventListener("hashchange", route);
+  $("topLogo").src = LOGO;
+  updateWords();
+  route(); /* first paint, before access is known — verify route works immediately either way */
+  initAccess().then(route);
+  initStore().then(peekNextNumber);
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+else boot();
+
+</script>
+</body>
+</html>

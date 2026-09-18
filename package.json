@@ -1,0 +1,10 @@
+{
+  "name": "handzj-receipts-saas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HandzJ Digital Receipts — commercial web receipt system",
+  "scripts": {
+    "dev": "npx serve public -l 3000",
+    "start": "npx serve public -l 3000"
+  }
+}
