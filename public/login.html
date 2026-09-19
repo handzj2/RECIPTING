@@ -47,7 +47,9 @@ h1{font-size:19px;margin:0 0 4px}
 .btn{background:var(--panel-2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px 16px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#04222c;width:100%}
 .btn:disabled{opacity:.6;cursor:not-allowed}
-.hint{font-size:12.5px;color:var(--ink-soft)}
+.hint{font-size:12.5px;color:var(--ink-soft);margin:.25rem 0 0}
+.hint.ok{color:var(--ok)}
+.hint.warn{color:#b45309}
 .msg{border-radius:10px;padding:11px 13px;font-size:13.5px;margin-bottom:16px;display:none;border:1px solid transparent}
 .msg.warn{display:block;background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
 .msg.good{display:block;background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
@@ -55,6 +57,11 @@ h1{font-size:19px;margin:0 0 4px}
 .foot{text-align:center;margin-top:18px;font-size:13px;color:var(--ink-soft)}
 .foot a{color:var(--accent)}
 .linky{background:none;border:0;color:var(--accent);font:inherit;cursor:pointer;padding:0;text-decoration:underline}
+.pw-rules{list-style:none;padding:0;margin:.5rem 0 0;font-size:.9em}
+.pw-rules li{color:#888}
+.pw-rules li::before{content:'○ '}
+.pw-rules li.ok{color:var(--ok)}
+.pw-rules li.ok::before{content:'✓ '}
 </style>
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -105,11 +112,22 @@ h1{font-size:19px;margin:0 0 4px}
           <div class="field"><label>WhatsApp</label><input id="up_wa" placeholder="0700 000 000"></div>
         </div>
         <div class="field"><label>Email</label><input id="up_email" type="email" autocomplete="email" placeholder="you@business.com"></div>
-        <div class="two">
-          <div class="field"><label>Password</label><input id="up_pass" type="password" autocomplete="new-password" placeholder="At least 8 characters"></div>
-          <div class="field"><label>Confirm password</label><input id="up_pass2" type="password" autocomplete="new-password" placeholder="Repeat it"></div>
+        <div class="field">
+          <label for="up_pass">Password</label>
+          <input id="up_pass" type="password" autocomplete="new-password" placeholder="Choose a strong password">
+          <ul class="pw-rules" id="pw-rules">
+            <li data-rule="len">At least 8 characters</li>
+            <li data-rule="lower">One lowercase letter</li>
+            <li data-rule="upper">One uppercase letter</li>
+            <li data-rule="num">One number</li>
+          </ul>
         </div>
-        <button class="btn primary" id="btnSignUp" type="button">Create account &amp; start trial</button>
+        <div class="field">
+          <label for="up_pass2">Confirm password</label>
+          <input id="up_pass2" type="password" autocomplete="new-password" placeholder="Repeat it">
+          <p id="pw2-msg" class="hint"></p>
+        </div>
+        <button class="btn primary" id="btnSignUp" type="button" disabled>Create account &amp; start trial</button>
         <p class="hint" style="margin-top:12px">By creating an account you agree that receipts you issue are your own records and your responsibility.</p>
       </div>
 
@@ -153,14 +171,21 @@ function nextUrl() {
   return m ? decodeURIComponent(m[1]) : "/app.html";
 }
 
-function friendly(err) {
-  var s = (err && err.message ? err.message : String(err || "Something went wrong"));
-  if (/invalid login credentials/i.test(s)) return "That email and password don't match an account.";
-  if (/email not confirmed/i.test(s)) return "Please confirm your email first — check your inbox for the confirmation link.";
-  if (/already registered|already been registered/i.test(s)) return "An account with that email already exists. Try signing in instead.";
-  if (/password should be at least/i.test(s)) return "Please use a longer password (at least 6 characters).";
-  return s;
+function humanAuthError(err) {
+  var m = (err && err.message ? err.message : String(err || "")).toLowerCase();
+  if (m.includes("password should be at least")) return "Your password is too short. Use at least 8 characters.";
+  if (m.includes("user already registered") || m.includes("already been registered") || m.includes("already registered"))
+    return "That email already has an account. Try signing in instead.";
+  if (m.includes("email not confirmed")) return "Check your inbox — we sent a confirmation link.";
+  if (m.includes("invalid login credentials")) return "Wrong email or password. Use “Forgot password” if you don’t remember it.";
+  if (m.includes("rate limit")) return "Too many attempts. Wait a minute and try again.";
+  if (m.includes("otp_expired") || m.includes("expired")) return "That link expired. Request a new one.";
+  if (m.includes("invalid email")) return "That doesn’t look like a valid email address.";
+  if (m.includes("network")) return "Network problem. Check your connection and try again.";
+  return (err && err.message) || "Something went wrong. Try again.";
 }
+/* backwards-compatible alias used by existing call sites */
+function friendly(err) { return humanAuthError(err); }
 
 /* ---------------- boot ---------------- */
 if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY || !window.supabase) {
@@ -182,6 +207,46 @@ if (/[?&]mode=signup/.test(location.search)) setMode("up");
 ["btnSignIn", "btnSignUp", "btnReset"].forEach(function (id) {
   $(id).dataset.label = $(id).textContent;
 });
+
+/* ---------------- interactive password rules (signup only) ---------------- */
+var PW_RULES = {
+  len:   { label: "At least 8 characters", test: function (p) { return p.length >= 8; } },
+  lower: { label: "One lowercase letter",  test: function (p) { return /[a-z]/.test(p); } },
+  upper: { label: "One uppercase letter",  test: function (p) { return /[A-Z]/.test(p); } },
+  num:   { label: "One number",            test: function (p) { return /\d/.test(p); } }
+};
+function pwOk(p) {
+  return Object.keys(PW_RULES).every(function (k) { return PW_RULES[k].test(p); });
+}
+function emailValid(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || "").trim());
+}
+function updatePwUI() {
+  var pw = $("up_pass"), pw2 = $("up_pass2"), submit = $("btnSignUp");
+  if (!pw || !pw2 || !submit) return;
+  var v = pw.value;
+  Object.keys(PW_RULES).forEach(function (k) {
+    var li = document.querySelector('[data-rule="' + k + '"]');
+    if (li) li.classList.toggle("ok", PW_RULES[k].test(v));
+  });
+  var bothFilled = pw2.value.length > 0;
+  var matches = pw.value === pw2.value;
+  var pw2msg = $("pw2-msg");
+  if (pw2msg) {
+    pw2msg.textContent = !bothFilled ? "" : (matches ? "✓ Matches" : "Passwords don't match yet");
+    pw2msg.className = "hint " + (matches ? "ok" : "warn");
+  }
+  var bizOk = ($("up_biz").value || "").trim().length >= 2;
+  submit.disabled = !(pwOk(v) && matches && emailValid($("up_email").value) && bizOk);
+}
+["input", "change"].forEach(function (ev) {
+  ["up_pass", "up_pass2", "up_email", "up_biz"].forEach(function (id) {
+    var el = $(id);
+    if (el) el.addEventListener(ev, function () { msg(""); updatePwUI(); });
+  });
+});
+/* initial state */
+updatePwUI();
 
 /* ---------------- sign in ---------------- */
 $("btnSignIn").addEventListener("click", async function () {
@@ -208,8 +273,8 @@ $("btnSignUp").addEventListener("click", async function () {
       pass2 = $("up_pass2").value;
 
   if (biz.length < 2) { msg("Enter your business name — it appears on every receipt.", "warn"); return; }
-  if (!email) { msg("Enter an email address.", "warn"); return; }
-  if (pass.length < 8) { msg("Use a password of at least 8 characters.", "warn"); return; }
+  if (!emailValid(email)) { msg("That doesn’t look like a valid email address.", "warn"); return; }
+  if (!pwOk(pass)) { msg("Your password doesn’t meet all the requirements yet.", "warn"); return; }
   if (pass !== pass2) { msg("The two passwords don't match.", "warn"); return; }
 
   busy(this, true, "Creating your account…");

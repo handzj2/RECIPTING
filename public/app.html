@@ -62,6 +62,8 @@ input,select,textarea{font:inherit;color:inherit}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media (max-width:520px){.two{grid-template-columns:1fr}}
 .hint{font-size:12px;color:var(--ink-soft);margin-top:4px}
+.hint.ok{color:var(--ok)}
+.hint.warn{color:#b45309}
 .seg{display:flex;gap:6px;background:var(--panel-2);border:1px solid var(--line);padding:4px;border-radius:10px}
 .seg button{flex:1;border:0;background:transparent;color:var(--ink-soft);padding:8px;border-radius:7px;font-weight:600;font-size:13.5px}
 .seg button[aria-pressed="true"]{background:var(--brand);color:#eaf6fb}
@@ -138,6 +140,27 @@ tbody tr:hover td{background:var(--panel-2)}
 .stamp.void{color:#a32020;border-color:#a32020}
 .stamp.draft{color:#7a8699;border-color:#7a8699}
 .issued{text-align:center;font-size:10.5px;color:#4a586e;border-top:1px dashed #cdd6e2;margin-top:14px;padding-top:9px;line-height:1.6}
+
+/* ---------- receipt layout themes ---------- */
+.receipt{--rc-font:system-ui,sans-serif}
+.receipt.theme-classic{/* default existing styles */}
+.receipt.theme-modern{font-family:Inter,system-ui,sans-serif;letter-spacing:-0.01em}
+.receipt.theme-modern .rhead .co .name{font-family:Inter,system-ui,sans-serif;letter-spacing:-0.02em}
+.receipt.theme-modern .rtitle .lbl{font-family:Inter,system-ui,sans-serif;letter-spacing:.08em}
+.receipt.theme-thermal{font-family:"DM Mono",ui-monospace,monospace;max-width:320px;font-size:12px;line-height:1.35;padding:16px 14px}
+.receipt.theme-thermal .rhead{border-bottom-width:1px;gap:8px}
+.receipt.theme-thermal .rhead img.logo{display:none}
+.receipt.theme-thermal .rhead .co .name{font-size:16px;letter-spacing:0}
+.receipt.theme-thermal .rtitle .lbl{font-size:13px;letter-spacing:.06em}
+.receipt.theme-thermal .amountbar .v{font-size:18px}
+.receipt.theme-thermal .wm,.receipt.theme-thermal .stamp{display:none}
+.receipt.align-left{text-align:left}
+.receipt.align-left .rtitle{justify-content:flex-start}
+.receipt.align-left .rtitle .meta{text-align:left}
+.receipt.align-left .rfoot{justify-content:flex-start}
+.receipt.align-center{text-align:center}
+.receipt.align-center .rhead{justify-content:center;flex-direction:column}
+.receipt .rc-footer{margin:10px 0 0;font-size:12px;color:#4a586e}
 
 /* ---------- verification view ---------- */
 .verify{max-width:620px;margin:22px auto}
@@ -280,6 +303,16 @@ tbody tr:hover td{background:var(--panel-2)}
       <button class="btn" id="btnCopyVerify" type="button">Copy verification link</button>
       <button class="btn primary" id="btnWhatsApp" type="button">Send WhatsApp</button>
       <button class="btn" id="btnEmail" type="button">Send Email</button>
+    </div>
+    <div id="share-bar" class="noprint" hidden style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px">
+      <span class="share-label" style="font-weight:600;font-size:13px;margin-right:4px">Send to customer</span>
+      <button type="button" class="btn" data-act="wa">WhatsApp</button>
+      <button type="button" class="btn" data-act="mail">Email</button>
+      <button type="button" class="btn" data-act="native" hidden>Share…</button>
+      <button type="button" class="btn" data-act="copy">Copy link</button>
+      <span id="share-msg" class="hint"></span>
+    </div>
+    <div class="row-actions noprint" style="margin-bottom:14px">
       <button class="btn danger" id="btnVoid" type="button">Void receipt</button>
     </div>
     <div id="viewHost" class="paper-scroll"></div>
@@ -565,7 +598,46 @@ function applyBusiness(row) {
   CO.email = row.email || "";
   RECEIPT_PREFIX = row.prefix || "BIZ";
   if (row.logo_url) LOGO = row.logo_url;
+  else LOGO = "/logo.jpg";
   computeTrial();
+}
+
+/* ---------- receipt layout (theme presets + JSON override) ---------- */
+var DEFAULT_LAYOUT = {
+  theme: "classic",
+  align: "center",
+  blocks: ["logo", "name", "tagline", "contacts", "items", "total", "footer"],
+  show: {},
+  labels: { title: "RECEIPT", footer: "" },
+  extras: {},
+  custom_css: null
+};
+
+function resolveLayout(business) {
+  var raw = (business && business.receipt_layout) || {};
+  var L = {};
+  L.theme = raw.theme || DEFAULT_LAYOUT.theme;
+  L.align = raw.align || DEFAULT_LAYOUT.align;
+  L.blocks = Array.isArray(raw.blocks) ? raw.blocks.slice() : DEFAULT_LAYOUT.blocks.slice();
+  L.show = Object.assign({}, DEFAULT_LAYOUT.show, raw.show || {});
+  L.labels = Object.assign({}, DEFAULT_LAYOUT.labels, raw.labels || {});
+  L.extras = Object.assign({}, DEFAULT_LAYOUT.extras, raw.extras || {});
+  L.custom_css = raw.custom_css || null;
+  return L;
+}
+
+/** Strip dangerous tokens from custom_css. Returns null if the result is empty or still unsafe. */
+function sanitizeCss(css) {
+  if (!css || typeof css !== "string") return null;
+  var s = css
+    .replace(/<\/style/gi, "")
+    .replace(/<\/script/gi, "")
+    .replace(/expression\s*\(/gi, "")
+    .replace(/javascript\s*:/gi, "")
+    .replace(/@import/gi, "")
+    .replace(/</g, "");
+  s = s.trim();
+  return s.length ? s : null;
 }
 
 function computeTrial() {
@@ -963,6 +1035,9 @@ function updateWords() {
 function receiptHTML(r, opts) {
   opts = opts || {};
   var draft = !!opts.draft;
+  var L = resolveLayout(biz);
+  var show = function (block) { return L.show[block] !== false; };
+
   var rows = [];
   var push = function (k, v) { if (v) rows.push("<div>" + esc(k) + "</div><div>" + esc(v) + "</div>"); };
 
@@ -981,27 +1056,48 @@ function receiptHTML(r, opts) {
   var stampText = draft ? "PREVIEW" : r.status;
   var no = draft ? "— not yet issued —" : r.receiptNo;
 
+  var contactBits = [];
+  if (CO.phone) contactBits.push("Phone: " + esc(CO.phone));
+  if (CO.whatsapp && show("whatsapp") !== false && L.show.whatsapp !== false) contactBits.push("WhatsApp: " + esc(CO.whatsapp));
+  var contactHtml = contactBits.join(" &nbsp;&middot;&nbsp; ") +
+    (CO.email ? "<br>Email: " + esc(CO.email) : "");
+
+  var logoHtml = show("logo")
+    ? '<img class="logo" src="' + LOGO + '" alt="' + esc(CO.name) + '">'
+    : "";
+  var tagHtml = (show("tagline") && CO.tagline)
+    ? '<div class="tag">' + esc(CO.tagline) + '</div>'
+    : "";
+  var titleLbl = (L.labels && L.labels.title) ? L.labels.title : "DIGITAL PAYMENT RECEIPT";
+  var footerExtra = (L.labels && L.labels.footer)
+    ? '<p class="rc-footer">' + esc(L.labels.footer) + '</p>'
+    : "";
+
+  var themeCls = "theme-" + (L.theme || "classic");
+  var alignCls = "align-" + (L.align || "center");
+  var customStyle = "";
+  var safeCss = sanitizeCss(L.custom_css);
+  if (safeCss) customStyle = "<style>" + safeCss + "</style>";
+
   return '' +
-  '<div class="paper">' +
+  customStyle +
+  '<div class="paper receipt ' + themeCls + " " + alignCls + '">' +
     '<div class="wm" aria-hidden="true">' +
-      '<img src="' + LOGO + '" alt="">' +
+      (show("logo") ? '<img src="' + LOGO + '" alt="">' : '') +
       '<div class="wmtext"><div class="a">' + esc(CO.name) + '</div><div class="b">DIGITAL RECEIPT</div>' +
         '<div class="c">' + esc(draft ? "PREVIEW" : "Receipt No: " + r.receiptNo) + '</div></div>' +
     '</div>' +
     '<div class="stamp ' + stampClass + '">' + esc(stampText) + '</div>' +
     '<div class="rhead">' +
-      '<img class="logo" src="' + LOGO + '" alt="HandzJ Tech Solutions">' +
+      logoHtml +
       '<div class="co">' +
-        '<div class="name">' + esc(CO.name) + '</div>' +
-        (CO.tagline ? '<div class="tag">' + esc(CO.tagline) + '</div>' : '') +
-        '<div class="contact">' +
-          [CO.phone ? "Phone: " + esc(CO.phone) : "", CO.whatsapp ? "WhatsApp: " + esc(CO.whatsapp) : ""]
-            .filter(Boolean).join(" &nbsp;&middot;&nbsp; ") +
-          (CO.email ? '<br>Email: ' + esc(CO.email) : '') + '</div>' +
+        (show("name") ? '<div class="name">' + esc(CO.name) + '</div>' : '') +
+        tagHtml +
+        (show("contacts") ? '<div class="contact">' + contactHtml + '</div>' : '') +
       '</div>' +
     '</div>' +
     '<div class="rtitle">' +
-      '<div class="lbl">DIGITAL PAYMENT RECEIPT</div>' +
+      '<div class="lbl">' + esc(titleLbl) + '</div>' +
       '<div class="meta">Receipt No: <b>' + esc(no) + '</b><br>' +
         'Issued: ' + esc(draft ? fmtDate(todayISO()) : fmtStamp(r.createdAt)) + '</div>' +
     '</div>' +
@@ -1010,20 +1106,23 @@ function receiptHTML(r, opts) {
       (r.custEmail ? '<div>Email</div><div>' + esc(r.custEmail) + '</div>' : '') +
       (r.custPhone ? '<div>Phone</div><div>' + esc(r.custPhone) + '</div>' : '') +
     '</div></div>' +
-    '<div class="block"><div class="bh">Payment for</div><div class="kv">' + rows.join("") + '</div></div>' +
-    '<div class="amountbar"><div class="l">Amount paid</div><div class="v">' + esc(money(r.amount, r.currency)) + '</div></div>' +
-    '<p class="words"><b>Amount in words:</b> ' + esc(amountInWords(r.amount, r.currency)) + '</p>' +
+    (show("items") ? '<div class="block"><div class="bh">Payment for</div><div class="kv">' + rows.join("") + '</div></div>' : '') +
+    (show("total") ? '<div class="amountbar"><div class="l">Amount paid</div><div class="v">' + esc(money(r.amount, r.currency)) + '</div></div>' +
+      '<p class="words"><b>Amount in words:</b> ' + esc(amountInWords(r.amount, r.currency)) + '</p>' : '') +
     '<div class="block"><div class="bh">Payment details</div><div class="kv">' + pay.join("") + '</div></div>' +
     (r.status === "VOIDED" ?
       '<p class="words"><b>VOIDED:</b> ' + esc(r.voidReason || "No reason recorded") + ' — ' + esc(fmtStamp(r.voidedAt)) + '</p>' : '') +
     '<div class="rfoot">' +
-      '<div class="sig">Received by: <b>' + esc(r.receivedBy) + '</b><br>For and on behalf of ' + esc(CO.name) +
-        '<div class="line">Authorised signature</div></div>' +
-      '<div class="qrbox"><div class="qr" data-qr="' + esc(draft ? "" : verifyUrl(r)) + '"></div>' +
-        '<div class="cap">Scan to verify<br>' + esc(draft ? "(available once issued)" : verifyUrl(r)) + '</div></div>' +
+      (show("signature") || true ?
+        '<div class="sig">Received by: <b>' + esc(r.receivedBy) + '</b><br>For and on behalf of ' + esc(CO.name) +
+          '<div class="line">Authorised signature</div></div>' : '') +
+      (show("verify_qr") !== false ?
+        '<div class="qrbox"><div class="qr" data-qr="' + esc(draft ? "" : verifyUrl(r)) + '"></div>' +
+          '<div class="cap">Scan to verify<br>' + esc(draft ? "(available once issued)" : verifyUrl(r)) + '</div></div>' : '') +
     '</div>' +
-    '<div class="issued">Digitally issued by ' + esc(CO.name) + '. This is a computer-generated receipt and is valid without a physical stamp.<br>' +
-      'Verification ID: ' + esc(draft ? "—" : r.verifyId) + ' &nbsp;&middot;&nbsp; Document status: ' + esc(draft ? "PREVIEW" : r.status) + '</div>' +
+    footerExtra +
+    (show("footer") ? '<div class="issued">Digitally issued by ' + esc(CO.name) + '. This is a computer-generated receipt and is valid without a physical stamp.<br>' +
+      'Verification ID: ' + esc(draft ? "—" : r.verifyId) + ' &nbsp;&middot;&nbsp; Document status: ' + esc(draft ? "PREVIEW" : r.status) + '</div>' : '') +
   '</div>';
 }
 
@@ -1116,6 +1215,9 @@ function renderSettings() {
   var host = $("tab-settings");
   if (!biz) { host.innerHTML = lockedNotice(); return; }
   var f = function (v) { return esc(v || ""); };
+  var L = resolveLayout(biz);
+  var currentTheme = L.theme || "classic";
+  var layoutJson = biz.receipt_layout ? JSON.stringify(biz.receipt_layout, null, 2) : "";
   host.innerHTML =
     '<div class="card"><div class="card-h"><h2>Business profile</h2>' +
       '<span class="hint">Appears on every receipt you issue</span></div>' +
@@ -1136,6 +1238,29 @@ function renderSettings() {
         '<input id="s_logo" value="' + f(biz.logo_url) + '" placeholder="https://…/logo.png"></div>' +
       '<div class="row-actions"><button class="btn primary" id="btnSaveBiz" type="button">Save profile</button></div>' +
     '</div></div>' +
+
+    '<div class="card" style="margin-top:18px"><div class="card-h"><h2>Receipt layout</h2>' +
+      '<span class="hint">Current theme: <b>' + esc(currentTheme) + '</b></span></div>' +
+    '<div class="card-b">' +
+      '<p class="hint" style="margin-top:0">Pick a preset — applied immediately to new and existing receipts.</p>' +
+      '<div class="row-actions" style="flex-wrap:wrap;gap:8px">' +
+        '<button class="btn" type="button" data-preset="classic">Classic</button>' +
+        '<button class="btn" type="button" data-preset="modern">Modern</button>' +
+        '<button class="btn" type="button" data-preset="thermal">Thermal</button>' +
+      '</div>' +
+      '<details style="margin-top:14px">' +
+        '<summary style="cursor:pointer;font-weight:600;font-size:13px">Advanced (JSON)</summary>' +
+        '<div class="field" style="margin-top:10px">' +
+          '<textarea id="s_layout_json" rows="10" style="width:100%;font-family:ui-monospace,monospace;font-size:12px;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:inherit">' +
+            esc(layoutJson) +
+          '</textarea>' +
+          '<div class="hint" style="margin-top:4px">Valid keys: theme, align, blocks, show, labels, extras, custom_css. Invalid JSON is rejected.</div>' +
+        '</div>' +
+        '<div class="row-actions"><button class="btn primary" type="button" id="btnSaveLayout">Save layout JSON</button></div>' +
+        '<p id="layout-err" class="hint warn" style="display:none;margin-top:8px"></p>' +
+      '</details>' +
+    '</div></div>' +
+
     '<div class="card" style="margin-top:18px"><div class="card-h"><h2>Account</h2></div><div class="card-b">' +
       '<div class="kv" style="display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13.5px">' +
         '<div class="hint" style="margin:0">Signed in as</div><div>' + f(authUser && authUser.email) + '</div>' +
@@ -1145,6 +1270,103 @@ function renderSettings() {
     (trial.expired ? '<div style="margin-top:18px">' + subscribePanelHTML() + '</div>' : '');
 
   $("btnSaveBiz").addEventListener("click", saveBusinessProfile);
+
+  Array.prototype.forEach.call(host.querySelectorAll("[data-preset]"), function (btn) {
+    btn.addEventListener("click", function () { applyLayoutPreset(btn.getAttribute("data-preset")); });
+  });
+  var saveLayoutBtn = $("btnSaveLayout");
+  if (saveLayoutBtn) saveLayoutBtn.addEventListener("click", saveLayoutJson);
+}
+
+async function applyLayoutPreset(name) {
+  if (!sb || !biz) return;
+  var layout = null;
+  if (name === "classic") {
+    layout = null; // reset to default
+  } else if (name === "modern") {
+    layout = {
+      theme: "modern",
+      align: "left",
+      blocks: ["logo", "name", "tagline", "contacts", "items", "total", "footer"],
+      labels: { title: "RECEIPT" }
+    };
+  } else if (name === "thermal") {
+    layout = {
+      theme: "thermal",
+      align: "center",
+      blocks: ["name", "contacts", "items", "total", "footer"],
+      show: { logo: false, tagline: false }
+    };
+  } else {
+    say("Unknown preset.", "warn");
+    return;
+  }
+  try {
+    var { data, error } = await sb.from("businesses")
+      .update({ receipt_layout: layout })
+      .eq("id", biz.id)
+      .select("*")
+      .single();
+    if (error) throw error;
+    applyBusiness(data);
+    renderSettings();
+    say("Receipt layout set to <b>" + esc(name) + "</b>. Open any receipt to see the change.", "good");
+  } catch (e) {
+    say("Could not save layout: " + esc(e && e.message ? e.message : "unknown"), "warn");
+  }
+}
+
+async function saveLayoutJson() {
+  if (!sb || !biz) return;
+  var ta = $("s_layout_json");
+  var errEl = $("layout-err");
+  if (errEl) { errEl.style.display = "none"; errEl.textContent = ""; }
+  var raw = (ta && ta.value || "").trim();
+  var layout = null;
+  if (raw) {
+    try {
+      layout = JSON.parse(raw);
+    } catch (e) {
+      if (errEl) {
+        errEl.textContent = "Invalid JSON — fix the syntax and try again.";
+        errEl.style.display = "block";
+      }
+      return;
+    }
+    // basic contract validation
+    if (layout === null || typeof layout !== "object" || Array.isArray(layout)) {
+      if (errEl) {
+        errEl.textContent = "Layout must be a JSON object.";
+        errEl.style.display = "block";
+      }
+      return;
+    }
+    var allowedThemes = { classic: 1, modern: 1, thermal: 1 };
+    if (layout.theme && !allowedThemes[layout.theme]) {
+      if (errEl) {
+        errEl.textContent = "theme must be classic, modern or thermal.";
+        errEl.style.display = "block";
+      }
+      return;
+    }
+    if (layout.custom_css) layout.custom_css = sanitizeCss(layout.custom_css);
+  }
+  try {
+    var { data, error } = await sb.from("businesses")
+      .update({ receipt_layout: layout })
+      .eq("id", biz.id)
+      .select("*")
+      .single();
+    if (error) throw error;
+    applyBusiness(data);
+    renderSettings();
+    say("Custom layout saved.", "good");
+  } catch (e) {
+    if (errEl) {
+      errEl.textContent = "Could not save: " + (e && e.message ? e.message : "unknown");
+      errEl.style.display = "block";
+    }
+  }
 }
 
 async function saveBusinessProfile() {
@@ -1437,6 +1659,7 @@ async function issue() {
     current = r;
     showDoc("viewHost", r, {});
     showTab("view");
+    mountShareBar(r);
     say("Receipt <b>" + esc(no) + "</b> issued and recorded. Preparing the PDF…", "good");
     peekNextNumber();
     btn.textContent = "Preparing PDF…";
@@ -1486,6 +1709,25 @@ function render() { renderLog(); }
 
 
 /* ---- commercial: send receipt to client ---- */
+function normalizePhone(p) {
+  var d = (p || "").replace(/[^\d]/g, "");
+  if (!d) return "";
+  if (d.startsWith("0")) return "256" + d.slice(1); // Uganda default
+  if (d.startsWith("256")) return d;
+  return d;
+}
+
+function buildReceiptMessage(r) {
+  return [
+    "Receipt " + r.receiptNo,
+    CO.name || r.business_name || "",
+    "Amount: " + (r.currency || "UGX") + " " + Number(r.amount).toLocaleString(),
+    "Date: " + (r.paidOn || r.paid_on || ""),
+    "",
+    "Verify: " + verifyUrl(r)
+  ].filter(Boolean).join("\n");
+}
+
 function buildClientMessage(r) {
   var lines = [];
   lines.push("*" + CO.name + "*");
@@ -1507,24 +1749,85 @@ function buildClientMessage(r) {
   return lines.join("\n");
 }
 
+function whatsappLink(phone, text) {
+  var to = normalizePhone(phone);
+  var base = "https://wa.me/";
+  return to
+    ? base + to + "?text=" + encodeURIComponent(text)
+    : "https://wa.me/?text=" + encodeURIComponent(text);
+}
+
+function mailtoLink(to, subject, body) {
+  var t = (to || "").trim();
+  return "mailto:" + encodeURIComponent(t) +
+    "?subject=" + encodeURIComponent(subject) +
+    "&body=" + encodeURIComponent(body);
+}
+
+async function nativeShare(r) {
+  if (!navigator.share) return false;
+  try {
+    await navigator.share({
+      title: "Receipt " + r.receiptNo,
+      text: buildReceiptMessage(r)
+    });
+    return true;
+  } catch (e) {
+    return e && e.name === "AbortError";
+  }
+}
+
 function sendWhatsApp() {
   if (!current) return;
-  var phone = (current.custPhone || "").replace(/[^\d+]/g, "");
-  var text = encodeURIComponent(buildClientMessage(current));
-  var url = phone
-    ? ("https://wa.me/" + phone.replace(/^\+/, "") + "?text=" + text)
-    : ("https://wa.me/?text=" + text);
-  window.open(url, "_blank");
+  window.location.href = whatsappLink(current.custPhone, buildClientMessage(current));
   say("WhatsApp opened with the receipt message. Attach the PDF if needed.", "good");
 }
 
 function sendEmail() {
   if (!current) return;
-  var to = current.custEmail || "";
-  var subject = encodeURIComponent(CO.name + " — Receipt " + current.receiptNo);
-  var body = encodeURIComponent(buildClientMessage(current) + "\n\n(Attach the PDF receipt if you downloaded it.)");
-  window.location.href = "mailto:" + to + "?subject=" + subject + "&body=" + body;
+  window.location.href = mailtoLink(
+    current.custEmail || "",
+    CO.name + " — Receipt " + current.receiptNo,
+    buildClientMessage(current) + "\n\n(Attach the PDF receipt if you downloaded it.)"
+  );
   say("Email draft opened. Attach the PDF from your downloads if required.", "good");
+}
+
+function mountShareBar(receipt) {
+  var bar = $("share-bar");
+  if (!bar) return;
+  if (trial.checked && trial.expired) {
+    bar.hidden = true;
+    return;
+  }
+  bar.hidden = false;
+  var nativeBtn = bar.querySelector('[data-act="native"]');
+  if (nativeBtn) nativeBtn.hidden = !navigator.share;
+
+  var wa = bar.querySelector('[data-act="wa"]');
+  if (wa) wa.onclick = function () {
+    window.location.href = whatsappLink(receipt.custPhone || receipt.customer_phone, buildReceiptMessage(receipt));
+  };
+  var mail = bar.querySelector('[data-act="mail"]');
+  if (mail) mail.onclick = function () {
+    window.location.href = mailtoLink(
+      receipt.custEmail || receipt.customer_email || "",
+      "Your receipt " + receipt.receiptNo,
+      buildReceiptMessage(receipt)
+    );
+  };
+  if (nativeBtn) nativeBtn.onclick = function () { nativeShare(receipt); };
+  var copy = bar.querySelector('[data-act="copy"]');
+  if (copy) copy.onclick = async function () {
+    try {
+      await navigator.clipboard.writeText(buildReceiptMessage(receipt));
+      var m = $("share-msg");
+      if (m) { m.textContent = "Copied"; m.className = "hint ok"; }
+    } catch (e) {
+      var m2 = $("share-msg");
+      if (m2) { m2.textContent = "Copy failed"; m2.className = "hint warn"; }
+    }
+  };
 }
 
 /* ---------------- wiring ---------------- */
@@ -1639,13 +1942,23 @@ function boot() {
     var r = cache.filter(function (x) { return x.receiptNo === tr.dataset.no; })[0];
     if (!r) return;
     current = r; showDoc("viewHost", r, {}); voidBar(false); showTab("view");
+    if (r.status === "VALID") mountShareBar(r);
+    else {
+      var sbEl = $("share-bar");
+      if (sbEl) sbEl.hidden = true;
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
   ["q", "fStatus", "fFrom", "fTo"].forEach(function (id) {
     $(id).addEventListener("input", renderLog); $(id).addEventListener("change", renderLog);
   });
 
-  $("btnBack").addEventListener("click", function () { current = null; voidBar(false); notice(""); showTab("log"); });
+  $("btnBack").addEventListener("click", function () {
+    current = null; voidBar(false); notice("");
+    var sbEl = $("share-bar");
+    if (sbEl) sbEl.hidden = true;
+    showTab("log");
+  });
   $("btnPrintOne").addEventListener("click", function () { window.print(); });
   $("btnDownload").addEventListener("click", function () { if (current) downloadReceipt(current, false); });
   $("btnVoid").addEventListener("click", function () {

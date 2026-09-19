@@ -284,8 +284,10 @@ function render() {
 
   $("rows").innerHTML = rows.map(function (b) {
     var isNew = lastSeen && b.signed_up_at && String(b.signed_up_at) > String(lastSeen);
+    var theme = (b.receipt_layout && b.receipt_layout.theme) ? b.receipt_layout.theme : "classic";
     return '<tr>' +
-      '<td><div class="sub-name">' + esc(b.name) + (isNew ? '<span class="pill new">NEW</span>' : '') + '</div>' +
+      '<td><div class="sub-name">' + esc(b.name) + (isNew ? '<span class="pill new">NEW</span>' : '') +
+        ' <span class="pill" style="background:#e8eef6;color:#2d4260;text-transform:none;font-weight:500">' + esc(theme) + '</span></div>' +
         '<div class="hint mono">' + esc(b.prefix || "—") + '</div></td>' +
       '<td><div>' + esc(b.owner_email || "—") + '</div>' +
         '<div class="hint">' + esc(b.phone || b.whatsapp || "—") + '</div></td>' +
