@@ -54,7 +54,13 @@ plus row level security: a signed-in business can only ever read and write rows 
 `business_id` matches its own, and anonymous visitors can read **nothing** directly —
 customer verification goes through a locked-down `verify_receipt()` function that needs
 both the receipt number and its verification ID and returns masked fields only.
-Full details in `docs/AUTH_AND_TRIAL_SETUP.md`.
+
+**Binding product rules** (immutability, void-only correction, verification claims,
+audit trail, document states) are defined in:
+
+→ **`docs/DOCUMENT_SECURITY_STANDARDS.md`**
+
+Technical setup details remain in `docs/AUTH_AND_TRIAL_SETUP.md`.
 
 ## Email automation (optional)
 

@@ -77,3 +77,25 @@ There is no separate `app.js` / `receipt.js` / `styles.css` / `verify.html` — 
 ## Out of scope (unchanged)
 
 Billing webhooks, custom domains, multi-user per business, freeform HTML templates.
+
+---
+
+## Phase 4 (product identity) — summary
+
+See **PHASE4_REPORT.md** for the full design rationale.
+
+Shipped in this pass:
+- App chrome and navigation reframed around Issue / Register / Business
+- Issue screen as document desk (form + preview)
+- Receipt Register as table-first operational centre
+- Verification page redesigned as document identity
+- Marketing site demonstrates the product (sample receipt + verification)
+- Visual system tightened: no gradients, reduced radius, document hierarchy
+- Conceptual module map documented; no framework rewrite
+
+Acceptance:
+1. Open app.html → see “Issue Receipt · Receipt Register · Business”
+2. Issue tab shows form + preview side-by-side on desktop
+3. Register is a clean table (Date, Receipt, Customer, Amount, Status)
+4. verify.html?no=… shows large VALID/VOIDED mark and structured record
+5. Landing page shows sample receipt + verification card, not generic SaaS hero

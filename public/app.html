@@ -9,94 +9,119 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f4f6f9; --panel:#ffffff; --panel-2:#fbfcfe; --ink:#101826; --ink-soft:#4a586e;
-  --line:#dde3ec; --line-soft:#eaeff6; --brand:#0a1628; --brand-2:#132a47; --accent:#0d9dc7;
-  --accent-soft:#e3f4fa; --ok:#0f7b52; --ok-soft:#e2f4ec; --bad:#a32020; --bad-soft:#fbe7e7;
-  --shadow:0 1px 2px rgba(16,24,38,.06),0 8px 24px rgba(16,24,38,.07);
+  --bg:#f2f4f7; --panel:#ffffff; --panel-2:#f8f9fb; --ink:#0f1724; --ink-soft:#4a5568;
+  --line:#d5dbe5; --line-soft:#e8edf4; --brand:#0a1628; --brand-2:#132a47; --accent:#0a7ea4;
+  --accent-soft:#e0f2f8; --ok:#0f7b52; --ok-soft:#e2f4ec; --bad:#a32020; --bad-soft:#fbe7e7;
+  --shadow:0 1px 2px rgba(15,23,36,.04);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#0c111a; --panel:#141b26; --panel-2:#101823; --ink:#e8edf5; --ink-soft:#9dabc0;
     --line:#26303f; --line-soft:#1c2533; --brand:#0a1628; --brand-2:#132a47; --accent:#3fc0e6;
     --accent-soft:#12303c; --ok:#5fd6a4; --ok-soft:#10301f; --bad:#ff8a8a; --bad-soft:#341414;
-    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+    --shadow:0 1px 2px rgba(0,0,0,.35);
   }
 }
 :root[data-theme="dark"]{
   --bg:#0c111a; --panel:#141b26; --panel-2:#101823; --ink:#e8edf5; --ink-soft:#9dabc0;
   --line:#26303f; --line-soft:#1c2533; --brand:#0a1628; --brand-2:#132a47; --accent:#3fc0e6;
   --accent-soft:#12303c; --ok:#5fd6a4; --ok-soft:#10301f; --bad:#ff8a8a; --bad-soft:#341414;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  --shadow:0 1px 2px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5}
-.wrap{max-width:1080px;margin:0 auto;padding:18px 16px 64px}
+body{background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14.5px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding:16px 16px 64px}
 h1,h2,h3{margin:0}
 button{font:inherit;cursor:pointer}
 input,select,textarea{font:inherit;color:inherit}
 
-/* ---------- app header ---------- */
-.topbar{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,var(--brand) 0%,var(--brand-2) 100%);
-  color:#eaf6fb;border-radius:14px;padding:14px 18px;box-shadow:var(--shadow);flex-wrap:wrap}
-.topbar img{width:54px;height:54px;border-radius:10px;flex:none;object-fit:cover}
-.topbar .t1{font-family:"Barlow Condensed",Inter,sans-serif;font-size:26px;font-weight:700;letter-spacing:.06em;line-height:1.1}
-.topbar .t2{font-size:12px;color:#9fd8ea;letter-spacing:.03em}
-.topbar .grow{flex:1 1 180px}
-.tabs{display:flex;gap:6px;background:rgba(255,255,255,.08);padding:4px;border-radius:10px}
-.tabs button{background:transparent;border:0;color:#cfe8f2;padding:8px 14px;border-radius:7px;font-weight:600;font-size:13.5px}
-.tabs button[aria-selected="true"]{background:#eaf6fb;color:#0a1628}
+/* ---------- app chrome — document system, not SaaS dashboard ---------- */
+.topbar{display:flex;align-items:center;gap:14px;background:var(--brand);color:#eaf6fb;
+  border-radius:0;padding:12px 16px;border-bottom:3px solid #0d9dc7;flex-wrap:wrap}
+.topbar img{width:42px;height:42px;border-radius:4px;flex:none;object-fit:cover;border:1px solid rgba(255,255,255,.15)}
+.topbar .t1{font-family:"Barlow Condensed",Inter,sans-serif;font-size:22px;font-weight:700;letter-spacing:.08em;line-height:1.1;text-transform:uppercase}
+.topbar .t2{font-size:11.5px;color:#9fd8ea;letter-spacing:.04em;text-transform:uppercase}
+.topbar .grow{flex:1 1 160px}
+.tabs{display:flex;gap:0;background:transparent;padding:0;border-radius:0;border-bottom:0}
+.tabs button{background:transparent;border:0;color:#a8c5d4;padding:10px 16px;border-radius:0;font-weight:600;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{background:transparent;color:#eaf6fb;border-bottom-color:#0d9dc7}
+.tabs button:hover{color:#eaf6fb}
 
 /* ---------- layout ---------- */
-.grid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:18px;margin-top:18px;align-items:start}
+.grid{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:20px;margin-top:20px;align-items:start}
 @media (max-width:900px){.grid{grid-template-columns:1fr}}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
-.card-h{padding:14px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;gap:10px}
-.card-h h2{font-size:14px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:2px}
+.panel-h{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel-2)}
+.panel-h h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);font-weight:700}
+.panel-b{padding:16px}
+/* legacy card aliases for gradual migration */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:2px}
+.card-h{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel-2)}
+.card-h h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);font-weight:700}
 .card-b{padding:16px}
-.field{margin-bottom:12px}
-.field label{display:block;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px}
-.field input,.field select,.field textarea{width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;outline:none}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:2px;padding:9px 11px;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .field textarea{min-height:64px;resize:vertical}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:520px){.two{grid-template-columns:1fr}}
 .hint{font-size:12px;color:var(--ink-soft);margin-top:4px}
 .hint.ok{color:var(--ok)}
 .hint.warn{color:#b45309}
-.seg{display:flex;gap:6px;background:var(--panel-2);border:1px solid var(--line);padding:4px;border-radius:10px}
-.seg button{flex:1;border:0;background:transparent;color:var(--ink-soft);padding:8px;border-radius:7px;font-weight:600;font-size:13.5px}
+.seg{display:flex;gap:0;background:var(--panel);border:1px solid var(--line);padding:0;border-radius:2px;overflow:hidden}
+.seg button{flex:1;border:0;background:transparent;color:var(--ink-soft);padding:9px;border-radius:0;font-weight:600;font-size:13px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
 .seg button[aria-pressed="true"]{background:var(--brand);color:#eaf6fb}
-.btn{border:1px solid var(--line);background:var(--panel-2);color:var(--ink);padding:10px 15px;border-radius:9px;font-weight:600;font-size:14px}
-.btn:hover{border-color:var(--accent)}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 14px;border-radius:2px;font-weight:600;font-size:13.5px}
+.btn:hover{border-color:var(--accent);background:var(--panel-2)}
 .btn.primary{background:var(--brand);border-color:var(--brand);color:#eaf6fb}
+.btn.primary:hover{background:var(--brand-2)}
 .btn.danger{color:var(--bad);border-color:var(--line)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.row-actions{display:flex;gap:9px;flex-wrap:wrap}
-.notice{padding:10px 12px;border-radius:9px;font-size:13.5px;margin-bottom:12px;border:1px solid var(--line)}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap}
+.notice{padding:10px 12px;border-radius:2px;font-size:13px;margin-bottom:12px;border:1px solid var(--line)}
 .notice.warn{background:var(--bad-soft);border-color:transparent;color:var(--bad)}
 .notice.good{background:var(--ok-soft);border-color:transparent;color:var(--ok)}
 
-/* ---------- table ---------- */
-.tools{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}
-.tools input,.tools select{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:9px 11px}
-.tools input{flex:1 1 220px}
-.tblwrap{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:720px}
-th{text-align:left;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:9px 10px;border-bottom:1px solid var(--line)}
-td{padding:10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+/* ---------- register (operational centre) ---------- */
+.register-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.register-head h1{font-family:"Barlow Condensed",Inter,sans-serif;font-size:20px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tools input,.tools select{background:var(--panel);border:1px solid var(--line);border-radius:2px;padding:8px 11px;font-size:13.5px}
+.tools input{flex:1 1 240px}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:2px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:700px}
+th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);padding:10px 12px;border-bottom:1px solid var(--line);background:var(--panel-2);font-weight:700}
+td{padding:11px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
 tbody tr{cursor:pointer}
 tbody tr:hover td{background:var(--panel-2)}
-.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
-.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.05em}
+tbody tr:last-child td{border-bottom:0}
+.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum";letter-spacing:.02em}
+.status{display:inline-block;padding:2px 8px;border-radius:2px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.status.valid{background:var(--ok-soft);color:var(--ok)}
+.status.void{background:var(--bad-soft);color:var(--bad)}
+.pill{display:inline-block;padding:2px 8px;border-radius:2px;font-size:11px;font-weight:700;letter-spacing:.06em}
 .pill.valid{background:var(--ok-soft);color:var(--ok)}
 .pill.void{background:var(--bad-soft);color:var(--bad)}
-.empty{padding:28px;text-align:center;color:var(--ink-soft);font-size:14px}
+.empty{padding:36px 20px;text-align:center;color:var(--ink-soft);font-size:14px;border:1px dashed var(--line);background:var(--panel)}
+
+/* ---------- issue desk ---------- */
+.issue-desk{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px;margin-top:20px;align-items:start}
+@media (max-width:960px){.issue-desk{grid-template-columns:1fr}}
+.issue-form .section-label{font-family:"Barlow Condensed",Inter,sans-serif;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.issue-form .section-label:first-child{margin-top:0}
+.preview-panel{position:sticky;top:16px}
+.preview-panel .panel-h{justify-content:space-between}
+.preview-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.receipt-no-display{font-family:"Barlow Condensed",Inter,sans-serif;font-size:18px;font-weight:700;letter-spacing:.06em;color:var(--brand)}
+
 
 /* ---------- receipt document ---------- */
 .paper-scroll{overflow-x:auto}
 .paper{position:relative;width:794px;max-width:100%;margin:0 auto;background:#ffffff;color:#101826;
-  border:1px solid #d7dee8;border-radius:10px;padding:34px 38px 26px;overflow:hidden;box-shadow:var(--shadow)}
+  border:1px solid #d7dee8;border-radius:2px;padding:34px 38px 26px;overflow:hidden;box-shadow:var(--shadow)}
 .paper *{position:relative;z-index:1}
 .wm{position:absolute;inset:0;z-index:0;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden}
 .wm img{width:460px;max-width:80%;opacity:.055;filter:grayscale(1)}
@@ -185,51 +210,57 @@ tbody tr:hover td{background:var(--panel-2)}
 <body>
 <div class="wrap">
 
-  <!-- ===== app chrome ===== -->
+  <!-- ===== app chrome — document system navigation ===== -->
   <div class="topbar noprint" id="topbar">
     <img id="topLogo" alt="">
     <div class="grow">
-      <div class="t1" id="topName">DIGITAL RECEIPTS</div>
-      <div class="t2"><span id="topSub">Digital Receipt System &middot; V1</span> <span id="trialPill"></span></div>
+      <div class="t1" id="topName">HANDZJ DIGITAL RECEIPTS</div>
+      <div class="t2"><span id="topSub">Record · Issue · Verify</span> <span id="trialPill"></span></div>
     </div>
     <div class="tabs" id="tabs">
-      <button data-tab="new" aria-selected="true">New receipt</button>
-      <button data-tab="log" aria-selected="false">Receipt log</button>
-      <button data-tab="settings" aria-selected="false">Settings</button>
+      <button data-tab="new" aria-selected="true">Issue Receipt</button>
+      <button data-tab="log" aria-selected="false">Receipt Register</button>
+      <button data-tab="settings" aria-selected="false">Business</button>
     </div>
-    <a class="btn" id="lnkAdmin" href="/admin.html" style="display:none;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#eaf6fb;padding:8px 13px;font-size:13px;text-decoration:none">Owner dashboard</a>
+    <a class="btn" id="lnkAdmin" href="/admin.html" style="display:none;background:transparent;border-color:rgba(255,255,255,.25);color:#eaf6fb;padding:7px 12px;font-size:12px;text-decoration:none;letter-spacing:.04em;text-transform:uppercase">Admin</a>
     <button class="btn" id="btnSignOut" type="button"
-      style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#eaf6fb;padding:8px 13px;font-size:13px">Sign out</button>
+      style="background:transparent;border-color:rgba(255,255,255,.25);color:#eaf6fb;padding:7px 12px;font-size:12px;letter-spacing:.04em;text-transform:uppercase">Sign out</button>
   </div>
 
   <div id="dbNotice" class="noprint" style="margin-top:14px"></div>
 
-  <!-- ===== tab: new receipt ===== -->
-  <div id="tab-new" class="grid noprint">
-    <div class="card">
-      <div class="card-h"><h2>Payment details</h2></div>
-      <div class="card-b">
+  <!-- ===== ISSUE RECEIPT — document desk ===== -->
+  <div id="tab-new" class="issue-desk noprint">
+    <div class="panel issue-form">
+      <div class="panel-h">
+        <h2>Issue Receipt</h2>
+        <span class="receipt-no-display" id="nextNoHint" style="font-size:13px;color:var(--ink-soft)"></span>
+      </div>
+      <div class="panel-b">
+        <div class="section-label">Customer</div>
+        <div class="field"><label>Name / company</label><input id="f_customer" placeholder="John Doe or Business Ltd"></div>
+        <div class="two">
+          <div class="field"><label>Phone <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custPhone" placeholder="0700 000 000"></div>
+          <div class="field"><label>Email <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custEmail" type="email" placeholder="name@company.com"></div>
+        </div>
+
+        <div class="section-label">Transaction</div>
         <div class="field">
-          <label>Receipt for</label>
+          <label>Type</label>
           <div class="seg" id="kindSeg">
-            <button type="button" data-kind="software" aria-pressed="true">Software / product</button>
+            <button type="button" data-kind="software" aria-pressed="true">Product / software</button>
             <button type="button" data-kind="service" aria-pressed="false">Service</button>
           </div>
         </div>
-        <div class="field"><label>Customer / company</label><input id="f_customer" placeholder="ABC Microfinance Ltd"></div>
-        <div class="two">
-          <div class="field"><label>Customer email <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custEmail" type="email" placeholder="name@company.com"></div>
-          <div class="field"><label>Customer phone <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custPhone" placeholder="0700 000 000"></div>
-        </div>
-        <div class="field" id="w_product"><label>Software / product</label><input id="f_item" placeholder="HZ SENTE"></div>
+        <div class="field" id="w_product"><label>Item / product</label><input id="f_item" placeholder="20 bags maize or HZ SENTE"></div>
         <div class="two" id="w_soft">
-          <div class="field"><label>License / package</label><input id="f_package" placeholder="Annual Software License"></div>
-          <div class="field"><label>License period</label><input id="f_period" placeholder="18 Sep 2026 – 17 Sep 2027"></div>
+          <div class="field"><label>Package / license</label><input id="f_package" placeholder="Annual Software License"></div>
+          <div class="field"><label>Period</label><input id="f_period" placeholder="18 Sep 2026 – 17 Sep 2027"></div>
         </div>
-        <div class="field" id="w_ref" style="display:none"><label>Project / service reference</label><input id="f_projref" placeholder="HJT-PRJ-014"></div>
-        <div class="field"><label>Description</label><textarea id="f_desc" placeholder="What exactly was paid for"></textarea></div>
+        <div class="field" id="w_ref" style="display:none"><label>Project / reference</label><input id="f_projref" placeholder="HJT-PRJ-014"></div>
+        <div class="field"><label>Description</label><textarea id="f_desc" placeholder="What was paid for"></textarea></div>
         <div class="two">
-          <div class="field"><label>Amount paid</label><input id="f_amount" inputmode="decimal" placeholder="2500000"></div>
+          <div class="field"><label>Amount</label><input id="f_amount" inputmode="decimal" placeholder="1800000"></div>
           <div class="field"><label>Currency</label>
             <select id="f_currency"><option>UGX</option><option>USD</option><option>KES</option><option>EUR</option><option>GBP</option></select>
           </div>
@@ -242,29 +273,30 @@ tbody tr:hover td{background:var(--panel-2)}
               <option>Card</option><option>Cheque</option><option>Other</option>
             </select>
           </div>
-          <div class="field"><label>Payment reference / txn ID</label><input id="f_txn" placeholder="TXN458921"></div>
+          <div class="field"><label>Reference / txn ID</label><input id="f_txn" placeholder="TXN458921"></div>
         </div>
         <div class="two">
-          <div class="field"><label>Payment date</label><input id="f_date" type="date"></div>
+          <div class="field"><label>Date</label><input id="f_date" type="date"></div>
           <div class="field"><label>Received by</label><input id="f_by" placeholder="Full name"></div>
         </div>
-        <div class="field"><label>Notes</label><textarea id="f_notes" placeholder="Optional — visible on the receipt"></textarea></div>
-        <div class="row-actions">
+        <div class="field"><label>Notes <span style="text-transform:none;font-weight:400">(optional)</span></label><textarea id="f_notes" placeholder="Visible on the receipt"></textarea></div>
+
+        <div class="row-actions" style="margin-top:18px">
+          <button class="btn primary" id="btnIssue" type="button">Issue Receipt</button>
           <button class="btn" id="btnPreview" type="button">Preview</button>
-          <button class="btn primary" id="btnIssue" type="button">Issue receipt</button>
           <button class="btn" id="btnClear" type="button">Clear</button>
         </div>
-        <div class="hint" style="margin-top:9px">Issuing assigns a permanent receipt number and records it in the log. Issued receipts are never deleted — only voided.</div>
+        <div class="hint" style="margin-top:10px">Issuing assigns a permanent receipt number. Issued receipts are never deleted — only voided.</div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-h">
-        <h2 id="previewLabel">Preview</h2>
-        <div class="row-actions"><button class="btn" id="btnPrintPreview" type="button" disabled>Print / Save PDF</button></div>
+    <div class="panel preview-panel">
+      <div class="panel-h">
+        <h2>Receipt Preview</h2>
+        <button class="btn" id="btnPrintPreview" type="button" disabled style="padding:6px 10px;font-size:12px">Print / PDF</button>
       </div>
-      <div class="card-b">
-        <div id="previewHost" class="paper-scroll"><div class="empty">Fill the form and press Preview.</div></div>
+      <div class="panel-b" style="padding:12px">
+        <div id="previewHost" class="paper-scroll"><div class="empty">Enter details — the document preview updates here.</div></div>
       </div>
     </div>
   </div>
@@ -275,23 +307,32 @@ tbody tr:hover td{background:var(--panel-2)}
   <!-- ===== tab: business settings ===== -->
   <div id="tab-settings" class="noprint" style="display:none;margin-top:18px"></div>
 
-  <!-- ===== tab: log ===== -->
-  <div id="tab-log" class="card noprint" style="display:none;margin-top:18px">
-    <div class="card-h"><h2>Receipt log</h2><span class="hint" id="logCount"></span></div>
-    <div class="card-b">
-      <div class="tools">
-        <input id="q" placeholder="Search receipt no, customer, product/service, reference…">
-        <select id="fStatus"><option value="">All statuses</option><option value="VALID">VALID</option><option value="VOIDED">VOIDED</option></select>
-        <input id="fFrom" type="date" title="From date"><input id="fTo" type="date" title="To date">
-      </div>
-      <div class="tblwrap">
-        <table>
-          <thead><tr><th>Receipt</th><th>Date</th><th>Customer</th><th>Product / service</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
-          <tbody id="logBody"></tbody>
-        </table>
-      </div>
-      <div id="logEmpty" class="empty">No receipts yet.</div>
+  <!-- ===== RECEIPT REGISTER — operational centre ===== -->
+  <div id="tab-log" class="noprint" style="display:none;margin-top:20px">
+    <div class="register-head">
+      <h1>Receipt Register</h1>
+      <span class="hint" id="logCount"></span>
     </div>
+    <div class="tools">
+      <input id="q" placeholder="Search receipt, customer, reference…">
+      <select id="fStatus"><option value="">All statuses</option><option value="VALID">VALID</option><option value="VOIDED">VOIDED</option></select>
+      <input id="fFrom" type="date" title="From date"><input id="fTo" type="date" title="To date">
+    </div>
+    <div class="tblwrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Receipt</th>
+            <th>Customer</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+    <div id="logEmpty" class="empty" style="margin-top:12px">No receipts recorded yet. Issue your first receipt to begin the register.</div>
   </div>
 
   <!-- ===== single receipt view (also used for print) ===== -->
@@ -1215,7 +1256,7 @@ function applyTrialLock() {
   if (issueBtn) {
     issueBtn.disabled = locked;
     issueBtn.title = locked ? "Subscribe to issue new receipts" : "";
-    issueBtn.textContent = locked ? "Trial ended — subscribe to issue" : "Issue receipt";
+    issueBtn.textContent = locked ? "Trial ended — subscribe to issue" : "Issue Receipt";
   }
   paintTrialPill();
 }
@@ -1463,14 +1504,14 @@ function renderLog() {
   $("logCount").textContent = rows.length + " of " + cache.length + " receipt" + (cache.length === 1 ? "" : "s");
   $("logEmpty").style.display = rows.length ? "none" : "";
   $("logBody").innerHTML = rows.map(function (r) {
+    var d = String(r.paidOn || "").slice(0, 10);
+    var dLabel = d ? d.slice(8, 10) + " " + ["","JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][parseInt(d.slice(5,7),10) || 0] : "—";
     return '<tr data-no="' + esc(r.receiptNo) + '">' +
+      '<td class="mono">' + esc(dLabel) + '</td>' +
       '<td class="mono"><b>' + esc(r.receiptNo) + '</b></td>' +
-      '<td class="mono">' + esc(String(r.paidOn).slice(0, 10)) + '</td>' +
       '<td>' + esc(r.customer) + '</td>' +
-      '<td>' + esc(r.item) + (r.pkg ? ' <span style="opacity:.6">— ' + esc(r.pkg) + '</span>' : '') + '</td>' +
       '<td class="mono">' + esc(money(r.amount, r.currency)) + '</td>' +
-      '<td>' + esc(r.method) + '</td>' +
-      '<td><span class="pill ' + (r.status === "VOIDED" ? "void" : "valid") + '">' + esc(r.status) + '</span></td>' +
+      '<td><span class="status ' + (r.status === "VOIDED" ? "void" : "valid") + '">' + esc(r.status) + '</span></td>' +
       '</tr>';
   }).join("");
 }
@@ -1700,7 +1741,7 @@ async function issue() {
   } finally {
     btn.disabled = false;
     applyTrialLock();
-    if (!(trial.checked && trial.expired)) btn.textContent = "Issue receipt";
+    if (!(trial.checked && trial.expired)) btn.textContent = "Issue Receipt";
   }
 }
 
@@ -1961,7 +2002,7 @@ function boot() {
     ["f_customer","f_custEmail","f_custPhone","f_item","f_package","f_period","f_projref","f_desc","f_amount","f_txn","f_by","f_notes"]
       .forEach(function (id) { $(id).value = ""; });
     $("f_date").value = todayISO();
-    $("previewHost").innerHTML = '<div class="empty">Fill the form and press Preview.</div>';
+    $("previewHost").innerHTML = '<div class="empty">Enter details — the document preview updates here.</div>';
     $("btnPrintPreview").disabled = true;
     $("previewLabel").textContent = "Preview";
     updateWords(); notice("");
