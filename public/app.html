@@ -445,7 +445,10 @@ function baseUrl() {
   return location.origin + location.pathname.replace(/\/app\.html$/, "/");
 }
 function verifyUrl(r) {
-  return baseUrl() + "#/verify/" + r.receiptNo + "/" + r.verifyId;
+  /* Clean public URL — independent of app.html hash routing.
+     Authority remains verify_receipt() RPC on the server. */
+  return baseUrl() + "/verify.html?no=" + encodeURIComponent(r.receiptNo) +
+    "&id=" + encodeURIComponent(r.verifyId);
 }
 function maskName(name) {
   var w = String(name || "").trim().split(/\s+/);
@@ -695,12 +698,20 @@ async function cloudLoadReceipts() {
 }
 
 async function cloudSaveReceipt(r) {
+  /* Issue only: INSERT. Issued receipts are immutable in Postgres
+     (trigger + no client UPDATE policy). Voiding uses void_receipt RPC. */
   var row = receiptToRow(r);
-  // upsert on (business_id, receipt_no)
-  var { error } = await sb.from("receipts").upsert(row, {
-    onConflict: "business_id,receipt_no"
+  var { error } = await sb.from("receipts").insert(row);
+  if (error) throw error;
+}
+
+async function cloudVoidReceipt(receiptNo, reason) {
+  var { data, error } = await sb.rpc("void_receipt", {
+    p_receipt_no: receiptNo,
+    p_reason: reason
   });
   if (error) throw error;
+  return data;
 }
 
 async function cloudNextReceiptNo() {
@@ -1418,8 +1429,18 @@ function showTab(name) {
 
 async function route() {
   var m = /^#\/verify\/([^/]+)(?:\/([^/]+))?/.exec(location.hash || "");
-  if (m) { await renderVerify(decodeURIComponent(m[1]), m[2] ? decodeURIComponent(m[2]) : ""); showTab("verify"); }
-  else if (current) showTab("view");
+  if (m) {
+    /* Backward-compatible: old QR codes used hash routes. Send them to the
+       clean public verify page; same RPC authority. */
+    var no = decodeURIComponent(m[1]);
+    var vid = m[2] ? decodeURIComponent(m[2]) : "";
+    location.replace(
+      "/verify.html?no=" + encodeURIComponent(no) +
+      (vid ? "&id=" + encodeURIComponent(vid) : "")
+    );
+    return;
+  }
+  if (current) showTab("view");
   else showTab(access.checked && !access.canEdit ? "log" : "new");
 }
 
@@ -1693,13 +1714,22 @@ async function confirmVoid() {
   if (!current) return;
   var reason = $("voidReason").value.trim();
   if (!reason) { say("A reason is required to void a receipt.", "warn"); return; }
-  var r = Object.assign({}, current, { status: "VOIDED", voidReason: reason, voidedAt: new Date().toISOString() });
   try {
-    await saveReceipt(r);
+    var row = await cloudVoidReceipt(current.receiptNo, reason);
+    var r = row ? rowToReceipt(row) : Object.assign({}, current, {
+      status: "VOIDED",
+      voidReason: reason,
+      voidedAt: new Date().toISOString()
+    });
+    /* keep cache in sync */
+    var idx = cache.findIndex(function (x) { return x.receiptNo === r.receiptNo; });
+    if (idx >= 0) cache[idx] = r; else cache.unshift(r);
     current = r;
     showDoc("viewHost", r, {});
     voidBar(false);
-    say("Receipt <b>" + esc(r.receiptNo) + "</b> voided. It remains in the log.", "warn");
+    var sbEl = $("share-bar");
+    if (sbEl) sbEl.hidden = true;
+    say("Receipt <b>" + esc(r.receiptNo) + "</b> voided. It remains in the log and verifies as VOIDED.", "warn");
   } catch (e) {
     say("Could not void the receipt: " + esc(e && e.message ? e.message : "unknown error"), "warn");
   }

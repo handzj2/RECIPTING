@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Receipt verification — HandzJ Digital Receipts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6f9; --panel:#ffffff; --ink:#101826; --ink-soft:#4a586e;
+  --line:#dde3ec; --brand:#0a1628; --ok:#0f7b52; --ok-soft:#e2f4ec;
+  --bad:#a32020; --bad-soft:#fbe7e7; --unk:#8c97a8; --unk-soft:#eef1f5;
+  --shadow:0 1px 2px rgba(16,24,38,.06),0 8px 24px rgba(16,24,38,.07);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0c111a; --panel:#141b26; --ink:#e8edf5; --ink-soft:#9dabc0;
+    --line:#26303f; --ok:#5fd6a4; --ok-soft:#10301f;
+    --bad:#ff8a8a; --bad-soft:#341414; --unk:#8c97a8; --unk-soft:#1c2533;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding:28px 16px 64px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.card-b{padding:22px 20px}
+.vbig{display:flex;align-items:center;gap:12px;font-family:"Barlow Condensed",Inter,sans-serif;font-size:26px;font-weight:700;letter-spacing:.08em}
+.dot{width:13px;height:13px;border-radius:50%;flex:none}
+.dot.ok{background:var(--ok)} .dot.bad{background:var(--bad)} .dot.unk{background:var(--unk)}
+.hint{font-size:13px;color:var(--ink-soft);margin:10px 0 0}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:0;margin-top:16px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.kv>div{padding:9px 12px;border-bottom:1px solid var(--line);font-size:13.5px}
+.kv>div:nth-child(odd){color:var(--ink-soft);font-weight:600;background:rgba(0,0,0,.03)}
+.kv>div:nth-last-child(-n+2){border-bottom:0}
+.issuer{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.issuer img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--line)}
+.issuer .t1{font-family:"Barlow Condensed",Inter,sans-serif;font-size:20px;font-weight:700;letter-spacing:.04em}
+.issuer .t2{font-size:12px;color:var(--ink-soft)}
+.foot{text-align:center;margin-top:20px;font-size:12.5px;color:var(--ink-soft)}
+.foot a{color:inherit}
+.banner{padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:14px}
+.banner.ok{background:var(--ok-soft);color:var(--ok)}
+.banner.bad{background:var(--bad-soft);color:var(--bad)}
+.banner.unk{background:var(--unk-soft);color:var(--ink-soft)}
+.mono{font-variant-numeric:tabular-nums;letter-spacing:.03em}
+</style>
+<script src="/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<div class="wrap" id="root">
+  <div class="card"><div class="card-b">Checking receipt…</div></div>
+</div>
+<script>
+"use strict";
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+  });
+}
+function money(amount, code) {
+  var n = Number(amount);
+  if (!isFinite(n)) return "—";
+  try {
+    return (code || "UGX") + " " + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  } catch (e) {
+    return (code || "UGX") + " " + n;
+  }
+}
+function fmtDate(iso) {
+  if (!iso) return "—";
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return String(iso);
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+function fmtStamp(ts) {
+  if (!ts) return "—";
+  var d = new Date(ts);
+  if (isNaN(d.getTime())) return String(ts);
+  return d.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+function maskName(name) {
+  var w = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (!w.length) return "—";
+  if (w.length === 1) return w[0][0] + "•";
+  return w[0] + " " + w.slice(1).map(function (x) { return x[0].toUpperCase() + "•"; }).join(" ");
+}
+function maskRef(ref) {
+  var s = String(ref || "").trim();
+  if (s.length <= 4) return s || "—";
+  return s.slice(0, 2) + "•••" + s.slice(-2);
+}
+
+function qs(name) {
+  var m = new RegExp("[?&]" + name + "=([^&]*)").exec(location.search);
+  return m ? decodeURIComponent(m[1].replace(/\+/g, " ")) : "";
+}
+
+async function lookup(no, vid) {
+  var cfg = window.HANDZJ_CONFIG || {};
+  if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY || !window.supabase) return null;
+  var sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+  var { data, error } = await sb.rpc("verify_receipt", {
+    p_receipt_no: no,
+    p_verify_id: vid || ""
+  });
+  if (error) throw error;
+  var row = Array.isArray(data) ? data[0] : data;
+  return row || null;
+}
+
+function render(no, vid, row, err) {
+  var root = document.getElementById("root");
+  if (err) {
+    root.innerHTML =
+      '<div class="card"><div class="card-b">' +
+        '<div class="vbig"><span class="dot unk"></span>UNAVAILABLE</div>' +
+        '<p class="hint">Could not reach the verification service. Check your connection and try again.</p>' +
+        '<p class="hint mono">Receipt: ' + esc(no || "—") + '</p>' +
+      '</div></div>';
+    return;
+  }
+
+  var genuine = !!row;
+  var head, dot, bannerCls, msg;
+  if (!genuine) {
+    head = "NOT FOUND";
+    dot = "unk";
+    bannerCls = "unk";
+    msg = "No receipt matching this number and verification ID was found in the platform records.";
+  } else if (row.status === "VOIDED") {
+    head = "VOIDED";
+    dot = "bad";
+    bannerCls = "bad";
+    msg = "This receipt was issued but has since been voided. It is not proof of a valid payment.";
+  } else {
+    head = "VERIFIED";
+    dot = "ok";
+    bannerCls = "ok";
+    msg = "This receipt record was retrieved from the issuing platform and is currently valid.";
+  }
+
+  var who = (row && row.business_name) ? row.business_name : "Issuing business";
+  var logo = (row && row.business_logo) ? row.business_logo : "/logo.jpg";
+
+  var body = "";
+  if (genuine) {
+    body =
+      '<div class="kv">' +
+        '<div>Receipt number</div><div class="mono">' + esc(row.receipt_no) + '</div>' +
+        '<div>Issued</div><div>' + esc(fmtStamp(row.created_at)) + '</div>' +
+        '<div>Payment date</div><div>' + esc(fmtDate(row.paid_on)) + '</div>' +
+        '<div>Issued to</div><div>' + esc(row.customer_masked || maskName("")) + '</div>' +
+        '<div>For</div><div>' + esc(row.item || "—") + '</div>' +
+        '<div>Amount</div><div><b>' + esc(money(row.amount, row.currency)) + '</b></div>' +
+        '<div>Payment method</div><div>' + esc(row.method || "—") + '</div>' +
+        '<div>Reference</div><div>' + esc(row.txn_masked || maskRef("")) + '</div>' +
+        '<div>Record status</div><div><b>' + esc(row.status) + '</b></div>' +
+      '</div>' +
+      (row.status === "VOIDED" && row.voided_at
+        ? '<p class="hint">Voided: ' + esc(fmtStamp(row.voided_at)) + '</p>'
+        : '') +
+      '<p class="hint">Customer and reference details are partially hidden by design. ' +
+        'To confirm full details, contact ' + esc(who) +
+        (row.business_phone ? " on " + esc(row.business_phone) : "") +
+        (row.business_email ? " or " + esc(row.business_email) : "") + ".</p>";
+  } else {
+    body =
+      '<div class="kv">' +
+        '<div>Receipt number</div><div class="mono">' + esc(no || "—") + '</div>' +
+        '<div>Record status</div><div><b>NOT FOUND</b></div>' +
+      '</div>' +
+      '<p class="hint">This page only confirms records that exist on the issuing platform. ' +
+        'It does not certify tax status, company registration, or any government authority.</p>';
+  }
+
+  root.innerHTML =
+    '<div class="issuer">' +
+      '<img src="' + esc(logo) + '" alt="">' +
+      '<div><div class="t1">' + esc(who) + '</div><div class="t2">Receipt verification</div></div>' +
+    '</div>' +
+    '<div class="card"><div class="card-b">' +
+      '<div class="banner ' + bannerCls + '">' + esc(msg) + '</div>' +
+      '<div class="vbig"><span class="dot ' + dot + '"></span>' + esc(head) + '</div>' +
+      body +
+    '</div></div>' +
+    '<p class="foot">Record retrieved from the issuing platform. ' +
+      'This is not a government or tax authority certification.<br>' +
+      '<a href="/">HandzJ Digital Receipts</a></p>';
+}
+
+(async function () {
+  var no = qs("no");
+  var id = qs("id");
+  if (!no) {
+    render("", "", null, null);
+    document.getElementById("root").innerHTML =
+      '<div class="card"><div class="card-b">' +
+        '<div class="vbig"><span class="dot unk"></span>NOT FOUND</div>' +
+        '<p class="hint">No receipt number was provided. Open a verification link from a receipt, or scan its QR code.</p>' +
+      '</div></div>';
+    return;
+  }
+  try {
+    var row = await lookup(no, id);
+    render(no, id, row, null);
+  } catch (e) {
+    render(no, id, null, e);
+  }
+})();
+</script>
+</body>
+</html>
