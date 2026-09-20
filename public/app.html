@@ -1966,55 +1966,141 @@ async function renderVerify(no, vid) {
 
 function say(msg, cls) { notice(msg, cls || ""); window.scrollTo({ top: 0, behavior: "smooth" }); }
 
-/* ---- PDF ---- */
+/* ---- PDF generation (html2pdf → A4 file) ---- */
+
+function pdfFilename(r) {
+  var cust = String(r.customer || "receipt").replace(/[^\w \-]/g, "").trim().slice(0, 40);
+  return (r.receiptNo || "receipt") + (cust ? " - " + cust : "") + ".pdf";
+}
 
 function offscreen(html) {
   var box = document.createElement("div");
-  box.style.cssText = "position:fixed;left:-20000px;top:0;width:794px;background:#fff;z-index:-1";
+  box.style.cssText = "position:fixed;left:-20000px;top:0;width:794px;background:#fff;z-index:-1;pointer-events:none";
   box.innerHTML = html;
   document.body.appendChild(box);
   return box;
 }
 
+function waitForImages(root, ms) {
+  ms = ms || 1500;
+  var imgs = Array.prototype.slice.call(root.querySelectorAll("img"));
+  if (!imgs.length) return Promise.resolve();
+  return Promise.race([
+    Promise.all(imgs.map(function (img) {
+      if (img.complete) return Promise.resolve();
+      return new Promise(function (res) {
+        img.onload = img.onerror = function () { res(); };
+      });
+    })),
+    new Promise(function (res) { setTimeout(res, ms); })
+  ]);
+}
+
 async function buildPdfBlob(r) {
-  if (typeof html2pdf === "undefined") return null;
+  if (typeof html2pdf === "undefined") {
+    throw new Error("html2pdf library not loaded");
+  }
   var box = offscreen(receiptHTML(r, {}));
   paintQRs(box);
-  await new Promise(function (res) { setTimeout(res, 120); });
+  await waitForImages(box, 2000);
+  /* allow QR canvas paint */
+  await new Promise(function (res) { setTimeout(res, 200); });
   try {
-    return await html2pdf().set({
-      margin: [10, 8, 10, 8],
-      image: { type: "jpeg", quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-    }).from(box.firstElementChild).outputPdf("blob");
+    var paper = box.querySelector(".paper") || box.firstElementChild;
+    var blob = await html2pdf().set({
+      margin: [8, 8, 8, 8],
+      filename: pdfFilename(r),
+      image: { type: "jpeg", quality: 0.98 },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: 794
+      },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait", compress: true }
+    }).from(paper).outputPdf("blob");
+    return blob;
   } finally {
-    box.remove();
+    try { box.remove(); } catch (e) {}
   }
 }
 
+function triggerBrowserDownload(blob, filename) {
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = filename || "receipt.pdf";
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function () {
+    try { URL.revokeObjectURL(url); } catch (e) {}
+    try { a.remove(); } catch (e) {}
+  }, 2000);
+}
+
 async function downloadReceipt(r, silent) {
+  if (!r) return false;
+  var btn = $("btnDownload");
+  var prevLabel = btn ? btn.textContent : "";
+  if (btn) { btn.disabled = true; btn.textContent = "Building PDF…"; }
+
   var blob = null;
-  try { blob = await buildPdfBlob(r); } catch (e) { blob = null; }
+  var errMsg = "";
+  try {
+    blob = await buildPdfBlob(r);
+  } catch (e) {
+    errMsg = (e && e.message) ? e.message : String(e);
+    blob = null;
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = prevLabel || "Download PDF"; }
+
   if (!blob) {
-    if (!silent) say("PDF builder unavailable — opening the print dialog instead (choose “Save as PDF”).", "warn");
+    if (!silent) {
+      say(
+        "PDF could not be built" + (errMsg ? " (" + esc(errMsg) + ")" : "") +
+        ". Opening print dialog — choose <b>Save as PDF</b>.",
+        "warn"
+      );
+    }
+    try {
+      /* ensure the visible receipt is painted for print */
+      if ($("viewHost") && current) showDoc("viewHost", current, {});
+      showTab("view");
+      setTimeout(function () { window.print(); }, 250);
+    } catch (e2) {
+      window.print();
+    }
+    return false;
+  }
+
+  var fname = pdfFilename(r);
+
+  /* 1) Standard browser download (works on Vercel / local / mobile where allowed) */
+  try {
+    triggerBrowserDownload(blob, fname);
+  } catch (e) {
+    if (!silent) say("Browser blocked the download. Try Print → Save as PDF.", "warn");
     window.print();
     return false;
   }
-  var dl = null;
-  try { dl = (window.claude && claude.use) ? await claude.use("downloads") : null; } catch (e) { dl = null; }
-  if (!dl) {
-    if (!silent) say("Automatic download is unavailable here — use Print / Save PDF.", "warn");
-    return false;
-  }
+
+  /* 2) Optional Claude downloads API if present */
   try {
-    await dl.save({ filename: r.receiptNo + " - " + (r.customer || "receipt").replace(/[^\w \-]/g, "") + ".pdf", data: blob });
-    return true;
-  } catch (e) {
-    var code = e && e.code ? e.code : "error";
-    if (code !== "declined") say("Download failed (" + esc(code) + "). Use Print / Save PDF instead.", "warn");
-    return false;
-  }
+    var dl = (window.claude && claude.use) ? await claude.use("downloads") : null;
+    if (dl) {
+      try { await dl.save({ filename: fname, data: blob }); } catch (e) {}
+    }
+  } catch (e) {}
+
+  if (!silent) say("PDF downloaded: <b>" + esc(fname) + "</b>", "good");
+  return true;
 }
 
 /* ---- reference + number generation ---- */
