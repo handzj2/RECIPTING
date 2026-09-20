@@ -366,6 +366,11 @@ tbody tr:last-child td{border-bottom:0}
           <div class="field"><label>Email <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custEmail" type="email" placeholder="name@company.com"></div>
         </div>
 
+        <div class="field" id="branchField" style="display:none">
+          <label>Shop / branch</label>
+          <select id="f_branch"></select>
+          <div class="hint" style="margin-top:4px">Receipts are stored under this shop. Security is enforced in the database.</div>
+        </div>
         <div class="section-label">Transaction</div>
         <div class="field">
           <label>Type</label>
@@ -806,7 +811,34 @@ function canEditSettings() {
 function applyRoleChrome() {
   var voidBtn = $("btnVoid");
   if (voidBtn) voidBtn.style.display = canVoid() ? "" : "none";
-  /* Settings tab: cashiers can open but only see limited panel */
+  fillBranchSelect();
+}
+
+function fillBranchSelect() {
+  var field = $("branchField");
+  var sel = $("f_branch");
+  if (!field || !sel) return;
+  if (!branches.length) {
+    field.style.display = "none";
+    return;
+  }
+  /* Owners/managers pick shop; cashiers with one branch see it fixed */
+  field.style.display = "";
+  var cur = staffBranchId || (sel.value || "");
+  sel.innerHTML = branches.map(function (b) {
+    return '<option value="' + esc(b.id) + '">' + esc(b.name) + (b.code ? " (" + esc(b.code) + ")" : "") + "</option>";
+  }).join("");
+  if (staffRole === "cashier" && staffBranchId) {
+    sel.value = staffBranchId;
+    sel.disabled = true;
+  } else {
+    sel.disabled = false;
+    if (cur) sel.value = cur;
+  }
+  sel.onchange = function () {
+    if (staffRole !== "cashier") staffBranchId = sel.value || null;
+  };
+  if (sel.value) staffBranchId = sel.value;
 }
 
 
@@ -2417,7 +2449,10 @@ async function peekNextNumber() {
 
 /* ---- issue / void ---- */
 
+var _issuingLock = false;
 async function issue() {
+  if (_issuingLock) return;
+
   if (trial.checked && trial.expired) {
     say("Your free trial has ended. Subscribe to issue new receipts — your existing records are untouched.", "warn");
     showTab("settings");
@@ -2425,13 +2460,13 @@ async function issue() {
   }
   var d = readForm(), errs = validate(d);
   if (errs.length) { say("Please provide: " + esc(errs.join(", ")) + ".", "warn"); return; }
-  var btn = $("btnIssue"); btn.disabled = true; btn.textContent = "Issuing…";
+  var btn = $("btnIssue"); _issuingLock = true; btn.disabled = true; btn.textContent = "Issuing…";
   try {
     if (!d.txn) { d.txn = genReference(); $("f_txn").value = d.txn; }
     var no = await nextReceiptNo();
     var r = Object.assign({}, d, {
       receiptNo: no,
-      verifyId: randId(10),
+      verifyId: randId(16),
       status: "VALID",
       createdAt: new Date().toISOString(),
       voidedAt: null,
