@@ -10,5 +10,10 @@ window.HANDZJ_CONFIG = {
   /* Shown to a tenant whose trial has ended, so they know who to pay. */
   SUPPORT_CONTACT: "0781 909 507 / handzj2@gmail.com",
 
-  APP_URL: ""
+  APP_URL: "",
+
+  /* Optional SMS gateway. Leave empty = SMS button hidden (no fake send).
+     When set, POST JSON { to, message, receipt_no } to this URL from the browser.
+     You must implement the server/provider yourself. */
+  SMS_ENDPOINT: ""
 };

@@ -314,6 +314,12 @@ tbody tr:last-child td{border-bottom:0}
 .issued-banner{background:#e8f6ef;border:1px solid #b7e0c8;border-radius:12px;padding:14px 16px;margin-bottom:14px}
 .issued-banner.voided{background:#fbe7e7;border-color:#f0c0c0}
 .issued-banner h3{margin:0 0 6px;font-size:16px}
+
+.issued-banner .rcpt-no{font-family:"Barlow Condensed",Inter,sans-serif;font-size:28px;font-weight:700;letter-spacing:.04em;margin:8px 0 4px;word-break:break-all}
+.issued-banner .rcpt-hint{font-size:12.5px;color:var(--ink-soft);margin:0 0 10px}
+.issued-actions .btn.primary{order:-1}
+.issued-note{font-size:12.5px;color:var(--ink-soft);margin-top:10px;line-height:1.4}
+
 .issued-banner .meta{font-size:13.5px;line-height:1.55;color:var(--ink)}
 .issued-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 @media (max-width:720px){
@@ -2722,18 +2728,11 @@ async function downloadReceipt(r, silent) {
     if (!silent) {
       say(
         "PDF could not be built" + (errMsg ? " (" + esc(errMsg) + ")" : "") +
-        ". Opening print dialog — choose <b>Save as PDF</b>.",
+        ". The receipt is still issued. Try Print → Save as PDF, or copy the verification link.",
         "warn"
       );
     }
-    try {
-      /* ensure the visible receipt is painted for print */
-      if ($("viewHost") && current) showDoc("viewHost", current, {});
-      showTab("view");
-      setTimeout(function () { window.print(); }, 250);
-    } catch (e2) {
-      window.print();
-    }
+    /* Do not auto-print on silent (post-issue) path — avoids blocking UX */
     return false;
   }
 
@@ -2816,13 +2815,10 @@ async function issue() {
     showTab("view");
     mountShareBar(r);
     showIssuedBanner(r, true);
-    say("✓ Receipt <b>" + esc(no) + "</b> issued.", "good");
+    say("✓ Receipt <b>" + esc(no) + "</b> issued and recorded. Delivery (PDF, print, WhatsApp) is optional.", "good");
     peekNextNumber();
-    btn.textContent = "Preparing PDF…";
-    try {
-      var ok = await downloadReceipt(r, true);
-      if (ok) say("✓ Receipt <b>" + esc(no) + "</b> issued and PDF downloaded.", "good");
-    } catch (pe) { /* PDF optional */ }
+    /* PDF is optional delivery — never fails the issue */
+    try { await downloadReceipt(r, true); } catch (pe) { /* ignore */ }
   } catch (e) {
     var em = (e && e.message) ? e.message : "unknown error";
     if (/TRIAL_EXPIRED/i.test(em) || /row-level security/i.test(em)) {
@@ -2860,40 +2856,113 @@ function showIssuedBanner(r, justIssued) {
     if (br) brName = br.name;
   }
   var voided = r.status === "VOIDED";
+  var vurl = verifyUrl(r);
   el.hidden = false;
   el.className = "issued-banner noprint" + (voided ? " voided" : "");
-  el.innerHTML = "<h3>" + (voided ? "VOIDED" : (justIssued ? "✓ Receipt issued" : "Receipt")) + "</h3>" +
+
+  var actions = [];
+  if (!voided) {
+    actions.push('<button type="button" class="btn primary" data-ia="copy">Copy verification link</button>');
+    if (navigator.share) actions.push('<button type="button" class="btn" data-ia="share">Share</button>');
+    actions.push('<button type="button" class="btn" data-ia="pdf">Download PDF</button>');
+    actions.push('<button type="button" class="btn" data-ia="print">Print</button>');
+    actions.push('<button type="button" class="btn" data-ia="wa">WhatsApp</button>');
+    if (smsConfigured()) actions.push('<button type="button" class="btn" data-ia="sms">Send SMS</button>');
+    if (r.custEmail) actions.push('<button type="button" class="btn" data-ia="mail">Email</button>');
+  }
+  actions.push('<button type="button" class="btn" data-ia="new">New receipt</button>');
+
+  el.innerHTML =
+    "<h3>" + (voided ? "VOIDED" : (justIssued ? "✓ Receipt issued" : "Receipt recorded")) + "</h3>" +
+    '<div class="rcpt-no mono">' + esc(r.receiptNo) + "</div>" +
+    '<p class="rcpt-hint">This number is the official record. The customer can verify later with the link — no WhatsApp or printer required.</p>' +
     '<div class="meta">' +
       '<div><b>' + esc(CO.name) + '</b>' + (brName ? " · " + esc(brName) : "") + "</div>" +
-      "<div>No. <b class=\"mono\">" + esc(r.receiptNo) + "</b></div>" +
-      "<div>" + esc(money(r.amount, r.currency)) + " · " + esc(r.method || "") + " · " + esc(fmtDate(r.paidOn)) + "</div>" +
+      "<div>" + esc(money(r.amount, r.currency)) + " · " + esc(r.method || "—") + " · " + esc(fmtDate(r.paidOn)) + "</div>" +
       (r.customer ? "<div>Customer: " + esc(r.customer) + "</div>" : "") +
       (voided && r.voidReason ? "<div>Reason: " + esc(r.voidReason) + "</div>" : "") +
     "</div>" +
-    '<div class="issued-actions">' +
-      '<button type="button" class="btn primary" data-ia="wa">WhatsApp</button>' +
-      '<button type="button" class="btn" data-ia="print">Print</button>' +
-      '<button type="button" class="btn" data-ia="pdf">Download PDF</button>' +
-      '<button type="button" class="btn" data-ia="copy">Copy verify link</button>' +
-      '<button type="button" class="btn" data-ia="new">New receipt</button>' +
-    "</div>";
-  el.querySelector('[data-ia="wa"]').onclick = function () { openWhatsAppShare(r, buildReceiptMessage(r)); };
-  el.querySelector('[data-ia="print"]').onclick = function () { printReceipt(); };
-  el.querySelector('[data-ia="pdf"]').onclick = function () { downloadReceipt(r, false); };
-  el.querySelector('[data-ia="copy"]').onclick = async function () {
-    try {
-      await navigator.clipboard.writeText(verifyUrl(r));
-      say("Verification link copied.", "good");
-    } catch (e) { say(verifyUrl(r), ""); }
+    '<div class="issued-actions">' + actions.join("") + "</div>" +
+    (justIssued && !voided
+      ? '<p class="issued-note">Optional: download PDF, print, or share the verification link. Issuing already succeeded.</p>'
+      : "");
+
+  var bind = function (act, fn) {
+    var b = el.querySelector('[data-ia="' + act + '"]');
+    if (b) b.onclick = fn;
   };
-  el.querySelector('[data-ia="new"]').onclick = function () {
+  bind("copy", async function () {
+    try {
+      await navigator.clipboard.writeText(vurl);
+      say("Verification link copied. Customer can open it any time.", "good");
+    } catch (e) {
+      say("Copy manually: " + vurl, "");
+    }
+  });
+  bind("share", async function () {
+    var ok = await nativeShare(r);
+    if (!ok) say("Share not available on this device — use Copy link or Download PDF.", "warn");
+  });
+  bind("pdf", function () {
+    downloadReceipt(r, false).then(function (ok) {
+      if (!ok) say("PDF unavailable right now. Receipt is still issued — try Print → Save as PDF, or copy the verification link.", "warn");
+    });
+  });
+  bind("print", function () {
+    try { printReceipt(); }
+    catch (e) { say("Printing is unavailable on this device. Download the PDF instead — the receipt is already issued.", "warn"); }
+  });
+  bind("wa", function () { openWhatsAppShare(r, buildClientMessage(r)); });
+  bind("sms", function () { sendSmsReceipt(r); });
+  bind("mail", function () {
+    window.location.href = mailtoLink(
+      r.custEmail || "",
+      CO.name + " — Receipt " + r.receiptNo,
+      buildClientMessage(r)
+    );
+  });
+  bind("new", function () {
     el.hidden = true;
     current = null;
     showTab("new");
     renderLineItems([emptyLine()]);
-  };
+  });
 }
 
+function smsConfigured() {
+  var c = cfg() || {};
+  return !!(c.SMS_ENDPOINT && String(c.SMS_ENDPOINT).trim());
+}
+
+async function sendSmsReceipt(r) {
+  if (!smsConfigured()) {
+    say("SMS is not configured for this installation.", "warn");
+    return;
+  }
+  var phone = (r.custPhone || "").trim();
+  if (!phone || !isPhoneRequiredOk(phone)) {
+    /* ask via simple sheet reuse? use prompt-less: prefill WA sheet is wrong. Use say + require phone on form */
+    say("Add a valid customer phone on the receipt, or copy the verification link instead.", "warn");
+    return;
+  }
+  var text = "Your receipt " + r.receiptNo + " is available here: " + verifyUrl(r);
+  var endpoint = String(cfg().SMS_ENDPOINT).trim();
+  try {
+    var res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to: normalizePhone(phone),
+        message: text,
+        receipt_no: r.receiptNo
+      })
+    });
+    if (!res.ok) throw new Error("SMS service returned " + res.status);
+    say("SMS requested for " + esc(formatPhoneInternational(phone) || phone) + ".", "good");
+  } catch (e) {
+    say("SMS could not be sent (" + esc(humanErr(e.message || e)) + "). Copy the verification link instead — the receipt is already issued.", "warn");
+  }
+}
 
 function voidBar(show) {
   var bar = $("voidBar");
@@ -3175,7 +3244,7 @@ function mountShareBar(receipt) {
 
   var wa = bar.querySelector('[data-act="wa"]');
   if (wa) wa.onclick = function () {
-    openWhatsAppShare(receipt, buildReceiptMessage(receipt));
+    openWhatsAppShare(receipt, buildClientMessage(receipt));
   };
   var mail = bar.querySelector('[data-act="mail"]');
   if (mail) mail.onclick = function () {
