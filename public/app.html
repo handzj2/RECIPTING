@@ -193,16 +193,75 @@ tbody tr:last-child td{border-bottom:0}
 .dot{width:13px;height:13px;border-radius:50%;flex:none}
 .dot.ok{background:var(--ok)} .dot.bad{background:var(--bad)} .dot.unk{background:#8c97a8}
 
-/* ---------- print ---------- */
+/* ---------- print formats: A4 / 80mm / 40mm thermal ---------- */
 @media print{
-  @page{size:A4;margin:11mm}
   body{background:#fff}
   .noprint{display:none!important}
-  .wrap{max-width:none;padding:0}
-  .paper{width:auto;max-width:none;border:0;border-radius:0;box-shadow:none;padding:0 0 8px}
-  .paper,.paper *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .wrap{max-width:none;padding:0;margin:0}
   .paper-scroll{overflow:visible}
+  .paper,.paper *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  /* A4 / large printers (default) */
+  body[data-print-format="a4"] .paper,
+  body:not([data-print-format]) .paper{
+    width:auto;max-width:none;border:0;border-radius:0;box-shadow:none;padding:0 0 8px
+  }
+  @page{size:A4;margin:10mm}
+  body[data-print-format="a4"] @page,
+  body:not([data-print-format]) @page{size:A4;margin:10mm}
+
+  /* 80mm thermal */
+  body[data-print-format="thermal80"] @page{size:80mm auto;margin:2mm}
+  body[data-print-format="thermal80"] .paper{
+    width:76mm;max-width:76mm;border:0;border-radius:0;box-shadow:none;
+    padding:2mm;font-family:ui-monospace,monospace;font-size:11px;line-height:1.3
+  }
+  body[data-print-format="thermal80"] .rhead img.logo{width:40px;height:40px}
+  body[data-print-format="thermal80"] .rhead .co .name{font-size:14px}
+  body[data-print-format="thermal80"] .rtitle .lbl{font-size:12px;letter-spacing:.06em}
+  body[data-print-format="thermal80"] .amountbar{padding:8px;border-radius:4px}
+  body[data-print-format="thermal80"] .amountbar .v{font-size:16px}
+  body[data-print-format="thermal80"] .wm,
+  body[data-print-format="thermal80"] .stamp{display:none!important}
+  body[data-print-format="thermal80"] .qrbox{width:100%}
+  body[data-print-format="thermal80"] .qrbox .qr{width:90px;height:90px}
+  body[data-print-format="thermal80"] .items-table{font-size:10px}
+  body[data-print-format="thermal80"] .kv{grid-template-columns:1fr}
+  body[data-print-format="thermal80"] .rfoot{flex-direction:column}
+
+  /* 40mm narrow thermal */
+  body[data-print-format="thermal40"] @page{size:40mm auto;margin:1mm}
+  body[data-print-format="thermal40"] .paper{
+    width:38mm;max-width:38mm;border:0;border-radius:0;box-shadow:none;
+    padding:1mm;font-family:ui-monospace,monospace;font-size:9px;line-height:1.25
+  }
+  body[data-print-format="thermal40"] .rhead{flex-direction:column;gap:4px;border-bottom-width:1px;padding-bottom:4px}
+  body[data-print-format="thermal40"] .rhead img.logo{display:none}
+  body[data-print-format="thermal40"] .rhead .co .name{font-size:11px}
+  body[data-print-format="thermal40"] .rhead .co .tag,
+  body[data-print-format="thermal40"] .rhead .co .contact{font-size:8px}
+  body[data-print-format="thermal40"] .rtitle{margin:6px 0;flex-direction:column;align-items:flex-start}
+  body[data-print-format="thermal40"] .rtitle .lbl{font-size:10px}
+  body[data-print-format="thermal40"] .rtitle .meta{text-align:left;font-size:8px}
+  body[data-print-format="thermal40"] .amountbar{padding:4px;flex-direction:column;gap:2px}
+  body[data-print-format="thermal40"] .amountbar .v{font-size:12px}
+  body[data-print-format="thermal40"] .wm,
+  body[data-print-format="thermal40"] .stamp,
+  body[data-print-format="thermal40"] .qrbox{display:none!important}
+  body[data-print-format="thermal40"] .items-table{font-size:8px}
+  body[data-print-format="thermal40"] .items-table th,
+  body[data-print-format="thermal40"] .items-table td{padding:2px 1px}
+  body[data-print-format="thermal40"] .kv{grid-template-columns:1fr;font-size:8px}
+  body[data-print-format="thermal40"] .block .bh{font-size:8px;padding:3px 4px}
+  body[data-print-format="thermal40"] .rfoot{flex-direction:column;font-size:8px}
+  body[data-print-format="thermal40"] .sig .line{width:100%;margin-top:12px}
 }
+
+
+.paper.fmt-thermal80{max-width:320px;margin:0 auto;font-family:ui-monospace,monospace;font-size:12px}
+.paper.fmt-thermal40{max-width:180px;margin:0 auto;font-family:ui-monospace,monospace;font-size:10px;padding:12px}
+.paper.fmt-thermal40 .rhead img.logo,.paper.fmt-thermal40 .wm,.paper.fmt-thermal40 .stamp,.paper.fmt-thermal40 .qrbox{display:none}
+.paper.fmt-thermal80 .wm,.paper.fmt-thermal80 .stamp{display:none}
 
 /* ---- mobile friendly ---- */
 @media (max-width: 720px) {
@@ -418,6 +477,14 @@ tbody tr:last-child td{border-bottom:0}
       <button class="btn" id="btnBack" type="button">← Back to log</button>
       <button class="btn primary" id="btnDownload" type="button">Download PDF</button>
       <button class="btn" id="btnPrintOne" type="button">Print</button>
+      <label class="hint noprint" style="display:flex;align-items:center;gap:6px;margin:0">
+        Format
+        <select id="printFormat" style="padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);font:inherit">
+          <option value="a4">A4 / large printer</option>
+          <option value="thermal80">Thermal 80mm</option>
+          <option value="thermal40">Thermal 40mm</option>
+        </select>
+      </label>
       <button class="btn" id="btnCopyVerify" type="button">Copy verification link</button>
       <button class="btn primary" id="btnWhatsApp" type="button">Send WhatsApp</button>
       <button class="btn" id="btnEmail" type="button">Send Email</button>
@@ -467,6 +534,10 @@ var authUser = null;
 var biz = null;                       /* the businesses row */
 var trial = { active: true, expired: false, daysLeft: null, subscribed: false, checked: false };
 var RECEIPT_PREFIX = "HJT";
+var staffRole = "owner";              /* owner | manager | cashier */
+var staffBranchId = null;
+var branches = [];
+var staffList = [];
 
 var CURRENCY = {
   UGX: { unit: "Uganda Shillings", sub: "Cents", dp: 0 },
@@ -641,7 +712,10 @@ function rowToReceipt(row) {
     voidReason: row.void_reason || "",
     lines: Array.isArray(row.lines) ? row.lines : (function () {
       try { return row.lines_json ? JSON.parse(row.lines_json) : []; } catch (e) { return []; }
-    })()
+    })(),
+    branchId: row.branch_id || null,
+    issuedBy: row.issued_by || null,
+    issuedByName: row.issued_by_name || ""
   };
 }
 
@@ -668,6 +742,9 @@ function receiptToRow(r) {
     received_by: r.receivedBy || null,
     notes: r.notes || null,
     lines: (r.lines && r.lines.length) ? r.lines : null,
+    branch_id: r.branchId || staffBranchId || null,
+    issued_by: (authUser && authUser.id) || null,
+    issued_by_name: r.issuedByName || (authUser && (authUser.email || authUser.id)) || null,
     created_at: r.createdAt || new Date().toISOString(),
     voided_at: r.voidedAt || null,
     void_reason: r.voidReason || null
@@ -685,15 +762,78 @@ function gotoLogin() {
   location.replace("/login.html?next=" + next);
 }
 
+
+async function loadStaffContext() {
+  staffRole = "owner";
+  staffBranchId = null;
+  branches = [];
+  staffList = [];
+  if (!sb || !cloudMode) return;
+  try {
+    var roleRes = await sb.rpc("my_role");
+    if (!roleRes.error && roleRes.data) staffRole = roleRes.data;
+  } catch (e) {}
+  try {
+    var brRes = await sb.rpc("list_my_branches");
+    if (!brRes.error && brRes.data) branches = brRes.data || [];
+  } catch (e) {
+    try {
+      var br2 = await sb.from("branches").select("*").eq("business_id", businessId);
+      if (br2.data) branches = br2.data;
+    } catch (e2) {}
+  }
+  try {
+    var st = await sb.rpc("list_my_staff");
+    if (!st.error && st.data) staffList = st.data || [];
+  } catch (e) {}
+  try {
+    var bid = await sb.rpc("my_branch_id");
+    if (!bid.error) staffBranchId = bid.data || staffBranchId;
+  } catch (e) {}
+  applyRoleChrome();
+}
+
+function canVoid() {
+  return staffRole === "owner" || staffRole === "manager";
+}
+function canManageStaff() {
+  return staffRole === "owner";
+}
+function canEditSettings() {
+  return staffRole === "owner" || staffRole === "manager";
+}
+
+function applyRoleChrome() {
+  var voidBtn = $("btnVoid");
+  if (voidBtn) voidBtn.style.display = canVoid() ? "" : "none";
+  /* Settings tab: cashiers can open but only see limited panel */
+}
+
+
 /* Creates the tenant the first time a confirmed-by-email user signs in. */
 async function ensureBusinessForUser() {
+  /* Staff path: membership → business */
+  try {
+    var mem = await sb.from("memberships").select("business_id, role, branch_id, display_name, active")
+      .eq("user_id", authUser.id).eq("active", true).limit(1).maybeSingle();
+    if (mem.data && mem.data.business_id) {
+      staffRole = mem.data.role || "cashier";
+      staffBranchId = mem.data.branch_id || null;
+      var bres = await sb.from("businesses").select("*").eq("id", mem.data.business_id).maybeSingle();
+      if (bres.data) return bres.data;
+    }
+  } catch (e) { /* memberships table may not exist yet */ }
+
   var { data, error } = await sb
     .from("businesses")
     .select("*")
     .eq("owner_id", authUser.id)
     .maybeSingle();
   if (error) throw error;
-  if (data) return data;
+  if (data) {
+    staffRole = "owner";
+    return data;
+  }
 
   var pending = null;
   try { pending = JSON.parse(localStorage.getItem("handzj_pending_business") || "null"); } catch (e) {}
@@ -825,6 +965,7 @@ async function initSupabase() {
   if (!authUser) return false;          /* boot() redirects to /login.html */
 
   applyBusiness(await ensureBusinessForUser());
+  await loadStaffContext();
 
   /* Platform owner? Reveal the dashboard link. Tenants never see it, and the
      dashboard itself re-checks server-side, so hiding it is only cosmetic. */
@@ -1366,15 +1507,18 @@ function receiptHTML(r, opts) {
     push("Brand / model", r.pkg);
     push("Qty / size / colour", r.period);
     push("Description", r.description);
+  if (r.issuedByName) push("Issued by", r.issuedByName);
   } else if (r.kind === "software") {
     push("Software / product", r.item);
     push("License / package", r.pkg);
     push("License period", r.period);
     push("Description", r.description);
+  if (r.issuedByName) push("Issued by", r.issuedByName);
   } else {
     push("Service provided", r.item);
     push("Job / reference", r.projRef);
     push("Description", r.description);
+  if (r.issuedByName) push("Issued by", r.issuedByName);
   }
 
   var pay = [];
@@ -1561,6 +1705,115 @@ function categoryOptionsHtml(selected) {
   }).join("");
 }
 
+
+function staffSettingsHTML() {
+  var roleLabel = { owner: "Owner", manager: "Manager", cashier: "Cashier" }[staffRole] || staffRole;
+  var html = '<div class="card" style="margin-top:18px"><div class="card-h"><h2>Team & branches</h2>' +
+    '<span class="hint">Your role: <b>' + esc(roleLabel) + '</b></span></div><div class="card-b">';
+
+  html += '<p class="hint" style="margin-top:0">Workers use their own login. They cannot see other businesses. Same shop name elsewhere is a different account.</p>';
+
+  if (branches.length) {
+    html += '<div class="section-label">Branches</div><ul style="margin:0 0 12px;padding-left:18px;font-size:13.5px">';
+    branches.forEach(function (b) {
+      html += '<li>' + esc(b.name) + (b.code ? ' <span class="hint">(' + esc(b.code) + ')</span>' : '') +
+        (staffBranchId && b.id === staffBranchId ? ' — <b>yours</b>' : '') + '</li>';
+    });
+    html += '</ul>';
+  }
+
+  if (canManageStaff()) {
+    html += '<div class="section-label">Add branch</div>' +
+      '<div class="two"><div class="field"><label>Name</label><input id="br_name" placeholder="e.g. Jinja branch"></div>' +
+      '<div class="field"><label>Code</label><input id="br_code" placeholder="JIN" maxlength="8"></div></div>' +
+      '<button type="button" class="btn" id="btnAddBranch">Create branch</button>';
+
+    html += '<div class="section-label" style="margin-top:16px">Invite staff</div>' +
+      '<p class="hint">They must already have signed up with that email, then you invite them.</p>' +
+      '<div class="field"><label>Staff email</label><input id="st_email" type="email" placeholder="cashier@shop.com"></div>' +
+      '<div class="two"><div class="field"><label>Role</label><select id="st_role">' +
+        '<option value="cashier">Cashier — issue & print only</option>' +
+        '<option value="manager">Manager — issue, void, branch</option></select></div>' +
+      '<div class="field"><label>Branch</label><select id="st_branch"><option value="">All / main</option>';
+    branches.forEach(function (b) {
+      html += '<option value="' + esc(b.id) + '">' + esc(b.name) + '</option>';
+    });
+    html += '</select></div></div>' +
+      '<div class="field"><label>Display name</label><input id="st_name" placeholder="Optional name on receipts"></div>' +
+      '<button type="button" class="btn primary" id="btnInviteStaff">Invite staff</button>';
+  } else {
+    html += '<p class="hint">Only the <b>owner</b> can invite staff or add branches. Ask them to invite your email after you sign up.</p>';
+  }
+
+  if (staffList.length) {
+    html += '<div class="section-label" style="margin-top:16px">Team members</div>' +
+      '<table style="width:100%;font-size:13px"><thead><tr><th>Email / name</th><th>Role</th><th></th></tr></thead><tbody>';
+    staffList.forEach(function (m) {
+      html += '<tr><td>' + esc(m.invited_email || m.display_name || m.user_id) +
+        (m.active === false ? ' <span class="status void">off</span>' : '') + '</td><td>' +
+        esc(m.role) + '</td><td>';
+      if (canManageStaff() && m.role !== 'owner' && m.active !== false) {
+        html += '<button type="button" class="btn" data-deact="' + esc(m.id) + '" style="padding:4px 8px;font-size:12px">Deactivate</button>';
+      }
+      html += '</td></tr>';
+    });
+    html += '</tbody></table>';
+  }
+
+  html += '</div></div>';
+  return html;
+}
+
+function wireStaffSettings() {
+  var addBr = $("btnAddBranch");
+  if (addBr) addBr.addEventListener("click", async function () {
+    var name = ($("br_name") && $("br_name").value.trim()) || "";
+    if (!name) { say("Enter a branch name.", "warn"); return; }
+    try {
+      var res = await sb.rpc("create_branch", { p_name: name, p_code: ($("br_code") && $("br_code").value) || null });
+      if (res.error) throw res.error;
+      await loadStaffContext();
+      renderSettings();
+      say("Branch created.", "good");
+    } catch (e) {
+      say("Could not create branch: " + esc(e.message || e), "warn");
+    }
+  });
+  var inv = $("btnInviteStaff");
+  if (inv) inv.addEventListener("click", async function () {
+    var email = ($("st_email") && $("st_email").value.trim()) || "";
+    if (!email) { say("Enter the staff email (they must sign up first).", "warn"); return; }
+    try {
+      var res = await sb.rpc("invite_staff", {
+        p_email: email,
+        p_role: ($("st_role") && $("st_role").value) || "cashier",
+        p_branch_id: ($("st_branch") && $("st_branch").value) || null,
+        p_display_name: ($("st_name") && $("st_name").value) || null
+      });
+      if (res.error) throw res.error;
+      await loadStaffContext();
+      renderSettings();
+      say("Staff invited. They should sign in with <b>" + esc(email) + "</b>.", "good");
+    } catch (e) {
+      say(esc(e.message || e), "warn");
+    }
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-deact]"), function (btn) {
+    btn.addEventListener("click", async function () {
+      try {
+        var res = await sb.rpc("deactivate_staff", { p_membership_id: btn.getAttribute("data-deact") });
+        if (res.error) throw res.error;
+        await loadStaffContext();
+        renderSettings();
+        say("Staff deactivated.", "good");
+      } catch (e) {
+        say(esc(e.message || e), "warn");
+      }
+    });
+  });
+}
+
+
 function renderSettings() {
   var host = $("tab-settings");
   if (!biz) { host.innerHTML = lockedNotice(); return; }
@@ -1628,9 +1881,11 @@ function renderSettings() {
         '<div class="hint" style="margin:0">Plan</div><div>' +
           (trial.subscribed ? "Subscribed" : trial.expired ? "Trial ended" : "Free trial — " + trial.daysLeft + " day(s) left") + '</div>' +
       '</div></div></div>' +
-    (trial.expired ? '<div style="margin-top:18px">' + subscribePanelHTML() + '</div>' : '');
+    (trial.expired ? '<div style="margin-top:18px">' + subscribePanelHTML() + '</div>' : '') +
+    staffSettingsHTML();
 
   $("btnSaveBiz").addEventListener("click", saveBusinessProfile);
+  wireStaffSettings();
 
   var logoFile = $("s_logo_file");
   if (logoFile) logoFile.addEventListener("change", function () {
@@ -1759,6 +2014,7 @@ async function saveLayoutJson() {
 
 async function saveBusinessProfile() {
   if (!sb || !biz) return;
+  if (!canEditSettings()) { say("Only the owner or a manager can change business settings.", "warn"); return; }
   var btn = $("btnSaveBiz");
   var cat = ($("s_category") && $("s_category").value) || "retail";
   var layout = Object.assign({}, biz.receipt_layout || {});
@@ -1965,6 +2221,37 @@ async function renderVerify(no, vid) {
 /* No native alert/confirm/prompt anywhere: they are blocked in this frame. */
 
 function say(msg, cls) { notice(msg, cls || ""); window.scrollTo({ top: 0, behavior: "smooth" }); }
+
+
+/* ---- print format (A4 / 80mm / 40mm) ---- */
+var printFormat = "a4";
+
+function getPrintFormat() {
+  var sel = $("printFormat");
+  return (sel && sel.value) || printFormat || "a4";
+}
+
+function applyPrintFormat(fmt) {
+  printFormat = fmt || getPrintFormat();
+  document.body.setAttribute("data-print-format", printFormat);
+  /* mirror thermal look on screen preview when chosen */
+  var host = $("viewHost");
+  if (host) {
+    var paper = host.querySelector(".paper");
+    if (paper) {
+      paper.classList.remove("fmt-a4", "fmt-thermal80", "fmt-thermal40");
+      paper.classList.add("fmt-" + printFormat);
+    }
+  }
+}
+
+function printReceipt() {
+  applyPrintFormat(getPrintFormat());
+  if (current) showDoc("viewHost", current, {});
+  applyPrintFormat(getPrintFormat());
+  setTimeout(function () { window.print(); }, 150);
+}
+
 
 /* ---- PDF generation (html2pdf → A4 file) ---- */
 
@@ -2186,6 +2473,7 @@ function voidBar(show) {
 
 async function confirmVoid() {
   if (!current) return;
+  if (!canVoid()) { say("Only the owner or a manager can void receipts.", "warn"); return; }
   var reason = $("voidReason").value.trim();
   if (!reason) { say("A reason is required to void a receipt.", "warn"); return; }
   try {
@@ -2494,8 +2782,20 @@ function boot() {
     if (sbEl) sbEl.hidden = true;
     showTab("log");
   });
-  $("btnPrintOne").addEventListener("click", function () { window.print(); });
+  $("btnPrintOne").addEventListener("click", function () { printReceipt(); });
   $("btnDownload").addEventListener("click", function () { if (current) downloadReceipt(current, false); });
+  if ($("printFormat")) {
+    $("printFormat").addEventListener("change", function () {
+      applyPrintFormat(this.value);
+      if (current) showDoc("viewHost", current, {});
+      applyPrintFormat(this.value);
+      say("Print format set to <b>" + esc({
+        a4: "A4 / large printer",
+        thermal80: "80mm thermal",
+        thermal40: "40mm thermal"
+      }[this.value] || this.value) + "</b>. Use Print to send to your printer.", "good");
+    });
+  }
   $("btnVoid").addEventListener("click", function () {
     if (!current) return;
     if (current.status === "VOIDED") { say("This receipt is already voided.", "warn"); return; }

@@ -62,6 +62,20 @@ h1{font-size:19px;margin:0 0 4px}
 .pw-rules li::before{content:'○ '}
 .pw-rules li.ok{color:var(--ok)}
 .pw-rules li.ok::before{content:'✓ '}
+
+.steps{display:flex;gap:6px;margin:0 0 16px;flex-wrap:wrap}
+.steps .step{flex:1;min-width:90px;text-align:center;padding:8px 6px;border-radius:8px;font-size:12px;font-weight:600;background:var(--panel-2);border:1px solid var(--line);color:var(--ink-soft)}
+.steps .step.on{background:var(--brand);color:#eaf6fb;border-color:var(--brand)}
+.steps .step.done{border-color:var(--ok);color:var(--ok)}
+.field-ok{font-size:12px;color:var(--ok);margin-top:4px;min-height:16px}
+.field-bad{font-size:12px;color:var(--bad);margin-top:4px;min-height:16px}
+.guide{background:var(--accent-soft, #e3f4fa);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--ink-soft);margin-bottom:14px;line-height:1.45}
+.wiz-nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+@media (max-width:520px){
+  .two{grid-template-columns:1fr}
+  .steps .step{font-size:11px;padding:6px 4px}
+}
+
 </style>
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -102,33 +116,96 @@ h1{font-size:19px;margin:0 0 4px}
       <!-- ===== sign up ===== -->
       <div id="pane-up" style="display:none">
         <h1>Start your free trial</h1>
-        <p class="sub">Your own branded receipts, verification links and records.</p>
-        <div class="trialnote"><b>5 days free.</b> No card needed. Your receipts stay yours after the trial — you just need a subscription to keep issuing new ones.</div>
+        <p class="sub">We will guide you in 3 short steps. 5 days free — no card needed.</p>
+        <div class="trialnote"><b>5 days free.</b> Receipts you issue stay yours. Subscribe later to keep issuing.</div>
 
-        <div class="field"><label>Business name</label><input id="up_biz" placeholder="ABC Microfinance Ltd"></div>
-        <div class="field"><label>Tagline <span style="text-transform:none;font-weight:400">(optional — shown on receipts)</span></label><input id="up_tag" placeholder="Fast. Fair. Trusted."></div>
-        <div class="two">
-          <div class="field"><label>Phone</label><input id="up_phone" placeholder="0700 000 000"></div>
-          <div class="field"><label>WhatsApp</label><input id="up_wa" placeholder="0700 000 000"></div>
+        <div class="steps" id="up-steps">
+          <div class="step on" data-step="1">1 · Business</div>
+          <div class="step" data-step="2">2 · Contact</div>
+          <div class="step" data-step="3">3 · Account</div>
         </div>
-        <div class="field"><label>Email</label><input id="up_email" type="email" autocomplete="email" placeholder="you@business.com"></div>
-        <div class="field">
-          <label for="up_pass">Password</label>
-          <input id="up_pass" type="password" autocomplete="new-password" placeholder="Choose a strong password">
-          <ul class="pw-rules" id="pw-rules">
-            <li data-rule="len">At least 8 characters</li>
-            <li data-rule="lower">One lowercase letter</li>
-            <li data-rule="upper">One uppercase letter</li>
-            <li data-rule="num">One number</li>
-          </ul>
+
+        <!-- step 1 -->
+        <div id="up-step-1">
+          <div class="guide" id="guide-1">Tell us your shop or company name. This appears on every receipt (not the platform name).</div>
+          <div class="field">
+            <label>Business / shop name</label>
+            <input id="up_biz" placeholder="e.g. Kampala Phone Centre, Rose Boutique">
+            <div id="fb_biz" class="field-ok"></div>
+          </div>
+          <div class="field">
+            <label>What do you mainly sell?</label>
+            <select id="up_category" style="width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);font:inherit;color:inherit">
+              <option value="retail">General shop / retail</option>
+              <option value="boutique">Boutique / fashion</option>
+              <option value="electronics">Electronics shop</option>
+              <option value="phones">Mobile phone shop</option>
+              <option value="grocery">Grocery / produce</option>
+              <option value="service">Services (repair, salon…)</option>
+              <option value="software">Software / digital</option>
+              <option value="other">Other</option>
+            </select>
+            <div id="fb_cat" class="field-ok">This sets receipt wording (goods, service, or software).</div>
+          </div>
+          <div class="field">
+            <label>Tagline <span style="text-transform:none;font-weight:400">(optional)</span></label>
+            <input id="up_tag" placeholder="Short line under your name on receipts">
+          </div>
+          <div class="wiz-nav">
+            <button class="btn primary" type="button" id="btnStep1Next">Continue →</button>
+          </div>
         </div>
-        <div class="field">
-          <label for="up_pass2">Confirm password</label>
-          <input id="up_pass2" type="password" autocomplete="new-password" placeholder="Repeat it">
-          <p id="pw2-msg" class="hint"></p>
+
+        <!-- step 2 -->
+        <div id="up-step-2" style="display:none">
+          <div class="guide">How can customers reach you? Phone or WhatsApp helps when you send receipts.</div>
+          <div class="two">
+            <div class="field">
+              <label>Phone</label>
+              <input id="up_phone" placeholder="0700 000 000" inputmode="tel">
+              <div id="fb_phone" class="field-ok"></div>
+            </div>
+            <div class="field">
+              <label>WhatsApp</label>
+              <input id="up_wa" placeholder="0700 000 000" inputmode="tel">
+              <div id="fb_wa" class="field-ok"></div>
+            </div>
+          </div>
+          <div class="wiz-nav">
+            <button class="btn" type="button" id="btnStep2Back">← Back</button>
+            <button class="btn primary" type="button" id="btnStep2Next">Continue →</button>
+          </div>
         </div>
-        <button class="btn primary" id="btnSignUp" type="button" disabled>Create account &amp; start trial</button>
-        <p class="hint" style="margin-top:12px">By creating an account you agree that receipts you issue are your own records and your responsibility.</p>
+
+        <!-- step 3 -->
+        <div id="up-step-3" style="display:none">
+          <div class="guide">Create the login for this business. Use an email you can open — we may send a confirmation link.</div>
+          <div class="field">
+            <label>Email</label>
+            <input id="up_email" type="email" autocomplete="email" placeholder="you@business.com">
+            <div id="fb_email" class="field-ok"></div>
+          </div>
+          <div class="field">
+            <label for="up_pass">Password</label>
+            <input id="up_pass" type="password" autocomplete="new-password" placeholder="Choose a strong password">
+            <ul class="pw-rules" id="pw-rules">
+              <li data-rule="len">At least 8 characters</li>
+              <li data-rule="lower">One lowercase letter</li>
+              <li data-rule="upper">One uppercase letter</li>
+              <li data-rule="num">One number</li>
+            </ul>
+          </div>
+          <div class="field">
+            <label for="up_pass2">Confirm password</label>
+            <input id="up_pass2" type="password" autocomplete="new-password" placeholder="Repeat it">
+            <p id="pw2-msg" class="hint"></p>
+          </div>
+          <div class="wiz-nav">
+            <button class="btn" type="button" id="btnStep3Back">← Back</button>
+            <button class="btn primary" id="btnSignUp" type="button" disabled>Create account &amp; start trial</button>
+          </div>
+          <p class="hint" style="margin-top:12px">By creating an account you agree that receipts you issue are your own records and your responsibility.</p>
+        </div>
       </div>
 
     </div>
@@ -208,6 +285,59 @@ if (/[?&]mode=signup/.test(location.search)) setMode("up");
   $(id).dataset.label = $(id).textContent;
 });
 
+
+/* ---------------- guided signup steps ---------------- */
+var upStep = 1;
+function showUpStep(n) {
+  upStep = n;
+  for (var i = 1; i <= 3; i++) {
+    var pane = $("up-step-" + i);
+    if (pane) pane.style.display = i === n ? "" : "none";
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("#up-steps .step"), function (el) {
+    var s = Number(el.getAttribute("data-step"));
+    el.classList.toggle("on", s === n);
+    el.classList.toggle("done", s < n);
+  });
+}
+function setFb(id, text, ok) {
+  var el = $(id);
+  if (!el) return;
+  el.textContent = text || "";
+  el.className = ok === false ? "field-bad" : "field-ok";
+}
+function phoneLooksOk(v) {
+  var d = String(v || "").replace(/\D/g, "");
+  return !v || d.length >= 9;
+}
+function validateStep1() {
+  var biz = ($("up_biz").value || "").trim();
+  if (biz.length < 2) {
+    setFb("fb_biz", "Enter your shop or company name (at least 2 characters).", false);
+    return false;
+  }
+  setFb("fb_biz", "Looks good — this name will print on receipts.", true);
+  setFb("fb_cat", "Receipt form will match: " + ($("up_category").options[$("up_category").selectedIndex].text), true);
+  return true;
+}
+function validateStep2() {
+  var phone = ($("up_phone").value || "").trim();
+  var wa = ($("up_wa").value || "").trim();
+  var ok = true;
+  if (phone && !phoneLooksOk(phone)) {
+    setFb("fb_phone", "Phone looks too short. Use e.g. 07XXXXXXXX.", false);
+    ok = false;
+  } else if (phone) setFb("fb_phone", "OK", true);
+  else setFb("fb_phone", "Optional — you can add later in Settings.", true);
+  if (wa && !phoneLooksOk(wa)) {
+    setFb("fb_wa", "WhatsApp number looks too short.", false);
+    ok = false;
+  } else if (wa) setFb("fb_wa", "OK — useful when sending receipts.", true);
+  else setFb("fb_wa", "Optional", true);
+  return ok;
+}
+
+
 /* ---------------- interactive password rules (signup only) ---------------- */
 var PW_RULES = {
   len:   { label: "At least 8 characters", test: function (p) { return p.length >= 8; } },
@@ -265,6 +395,31 @@ $("btnSignIn").addEventListener("click", async function () {
 });
 
 /* ---------------- sign up ---------------- */
+
+$("btnStep1Next") && $("btnStep1Next").addEventListener("click", function () {
+  if (validateStep1()) { showUpStep(2); msg("Step 2 of 3 — add contact numbers (optional).", ""); }
+  else msg("Please fix the highlighted fields.", "warn");
+});
+$("btnStep2Back") && $("btnStep2Back").addEventListener("click", function () { showUpStep(1); msg("", ""); });
+$("btnStep2Next") && $("btnStep2Next").addEventListener("click", function () {
+  if (validateStep2()) { showUpStep(3); msg("Step 3 of 3 — create your login.", ""); }
+  else msg("Please fix the phone numbers.", "warn");
+});
+$("btnStep3Back") && $("btnStep3Back").addEventListener("click", function () { showUpStep(2); msg("", ""); });
+if ($("up_biz")) $("up_biz").addEventListener("input", function () {
+  var v = this.value.trim();
+  if (!v) setFb("fb_biz", "", true);
+  else if (v.length < 2) setFb("fb_biz", "A bit longer…", false);
+  else setFb("fb_biz", "Looks good.", true);
+});
+if ($("up_email")) $("up_email").addEventListener("input", function () {
+  var v = this.value.trim();
+  if (!v) setFb("fb_email", "", true);
+  else if (!emailValid(v)) setFb("fb_email", "Enter a valid email address.", false);
+  else setFb("fb_email", "We will use this to sign you in.", true);
+});
+
+
 $("btnSignUp").addEventListener("click", async function () {
   if (!sb) return;
   var biz = $("up_biz").value.trim(),
@@ -296,7 +451,8 @@ $("btnSignUp").addEventListener("click", async function () {
           tagline: $("up_tag").value.trim(),
           phone: $("up_phone").value.trim(),
           whatsapp: $("up_wa").value.trim(),
-          email: email
+          email: email,
+          category: ($("up_category") && $("up_category").value) || "retail"
         }));
       } catch (e) {}
       busy(this, false);
