@@ -264,6 +264,45 @@ tbody tr:last-child td{border-bottom:0}
 .paper.fmt-thermal80 .wm,.paper.fmt-thermal80 .stamp{display:none}
 
 
+
+
+/* Field validation feedback */
+.field.invalid input, .field.invalid select, .field.invalid textarea,
+.line-row.invalid input{
+  border-color:var(--bad,#a32020)!important;
+  box-shadow:0 0 0 2px rgba(163,32,32,.12);
+}
+.field-msg{font-size:12.5px;margin-top:5px;min-height:0;line-height:1.35}
+.field-msg.err{color:var(--bad,#a32020)}
+.field-msg.ok{color:var(--ok,#0f7b52)}
+.val-summary{background:#fbe7e7;border:1px solid #f0c0c0;border-radius:10px;padding:10px 12px;margin:12px 0;font-size:13.5px;color:#7a1f1f;display:none}
+.val-summary.show{display:block}
+.val-summary ul{margin:6px 0 0;padding-left:18px}
+
+/* WhatsApp send sheet — mobile first */
+.wa-overlay{position:fixed;inset:0;background:rgba(10,16,28,.55);z-index:1000;display:flex;align-items:flex-end;justify-content:center;padding:0;animation:waFade .18s ease}
+.wa-sheet{width:100%;max-width:480px;background:var(--panel);border-radius:18px 18px 0 0;box-shadow:0 -8px 32px rgba(0,0,0,.2);padding:12px 16px 24px;max-height:92vh;overflow:auto}
+.wa-handle{width:40px;height:4px;border-radius:99px;background:var(--line);margin:4px auto 14px}
+.wa-sheet h2{margin:0 0 4px;font-size:18px;font-weight:700}
+.wa-sheet .wa-sub{font-size:13.5px;color:var(--ink-soft);margin:0 0 14px;line-height:1.4}
+.wa-sheet .field{margin-bottom:12px}
+.wa-sheet input[type="tel"]{width:100%;font-size:18px;padding:14px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel-2);font:inherit;letter-spacing:.04em}
+.wa-sheet input[type="tel"]:focus{outline:none;border-color:var(--brand,#0a7ea4);box-shadow:0 0 0 3px rgba(10,126,164,.18)}
+.wa-preview{font-size:13px;min-height:20px;margin-top:6px;color:var(--ink-soft)}
+.wa-preview.ok{color:var(--ok,#0f7b52);font-weight:600}
+.wa-preview.bad{color:var(--bad,#a32020)}
+.wa-actions{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.wa-actions .btn{width:100%;padding:14px 16px;font-size:16px;border-radius:12px;min-height:48px}
+.wa-actions .btn.primary{background:var(--brand,#0a7ea4);color:#eaf6fb;border-color:var(--brand,#0a7ea4)}
+.wa-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.wa-chips button{border:1px solid var(--line);background:var(--panel-2);border-radius:999px;padding:8px 12px;font-size:13px;cursor:pointer;font:inherit}
+@keyframes waFade{from{opacity:0}to{opacity:1}}
+@media (min-width:720px){
+  .wa-overlay{align-items:center;padding:24px}
+  .wa-sheet{border-radius:16px;max-width:400px}
+  .wa-handle{display:none}
+}
+
 /* Phase 2 — operational dashboard + post-issue */
 .ops-dash{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:0 0 16px}
 .ops-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
@@ -344,7 +383,27 @@ tbody tr:last-child td{border-bottom:0}
 
 </style>
   <script src="/config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+<!-- WhatsApp number sheet (mobile-first) -->
+<div id="waOverlay" class="wa-overlay noprint" hidden role="dialog" aria-modal="true" aria-labelledby="waTitle">
+  <div class="wa-sheet" onclick="event.stopPropagation()">
+    <div class="wa-handle" aria-hidden="true"></div>
+    <h2 id="waTitle">Send on WhatsApp</h2>
+    <p class="wa-sub">Enter the client’s number. You do not need to save the contact — WhatsApp opens with the receipt message ready.</p>
+    <div class="wa-chips" id="waChips" hidden></div>
+    <div class="field">
+      <label for="waPhone">Client number</label>
+      <input id="waPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="07XX XXX XXX" aria-describedby="waPreview">
+      <div class="wa-preview" id="waPreview">Uganda: 07… becomes 2567…</div>
+    </div>
+    <div class="wa-actions">
+      <button type="button" class="btn primary" id="waOpen">Open WhatsApp</button>
+      <button type="button" class="btn" id="waCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="wrap">
@@ -441,6 +500,7 @@ tbody tr:last-child td{border-bottom:0}
         </div>
         <div class="field"><label>Notes <span style="text-transform:none;font-weight:400">(optional)</span></label><textarea id="f_notes" placeholder="Visible on the receipt"></textarea></div>
 
+        <div class="val-summary" id="valSummary" role="alert"></div>
         <div class="row-actions" style="margin-top:18px">
           <button class="btn primary" id="btnIssue" type="button">Issue Receipt</button>
           <button class="btn" id="btnPreview" type="button">Preview</button>
@@ -1476,21 +1536,167 @@ function readForm() {
     notes: $("f_notes").value.trim()
   };
 }
+function isEmailOk(v) {
+  v = String(v || "").trim();
+  if (!v) return true; /* optional */
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
+function isPhoneOk(v) {
+  v = String(v || "").trim();
+  if (!v) return true; /* optional on form */
+  var d = v.replace(/\D/g, "");
+  return d.length >= 9 && d.length <= 15;
+}
+
+function isPhoneRequiredOk(v) {
+  v = String(v || "").trim();
+  if (!v) return false;
+  var n = normalizePhone(v);
+  return n.length >= 11 && n.length <= 15;
+}
+
+function clearFieldErrors() {
+  Array.prototype.forEach.call(document.querySelectorAll(".field.invalid, .line-row.invalid"), function (el) {
+    el.classList.remove("invalid");
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".field-msg.err"), function (el) {
+    el.textContent = "";
+    el.className = "field-msg";
+  });
+  var sum = $("valSummary");
+  if (sum) { sum.className = "val-summary"; sum.innerHTML = ""; }
+}
+
+function markInvalid(inputOrRow, msg) {
+  if (!inputOrRow) return;
+  var field = inputOrRow.classList && inputOrRow.classList.contains("line-row")
+    ? inputOrRow
+    : (inputOrRow.closest && inputOrRow.closest(".field")) || inputOrRow;
+  if (field && field.classList) field.classList.add("invalid");
+  if (msg && field && field.classList && field.classList.contains("field")) {
+    var m = field.querySelector(".field-msg");
+    if (!m) {
+      m = document.createElement("div");
+      m.className = "field-msg err";
+      field.appendChild(m);
+    }
+    m.className = "field-msg err";
+    m.textContent = msg;
+  }
+}
+
+function showValSummary(errs) {
+  var sum = $("valSummary");
+  if (!sum) return;
+  if (!errs.length) { sum.className = "val-summary"; sum.innerHTML = ""; return; }
+  sum.className = "val-summary show";
+  sum.innerHTML = "<b>Fix these before issuing:</b><ul>" +
+    errs.map(function (e) { return "<li>" + esc(e) + "</li>"; }).join("") + "</ul>";
+  try { sum.scrollIntoView({ behavior: "smooth", block: "nearest" }); } catch (e) {}
+}
+
 function validate(d) {
+  clearFieldErrors();
   var errs = [];
-  /* customer optional — walk-in allowed */
+
+  /* customer optional */
   if (!d.customer) d.customer = "Walk-in customer";
+  else if (d.customer.length > 120) {
+    errs.push("customer name is too long");
+    markInvalid($("f_customer"), "Max 120 characters");
+  }
+
+  if (d.custEmail && !isEmailOk(d.custEmail)) {
+    errs.push("customer email is not valid");
+    markInvalid($("f_custEmail"), "Use a valid email like name@example.com");
+  }
+
+  if (d.custPhone && !isPhoneOk(d.custPhone)) {
+    errs.push("customer phone looks invalid");
+    markInvalid($("f_custPhone"), "Use 07XXXXXXXX or 2567XXXXXXXX");
+  }
+
   var hasLines = d.lines && d.lines.length;
-  if (!hasLines && !d.item) errs.push("at least one line item");
+  if (!hasLines && !d.item) {
+    errs.push("add at least one line item");
+    var host = $("lineItems");
+    if (host && host.querySelector(".line-row")) markInvalid(host.querySelector(".line-row"), null);
+  }
+
   if (hasLines) {
+    var rows = document.querySelectorAll("#lineItems .line-row");
     d.lines.forEach(function (L, i) {
-      if (!L.name) errs.push("name on line " + (i + 1));
-      if (!(L.qty > 0)) errs.push("qty on line " + (i + 1));
-      if (!(L.price >= 0) || (L.price === 0 && L.total === 0)) errs.push("price on line " + (i + 1));
+      var row = rows[i];
+      if (!L.name || !String(L.name).trim()) {
+        errs.push("item name on line " + (i + 1));
+        if (row) markInvalid(row, null);
+      } else if (String(L.name).length > 200) {
+        errs.push("item name too long on line " + (i + 1));
+        if (row) markInvalid(row, null);
+      }
+      if (!(Number(L.qty) > 0) || !isFinite(Number(L.qty))) {
+        errs.push("quantity on line " + (i + 1) + " must be greater than 0");
+        if (row) markInvalid(row, null);
+      }
+      if (!(Number(L.price) > 0) || !isFinite(Number(L.price))) {
+        errs.push("price on line " + (i + 1) + " must be greater than 0");
+        if (row) markInvalid(row, null);
+      }
+      if (Number(L.qty) > 999999) {
+        errs.push("quantity on line " + (i + 1) + " is too large");
+        if (row) markInvalid(row, null);
+      }
+      if (Number(L.price) > 1e12) {
+        errs.push("price on line " + (i + 1) + " is too large");
+        if (row) markInvalid(row, null);
+      }
     });
   }
-  if (!(d.amount > 0)) errs.push("a valid amount (add prices on line items)");
-  if (!d.receivedBy) errs.push("who received the payment");
+
+  /* amount must match sum of lines when lines present */
+  if (hasLines) {
+    var sum = 0;
+    d.lines.forEach(function (L) {
+      sum += (Number(L.qty) || 0) * (Number(L.price) || 0);
+    });
+    sum = Math.round(sum * 100) / 100;
+    d.amount = sum;
+    if ($("f_amount")) $("f_amount").value = sum ? String(sum) : "";
+  }
+
+  if (!(d.amount > 0) || !isFinite(d.amount)) {
+    errs.push("total amount must be greater than 0");
+    markInvalid($("f_amount"), "Add item prices so the total is above 0");
+  }
+
+  if (!d.receivedBy || d.receivedBy.length < 2) {
+    errs.push("who received the payment");
+    markInvalid($("f_by"), "Enter the name of the person who received payment");
+  } else if (d.receivedBy.length > 80) {
+    errs.push("received-by name is too long");
+    markInvalid($("f_by"), "Max 80 characters");
+  }
+
+  if (d.paidOn) {
+    var dt = String(d.paidOn);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dt)) {
+      errs.push("payment date is invalid");
+      markInvalid($("f_date"), "Use a valid date");
+    }
+  }
+
+  if (d.txn && d.txn.length > 80) {
+    errs.push("payment reference is too long");
+    markInvalid($("f_txn"), "Max 80 characters");
+  }
+
+  if (d.notes && d.notes.length > 500) {
+    errs.push("notes are too long");
+    markInvalid($("f_notes"), "Max 500 characters");
+  }
+
+  showValSummary(errs);
   return errs;
 }
 function defaultKindForBusiness() {
@@ -2556,7 +2762,7 @@ async function issue() {
     return;
   }
   var d = readForm(), errs = validate(d);
-  if (errs.length) { say("Please provide: " + esc(errs.join(", ")) + ".", "warn"); return; }
+  if (errs.length) { say("Fix the highlighted fields before issuing.", "warn"); return; }
   var btn = $("btnIssue"); _issuingLock = true; btn.disabled = true; btn.textContent = "Issuing…";
   try {
     if (!d.txn) { d.txn = genReference(); $("f_txn").value = d.txn; }
@@ -2691,10 +2897,12 @@ function render() { renderLog(); }
 
 /* ---- commercial: send receipt to client ---- */
 function normalizePhone(p) {
-  var d = (p || "").replace(/[^\d]/g, "");
+  var d = String(p || "").replace(/[^\d]/g, "");
   if (!d) return "";
-  if (d.startsWith("0")) return "256" + d.slice(1); // Uganda default
+  /* Uganda local → E.164 without plus for wa.me */
+  if (d.startsWith("0") && d.length >= 9) return "256" + d.slice(1);
   if (d.startsWith("256")) return d;
+  /* already international without country assumptions */
   return d;
 }
 
@@ -2770,22 +2978,113 @@ function sendWhatsApp() {
   openWhatsAppShare(current, buildClientMessage(current));
 }
 
-/** Ask for client number on the page, then open WhatsApp with the message — no need to save the contact. */
+/** Mobile-first sheet: enter client number → open WhatsApp with message. No contact save needed. */
+var _waReceipt = null;
+var _waMessage = null;
+
+function phonePreviewText(raw) {
+  var n = normalizePhone(raw);
+  if (!raw || !String(raw).trim()) return { cls: "", text: "Uganda: 07… becomes 2567… · Also 256… or +256…" };
+  if (!n || n.length < 11) return { cls: "bad", text: "Number looks short — use 07XXXXXXXX or 2567XXXXXXXX" };
+  if (n.length > 15) return { cls: "bad", text: "Number looks too long — check digits" };
+  return { cls: "ok", text: "Will open WhatsApp for +" + n };
+}
+
+function updateWaPreview() {
+  var input = $("waPhone");
+  var prev = $("waPreview");
+  if (!input || !prev) return;
+  var p = phonePreviewText(input.value);
+  prev.className = "wa-preview" + (p.cls ? " " + p.cls : "");
+  prev.textContent = p.text;
+}
+
+function closeWaSheet() {
+  var ov = $("waOverlay");
+  if (ov) ov.hidden = true;
+  _waReceipt = null;
+  _waMessage = null;
+  document.body.style.overflow = "";
+}
+
 function openWhatsAppShare(receipt, message) {
-  var preset = (receipt && (receipt.custPhone || receipt.customer_phone || "")) || "";
-  var phone = prompt(
-    "Enter client WhatsApp number\n(e.g. 07XXXXXXXX or 2567XXXXXXXX)\n\nYou do not need to save the contact — WhatsApp opens ready to send.",
-    preset
-  );
-  if (phone === null) return; /* cancelled */
-  phone = String(phone).trim();
-  if (!phone) {
-    say("Enter a phone number to send on WhatsApp.", "warn");
+  _waReceipt = receipt || current;
+  _waMessage = message || (receipt ? buildClientMessage(receipt) : "");
+  var ov = $("waOverlay");
+  var input = $("waPhone");
+  var chips = $("waChips");
+  if (!ov || !input) {
+    /* fallback if DOM missing */
+    var fallback = (receipt && (receipt.custPhone || "")) || "";
+    var url = whatsappLink(fallback, _waMessage);
+    window.location.href = url;
     return;
   }
-  var url = whatsappLink(phone, message || buildReceiptMessage(receipt));
-  window.open(url, "_blank");
-  say("WhatsApp opened for " + esc(phone) + ". Tap Send in WhatsApp to deliver the receipt.", "good");
+
+  var preset = (receipt && (receipt.custPhone || receipt.customer_phone || "")) || "";
+  input.value = preset;
+  updateWaPreview();
+
+  /* chip: use number from receipt if present */
+  if (chips) {
+    if (preset) {
+      chips.hidden = false;
+      chips.innerHTML = '<button type="button" id="waUseCustomer">Use ' + esc(preset) + '</button>';
+      var b = $("waUseCustomer");
+      if (b) b.onclick = function () { input.value = preset; updateWaPreview(); input.focus(); };
+    } else {
+      chips.hidden = true;
+      chips.innerHTML = "";
+    }
+  }
+
+  ov.hidden = false;
+  document.body.style.overflow = "hidden";
+  setTimeout(function () { input.focus(); input.select && preset && input.select(); }, 80);
+}
+
+function confirmWaSend() {
+  var input = $("waPhone");
+  var raw = input ? String(input.value || "").trim() : "";
+  if (!raw) {
+    var prev = $("waPreview");
+    if (prev) { prev.className = "wa-preview bad"; prev.textContent = "Enter the client’s WhatsApp number"; }
+    if (input) input.focus();
+    return;
+  }
+  if (!isPhoneRequiredOk(raw)) {
+    updateWaPreview();
+    if (input) {
+      input.focus();
+      var field = input.closest(".field");
+      if (field) field.classList.add("invalid");
+    }
+    return;
+  }
+  var n = normalizePhone(raw);
+  var msg = _waMessage || (_waReceipt ? buildClientMessage(_waReceipt) : "");
+  var url = whatsappLink(raw, msg);
+  closeWaSheet();
+  /* location.href works more reliably on mobile than window.open */
+  window.location.href = url;
+}
+
+function wireWaSheet() {
+  var ov = $("waOverlay");
+  if (!ov || ov.dataset.wired) return;
+  ov.dataset.wired = "1";
+  ov.addEventListener("click", function (e) {
+    if (e.target === ov) closeWaSheet();
+  });
+  if ($("waCancel")) $("waCancel").onclick = closeWaSheet;
+  if ($("waOpen")) $("waOpen").onclick = confirmWaSend;
+  if ($("waPhone")) {
+    $("waPhone").addEventListener("input", updateWaPreview);
+    $("waPhone").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); confirmWaSend(); }
+      if (e.key === "Escape") closeWaSheet();
+    });
+  }
 }
 
 function sendEmail() {
@@ -2874,6 +3173,31 @@ function boot() {
   setKind(defaultKindForBusiness());
   injectExtras();
   renderLineItems([emptyLine()]);
+  wireWaSheet();
+
+  ["f_custEmail","f_custPhone","f_by","f_customer"].forEach(function (id) {
+    var el = $(id);
+    if (!el) return;
+    el.addEventListener("blur", function () {
+      var field = el.closest(".field");
+      if (!field) return;
+      if (id === "f_custEmail" && el.value.trim() && !isEmailOk(el.value)) {
+        field.classList.add("invalid");
+        markInvalid(el, "Use a valid email like name@example.com");
+      } else if (id === "f_custPhone" && el.value.trim() && !isPhoneOk(el.value)) {
+        field.classList.add("invalid");
+        markInvalid(el, "Use 07XXXXXXXX or 2567XXXXXXXX");
+      } else if (id === "f_by" && el.value.trim() && el.value.trim().length < 2) {
+        field.classList.add("invalid");
+        markInvalid(el, "Enter the receiver name");
+      } else {
+        field.classList.remove("invalid");
+        var msg = field.querySelector(".field-msg.err");
+        if (msg) msg.textContent = "";
+      }
+    });
+  });
+
   if ($("btnAddLine")) $("btnAddLine").addEventListener("click", addLineItem);
   if ($("f_currency")) $("f_currency").addEventListener("change", function () { syncAmountFromLines(); updateWords(); });
 
@@ -2929,7 +3253,7 @@ function boot() {
 
   $("btnPreview").addEventListener("click", function () {
     var d = readForm(), errs = validate(d);
-    if (errs.length) { say("Please provide: " + esc(errs.join(", ")) + ".", "warn"); return; }
+    if (errs.length) { say("Fix the highlighted fields before preview.", "warn"); return; }
     showDoc("previewHost", d, { draft: true });
     $("btnPrintPreview").disabled = false;
     $("previewLabel").textContent = "Preview — not yet issued";
