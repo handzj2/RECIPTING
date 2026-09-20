@@ -263,6 +263,25 @@ tbody tr:last-child td{border-bottom:0}
 .paper.fmt-thermal40 .rhead img.logo,.paper.fmt-thermal40 .wm,.paper.fmt-thermal40 .stamp,.paper.fmt-thermal40 .qrbox{display:none}
 .paper.fmt-thermal80 .wm,.paper.fmt-thermal80 .stamp{display:none}
 
+
+/* Phase 2 — operational dashboard + post-issue */
+.ops-dash{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:0 0 16px}
+.ops-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.ops-card .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.ops-card .v{font-family:"Barlow Condensed",Inter,sans-serif;font-size:26px;font-weight:700;margin-top:4px;letter-spacing:.02em}
+.ops-card .s{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.ops-branch{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;align-items:center}
+.ops-branch select{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);font:inherit;min-width:160px}
+.issued-banner{background:#e8f6ef;border:1px solid #b7e0c8;border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.issued-banner.voided{background:#fbe7e7;border-color:#f0c0c0}
+.issued-banner h3{margin:0 0 6px;font-size:16px}
+.issued-banner .meta{font-size:13.5px;line-height:1.55;color:var(--ink)}
+.issued-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+@media (max-width:720px){
+  .ops-card .v{font-size:22px}
+  .issued-actions .btn{width:100%}
+}
+
 /* ---- mobile friendly ---- */
 @media (max-width: 720px) {
   .wrap{padding:10px 10px 48px}
@@ -360,7 +379,7 @@ tbody tr:last-child td{border-bottom:0}
       </div>
       <div class="panel-b">
         <div class="section-label">Customer</div>
-        <div class="field"><label>Name / company</label><input id="f_customer" placeholder="John Doe or Business Ltd"></div>
+        <div class="field"><label>Name / company <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_customer" placeholder="Walk-in or customer name"></div>
         <div class="two">
           <div class="field"><label>Phone <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custPhone" placeholder="0700 000 000"></div>
           <div class="field"><label>Email <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custEmail" type="email" placeholder="name@company.com"></div>
@@ -454,8 +473,13 @@ tbody tr:last-child td{border-bottom:0}
       <h1>Receipt Register</h1>
       <span class="hint" id="logCount"></span>
     </div>
+    <div id="opsDash" class="ops-dash"></div>
+    <div class="ops-branch" id="opsBranchBar">
+      <label class="hint" style="margin:0;font-weight:600">Shop scope</label>
+      <select id="fBranchScope" title="Filter by shop — security still enforced by the database"></select>
+    </div>
     <div class="tools">
-      <input id="q" placeholder="Search receipt, customer, reference…">
+      <input id="q" placeholder="Search no., customer, phone, amount…">
       <select id="fStatus"><option value="">All statuses</option><option value="VALID">VALID</option><option value="VOIDED">VOIDED</option></select>
       <input id="fFrom" type="date" title="From date"><input id="fTo" type="date" title="To date">
     </div>
@@ -478,6 +502,7 @@ tbody tr:last-child td{border-bottom:0}
 
   <!-- ===== single receipt view (also used for print) ===== -->
   <div id="tab-view" style="display:none;margin-top:18px">
+    <div id="issuedBanner" class="issued-banner noprint" hidden></div>
     <div class="row-actions noprint" style="margin-bottom:14px">
       <button class="btn" id="btnBack" type="button">← Back to log</button>
       <button class="btn primary" id="btnDownload" type="button">Download PDF</button>
@@ -543,6 +568,7 @@ var staffRole = "owner";              /* owner | manager | cashier */
 var staffBranchId = null;
 var branches = [];
 var staffList = [];
+var viewBranchId = null; /* null = All shops (owner/manager UX only) */
 
 var CURRENCY = {
   UGX: { unit: "Uganda Shillings", sub: "Cents", dp: 0 },
@@ -796,6 +822,7 @@ async function loadStaffContext() {
     if (!bid.error) staffBranchId = bid.data || staffBranchId;
   } catch (e) {}
   applyRoleChrome();
+  fillBranchScopeSelect();
 }
 
 function canVoid() {
@@ -1451,7 +1478,8 @@ function readForm() {
 }
 function validate(d) {
   var errs = [];
-  if (!d.customer) errs.push("customer / company name");
+  /* customer optional — walk-in allowed */
+  if (!d.customer) d.customer = "Walk-in customer";
   var hasLines = d.lines && d.lines.length;
   if (!hasLines && !d.item) errs.push("at least one line item");
   if (hasLines) {
@@ -2123,20 +2151,89 @@ async function route() {
 /* ---------------- log ---------------- */
 
 function filtered() {
-  var q = $("q").value.trim().toLowerCase(),
-      st = $("fStatus").value, from = $("fFrom").value, to = $("fTo").value;
+  var q = $("q") ? $("q").value.trim().toLowerCase() : "";
+  var st = $("fStatus") ? $("fStatus").value : "";
+  var from = $("fFrom") ? $("fFrom").value : "";
+  var to = $("fTo") ? $("fTo").value : "";
+  var scope = viewBranchId;
+  if ($("fBranchScope") && $("fBranchScope").value !== undefined) {
+    scope = $("fBranchScope").value || null;
+    viewBranchId = scope;
+  }
   return cache.filter(function (r) {
     if (st && r.status !== st) return false;
-    if (from && String(r.paidOn) < from) return false;
-    if (to && String(r.paidOn) > to) return false;
+    if (from && String(r.paidOn || "").slice(0, 10) < from) return false;
+    if (to && String(r.paidOn || "").slice(0, 10) > to) return false;
+    /* UX scope only — RLS already limited what is in cache */
+    if (scope && r.branchId !== scope) return false;
     if (!q) return true;
-    return [r.receiptNo, r.customer, r.custEmail, r.custPhone, r.item, r.pkg, r.projRef, r.txn, r.description, r.receivedBy]
+    var amt = String(r.amount || "");
+    return [r.receiptNo, r.customer, r.custEmail, r.custPhone, r.item, r.pkg, r.projRef, r.txn, r.description, r.receivedBy, amt]
       .join(" ").toLowerCase().indexOf(q) !== -1;
   });
 }
+
+function todayISODate() {
+  return todayISO();
+}
+
+function renderOpsDash() {
+  var host = $("opsDash");
+  if (!host) return;
+  var today = todayISODate();
+  var scopeRows = filtered(); /* uses current filters except we want today stats from scope */
+  /* recompute with scope but ignore status/date filters for "today" cards */
+  var scope = viewBranchId;
+  if ($("fBranchScope")) scope = $("fBranchScope").value || null;
+  var base = cache.filter(function (r) {
+    if (!scope) return true;
+    return r.branchId === scope;
+  });
+  var todays = base.filter(function (r) { return String(r.paidOn || r.createdAt || "").slice(0, 10) === today; });
+  var validToday = todays.filter(function (r) { return r.status === "VALID"; });
+  var voidToday = todays.filter(function (r) { return r.status === "VOIDED"; });
+  var sum = 0;
+  validToday.forEach(function (r) { sum += Number(r.amount) || 0; });
+  var cur = (validToday[0] && validToday[0].currency) || "UGX";
+  host.innerHTML =
+    '<div class="ops-card"><div class="k">Today · receipts</div><div class="v">' + validToday.length + '</div><div class="s">VALID issued today</div></div>' +
+    '<div class="ops-card"><div class="k">Today · total</div><div class="v" style="font-size:20px">' + esc(money(sum, cur)) + '</div><div class="s">Sum of VALID</div></div>' +
+    '<div class="ops-card"><div class="k">Today · voided</div><div class="v">' + voidToday.length + '</div><div class="s">Voids today</div></div>' +
+    '<div class="ops-card"><div class="k">In log</div><div class="v">' + base.length + '</div><div class="s">' + (scope ? "This shop" : "All shops (loaded)") + '</div></div>';
+}
+
+function fillBranchScopeSelect() {
+  var bar = $("opsBranchBar");
+  var sel = $("fBranchScope");
+  if (!bar || !sel) return;
+  if (!branches.length) {
+    bar.style.display = "none";
+    return;
+  }
+  bar.style.display = "";
+  var opts = "";
+  if (staffRole === "owner" || staffRole === "manager") {
+    opts += '<option value="">All shops</option>';
+  }
+  branches.forEach(function (b) {
+    opts += '<option value="' + esc(b.id) + '">' + esc(b.name) + '</option>';
+  });
+  sel.innerHTML = opts;
+  if (staffRole === "cashier" && staffBranchId) {
+    sel.value = staffBranchId;
+    sel.disabled = true;
+    viewBranchId = staffBranchId;
+  } else {
+    sel.disabled = false;
+    if (viewBranchId) sel.value = viewBranchId;
+  }
+}
+
 function renderLog() {
+  fillBranchScopeSelect();
+  renderOpsDash();
   var rows = filtered();
-  $("logCount").textContent = rows.length + " of " + cache.length + " receipt" + (cache.length === 1 ? "" : "s");
+  if ($("logCount")) $("logCount").textContent = rows.length + " of " + cache.length + " receipt" + (cache.length === 1 ? "" : "s");
   $("logEmpty").style.display = rows.length ? "none" : "";
   $("logBody").innerHTML = rows.map(function (r) {
     var d = String(r.paidOn || "").slice(0, 10);
@@ -2477,28 +2574,85 @@ async function issue() {
     showDoc("viewHost", r, {});
     showTab("view");
     mountShareBar(r);
-    say("Receipt <b>" + esc(no) + "</b> issued and recorded. Preparing the PDF…", "good");
+    showIssuedBanner(r, true);
+    say("✓ Receipt <b>" + esc(no) + "</b> issued.", "good");
     peekNextNumber();
     btn.textContent = "Preparing PDF…";
-    var ok = await downloadReceipt(r, false);
-    if (ok) say("Receipt <b>" + esc(no) + "</b> issued, recorded and downloaded.", "good");
+    try {
+      var ok = await downloadReceipt(r, true);
+      if (ok) say("✓ Receipt <b>" + esc(no) + "</b> issued and PDF downloaded.", "good");
+    } catch (pe) { /* PDF optional */ }
   } catch (e) {
     var em = (e && e.message) ? e.message : "unknown error";
     if (/TRIAL_EXPIRED/i.test(em) || /row-level security/i.test(em)) {
       trial.expired = true; trial.active = false;
       notice(cloudNoticeHTML(), "warn");
       applyTrialLock();
-      say("Your free trial has ended, so this receipt was not issued. Subscribe to continue — nothing already issued is affected.", "warn");
+      say("Your trial has ended. Existing receipts remain available; new issues are paused.", "warn");
       showTab("settings");
     } else {
-      say("Could not issue the receipt: " + esc(em), "warn");
+      say("Could not confirm issuance. Check the Receipt Log before trying again. (" + esc(humanErr(em)) + ")", "warn");
     }
   } finally {
+    _issuingLock = false;
     btn.disabled = false;
     applyTrialLock();
     if (!(trial.checked && trial.expired)) btn.textContent = "Issue Receipt";
   }
 }
+
+function humanErr(em) {
+  em = String(em || "");
+  if (/Failed to fetch|NetworkError|network/i.test(em)) return "connection problem";
+  if (/JWT|session|not authenticated/i.test(em)) return "session expired — sign in again";
+  if (/permission|policy|42501/i.test(em)) return "not authorized";
+  if (/IMMUTABLE/i.test(em)) return "receipt cannot be changed";
+  return em.length > 120 ? em.slice(0, 120) + "…" : em;
+}
+
+function showIssuedBanner(r, justIssued) {
+  var el = $("issuedBanner");
+  if (!el || !r) return;
+  var brName = "";
+  if (r.branchId && branches.length) {
+    var br = branches.filter(function (b) { return b.id === r.branchId; })[0];
+    if (br) brName = br.name;
+  }
+  var voided = r.status === "VOIDED";
+  el.hidden = false;
+  el.className = "issued-banner noprint" + (voided ? " voided" : "");
+  el.innerHTML = "<h3>" + (voided ? "VOIDED" : (justIssued ? "✓ Receipt issued" : "Receipt")) + "</h3>" +
+    '<div class="meta">' +
+      '<div><b>' + esc(CO.name) + '</b>' + (brName ? " · " + esc(brName) : "") + "</div>" +
+      "<div>No. <b class=\"mono\">" + esc(r.receiptNo) + "</b></div>" +
+      "<div>" + esc(money(r.amount, r.currency)) + " · " + esc(r.method || "") + " · " + esc(fmtDate(r.paidOn)) + "</div>" +
+      (r.customer ? "<div>Customer: " + esc(r.customer) + "</div>" : "") +
+      (voided && r.voidReason ? "<div>Reason: " + esc(r.voidReason) + "</div>" : "") +
+    "</div>" +
+    '<div class="issued-actions">' +
+      '<button type="button" class="btn primary" data-ia="wa">WhatsApp</button>' +
+      '<button type="button" class="btn" data-ia="print">Print</button>' +
+      '<button type="button" class="btn" data-ia="pdf">Download PDF</button>' +
+      '<button type="button" class="btn" data-ia="copy">Copy verify link</button>' +
+      '<button type="button" class="btn" data-ia="new">New receipt</button>' +
+    "</div>";
+  el.querySelector('[data-ia="wa"]').onclick = function () { openWhatsAppShare(r, buildReceiptMessage(r)); };
+  el.querySelector('[data-ia="print"]').onclick = function () { printReceipt(); };
+  el.querySelector('[data-ia="pdf"]').onclick = function () { downloadReceipt(r, false); };
+  el.querySelector('[data-ia="copy"]').onclick = async function () {
+    try {
+      await navigator.clipboard.writeText(verifyUrl(r));
+      say("Verification link copied.", "good");
+    } catch (e) { say(verifyUrl(r), ""); }
+  };
+  el.querySelector('[data-ia="new"]').onclick = function () {
+    el.hidden = true;
+    current = null;
+    showTab("new");
+    renderLineItems([emptyLine()]);
+  };
+}
+
 
 function voidBar(show) {
   var bar = $("voidBar");
@@ -2800,6 +2954,7 @@ function boot() {
     var r = cache.filter(function (x) { return x.receiptNo === tr.dataset.no; })[0];
     if (!r) return;
     current = r; showDoc("viewHost", r, {}); voidBar(false); showTab("view");
+    showIssuedBanner(r, false);
     if (r.status === "VALID") mountShareBar(r);
     else {
       var sbEl = $("share-bar");
@@ -2807,8 +2962,11 @@ function boot() {
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
-  ["q", "fStatus", "fFrom", "fTo"].forEach(function (id) {
-    $(id).addEventListener("input", renderLog); $(id).addEventListener("change", renderLog);
+  ["q", "fStatus", "fFrom", "fTo", "fBranchScope"].forEach(function (id) {
+    var el = $(id);
+    if (!el) return;
+    el.addEventListener("input", renderLog);
+    el.addEventListener("change", renderLog);
   });
 
   $("btnBack").addEventListener("click", function () {
