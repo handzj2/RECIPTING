@@ -203,6 +203,42 @@ tbody tr:last-child td{border-bottom:0}
   .paper,.paper *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .paper-scroll{overflow:visible}
 }
+
+/* ---- mobile friendly ---- */
+@media (max-width: 720px) {
+  .wrap{padding:10px 10px 48px}
+  .topbar{padding:10px 12px;gap:10px;border-radius:12px}
+  .topbar img{width:40px;height:40px}
+  .topbar .t1{font-size:18px}
+  .topbar .t2{font-size:11px}
+  .tabs{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tabs button{padding:8px 10px;font-size:12.5px;white-space:nowrap}
+  .grid{grid-template-columns:1fr;gap:12px;margin-top:12px}
+  .card{border-radius:12px}
+  .card-b{padding:12px}
+  .two{grid-template-columns:1fr}
+  .row-actions{gap:8px}
+  .row-actions .btn,.btn{width:100%;text-align:center;padding:12px 14px;font-size:15px}
+  .row-actions{flex-direction:column}
+  #share-bar{flex-direction:column;align-items:stretch !important}
+  #share-bar .btn{width:100%}
+  .paper{width:100%;padding:18px 14px 16px;border-radius:8px}
+  .rhead{flex-direction:column;align-items:flex-start;gap:10px}
+  .rhead img.logo{width:64px;height:64px}
+  .rhead .co .name{font-size:22px}
+  .rtitle .lbl{font-size:18px;letter-spacing:.1em}
+  .kv{grid-template-columns:1fr}
+  .kv>div:nth-child(odd){border-bottom:0;padding-bottom:2px}
+  .amountbar{flex-direction:column;align-items:flex-start;gap:6px}
+  .amountbar .v{font-size:26px}
+  .tools{flex-direction:column}
+  .tools input,.tools select{width:100%}
+  table{min-width:0;font-size:12.5px}
+  th,td{padding:8px 6px}
+  .stamp{top:120px;right:12px;font-size:22px;padding:3px 10px}
+  .field input,.field select,.field textarea{font-size:16px;padding:11px} /* avoids iOS zoom */
+}
+
 </style>
   <script src="/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -348,7 +384,7 @@ tbody tr:last-child td{border-bottom:0}
       <button class="btn" id="btnEmail" type="button">Send Email</button>
     </div>
     <div id="share-bar" class="noprint" hidden style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px">
-      <span class="share-label" style="font-weight:600;font-size:13px;margin-right:4px">Send to customer</span>
+      <span class="share-label" style="font-weight:600;font-size:13px;margin-right:4px">Send receipt to customer</span>
       <button type="button" class="btn" data-act="wa">WhatsApp</button>
       <button type="button" class="btn" data-act="mail">Email</button>
       <button type="button" class="btn" data-act="native" hidden>Share…</button>
@@ -375,7 +411,7 @@ tbody tr:last-child td{border-bottom:0}
    Flow: Create → Record → Generate → Print/PDF → Verify → Void
    ============================================================ */
 
-var LOGO = "/logo.jpg";
+var LOGO = ""; /* per-tenant only — no platform logo fallback */
 
 /* Branding is per-tenant now: these are only fallbacks until the signed-in
    business is loaded from the database. */
@@ -643,9 +679,9 @@ function applyBusiness(row) {
   CO.whatsapp = row.whatsapp || "";
   CO.email = row.email || "";
   RECEIPT_PREFIX = row.prefix || "BIZ";
-  if (row.logo_url) LOGO = row.logo_url;
-  else LOGO = "/logo.jpg";
+  LOGO = (row.logo_url || "").trim(); /* empty = no logo on receipts */
   computeTrial();
+  refreshChromeBrand();
 }
 
 /* ---------- receipt layout (theme presets + JSON override) ---------- */
@@ -658,6 +694,31 @@ var DEFAULT_LAYOUT = {
   extras: {},
   custom_css: null
 };
+
+
+function placeholderLogoDataUri(name) {
+  var initials = String(name || "B").trim().split(/\s+/).map(function (w) { return w[0] || ""; }).join("").slice(0, 2).toUpperCase() || "B";
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128">' +
+    '<rect width="128" height="128" rx="16" fill="#0a1628"/>' +
+    '<text x="64" y="72" text-anchor="middle" font-family="Arial,sans-serif" font-size="48" font-weight="700" fill="#eaf6fb">' +
+    initials.replace(/[<>&]/g, "") + '</text></svg>';
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+function effectiveLogo() {
+  return LOGO || placeholderLogoDataUri(CO.name);
+}
+
+/** Top bar uses tenant logo or initials — never the HandzJ platform file. */
+function refreshChromeBrand() {
+  var img = $("topLogo");
+  if (img) {
+    img.src = effectiveLogo();
+    img.alt = CO.name || "Business";
+  }
+  var titleBits = document.querySelectorAll(".topbar .t1");
+  if (titleBits && titleBits[0] && CO.name) titleBits[0].textContent = CO.name;
+}
 
 function resolveLayout(business) {
   var raw = (business && business.receipt_layout) || {};
@@ -805,7 +866,7 @@ function paintTrialPill() {
 function paintChrome() {
   $("topName").textContent = CO.name || "DIGITAL RECEIPTS";
   $("topSub").textContent = "Digital Receipt System" + (CO.tagline ? " · " + CO.tagline : "");
-  $("topLogo").src = LOGO;
+  refreshChromeBrand();
   paintTrialPill();
 }
 
@@ -1116,8 +1177,8 @@ function receiptHTML(r, opts) {
   var contactHtml = contactBits.join(" &nbsp;&middot;&nbsp; ") +
     (CO.email ? "<br>Email: " + esc(CO.email) : "");
 
-  var logoHtml = show("logo")
-    ? '<img class="logo" src="' + LOGO + '" alt="' + esc(CO.name) + '">'
+    var logoHtml = (show("logo") !== false)
+    ? '<img class="logo" src="' + effectiveLogo() + '" alt="' + esc(CO.name) + '">'
     : "";
   var tagHtml = (show("tagline") && CO.tagline)
     ? '<div class="tag">' + esc(CO.tagline) + '</div>'
@@ -1137,7 +1198,7 @@ function receiptHTML(r, opts) {
   customStyle +
   '<div class="paper receipt ' + themeCls + " " + alignCls + '">' +
     '<div class="wm" aria-hidden="true">' +
-      (show("logo") ? '<img src="' + LOGO + '" alt="">' : '') +
+      (show("logo") ? '<img src="' + effectiveLogo() + '" alt="">' : '') +
       '<div class="wmtext"><div class="a">' + esc(CO.name) + '</div><div class="b">DIGITAL RECEIPT</div>' +
         '<div class="c">' + esc(draft ? "PREVIEW" : "Receipt No: " + r.receiptNo) + '</div></div>' +
     '</div>' +
@@ -1288,8 +1349,14 @@ function renderSettings() {
           '<div class="hint" style="margin-top:4px">Receipt numbers look like ' +
             esc((biz.prefix || "BIZ") + "-" + new Date().getFullYear() + "-000001") + '</div></div>' +
       '</div>' +
-      '<div class="field"><label>Logo URL <span style="text-transform:none;font-weight:400">(optional)</span></label>' +
-        '<input id="s_logo" value="' + f(biz.logo_url) + '" placeholder="https://…/logo.png"></div>' +
+      '<div class="field"><label>Your logo <span style="text-transform:none;font-weight:400">(optional — your shop/company only)</span></label>' +
+        '<input id="s_logo" value="' + f(biz.logo_url) + '" placeholder="https://…/logo.png">' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">' +
+          '<input type="file" id="s_logo_file" accept="image/*" style="font-size:13px;max-width:100%">' +
+          '<button type="button" class="btn" id="btnClearLogo" style="padding:6px 10px;font-size:12px">Remove logo</button>' +
+        '</div>' +
+        '<p class="hint" style="margin-top:6px">Upload or paste a link to <b>your</b> logo. Each business uses its own branding — not the platform logo.</p></div>' +
+
       '<div class="row-actions"><button class="btn primary" id="btnSaveBiz" type="button">Save profile</button></div>' +
     '</div></div>' +
 
@@ -1324,6 +1391,33 @@ function renderSettings() {
     (trial.expired ? '<div style="margin-top:18px">' + subscribePanelHTML() + '</div>' : '');
 
   $("btnSaveBiz").addEventListener("click", saveBusinessProfile);
+
+  var logoFile = $("s_logo_file");
+  if (logoFile) logoFile.addEventListener("change", function () {
+    var file = logoFile.files && logoFile.files[0];
+    if (!file) return;
+    if (file.size > 900000) {
+      say("Logo file is too large (max ~900 KB). Compress or use a URL.", "warn");
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var dataUrl = String(reader.result || "");
+      if ($("s_logo")) $("s_logo").value = dataUrl;
+      LOGO = dataUrl;
+      refreshChromeBrand();
+      say("Logo loaded — click Save profile to keep it.", "good");
+    };
+    reader.readAsDataURL(file);
+  });
+  var clearLogo = $("btnClearLogo");
+  if (clearLogo) clearLogo.addEventListener("click", function () {
+    if ($("s_logo")) $("s_logo").value = "";
+    if (logoFile) logoFile.value = "";
+    LOGO = "";
+    refreshChromeBrand();
+    say("Logo cleared — click Save profile to apply.", "good");
+  });
 
   Array.prototype.forEach.call(host.querySelectorAll("[data-preset]"), function (btn) {
     btn.addEventListener("click", function () { applyLayoutPreset(btn.getAttribute("data-preset")); });
@@ -1555,7 +1649,7 @@ async function lookup(no, vid) {
           name: row.business_name || "",
           phone: row.business_phone || "",
           email: row.business_email || "",
-          logo: row.business_logo || LOGO
+          logo: row.business_logo || effectiveLogo()
         }
       };
     } catch (e) { return null; }
@@ -1574,7 +1668,7 @@ async function renderVerify(no, vid) {
   var host = $("tab-verify");
   host.innerHTML = '<div class="card verify"><div class="card-b">Checking receipt…</div></div>';
   var r = await lookup(no, vid);
-  var issuer = (r && r.issuer) ? r.issuer : { name: CO.name, phone: CO.phone, email: CO.email, logo: LOGO };
+  var issuer = (r && r.issuer) ? r.issuer : { name: CO.name, phone: CO.phone, email: CO.email, logo: effectiveLogo() };
   var who = issuer.name || "the issuing business";
   var genuine = !!r && (!vid || r._masked || r.verifyId === vid);
   var head, dot, msg;
@@ -1606,7 +1700,7 @@ async function renderVerify(no, vid) {
   }
   host.innerHTML =
     '<div class="verify">' +
-      '<div class="topbar" style="margin-bottom:6px"><img src="' + esc(issuer.logo || LOGO) + '" alt="">' +
+      '<div class="topbar" style="margin-bottom:6px"><img src="' + esc(issuer.logo || effectiveLogo()) + '" alt="">' +
         '<div class="grow"><div class="t1">' + esc(who) + '</div><div class="t2">Receipt verification</div></div></div>' +
       '<div class="card" style="margin-top:14px"><div class="card-b">' +
         '<div class="vbig"><span class="dot ' + dot + '"></span>' + head + '</div>' +
@@ -1852,8 +1946,25 @@ async function nativeShare(r) {
 
 function sendWhatsApp() {
   if (!current) return;
-  window.location.href = whatsappLink(current.custPhone, buildClientMessage(current));
-  say("WhatsApp opened with the receipt message. Attach the PDF if needed.", "good");
+  openWhatsAppShare(current, buildClientMessage(current));
+}
+
+/** Ask for client number on the page, then open WhatsApp with the message — no need to save the contact. */
+function openWhatsAppShare(receipt, message) {
+  var preset = (receipt && (receipt.custPhone || receipt.customer_phone || "")) || "";
+  var phone = prompt(
+    "Enter client WhatsApp number\n(e.g. 07XXXXXXXX or 2567XXXXXXXX)\n\nYou do not need to save the contact — WhatsApp opens ready to send.",
+    preset
+  );
+  if (phone === null) return; /* cancelled */
+  phone = String(phone).trim();
+  if (!phone) {
+    say("Enter a phone number to send on WhatsApp.", "warn");
+    return;
+  }
+  var url = whatsappLink(phone, message || buildReceiptMessage(receipt));
+  window.open(url, "_blank");
+  say("WhatsApp opened for " + esc(phone) + ". Tap Send in WhatsApp to deliver the receipt.", "good");
 }
 
 function sendEmail() {
@@ -1879,7 +1990,7 @@ function mountShareBar(receipt) {
 
   var wa = bar.querySelector('[data-act="wa"]');
   if (wa) wa.onclick = function () {
-    window.location.href = whatsappLink(receipt.custPhone || receipt.customer_phone, buildReceiptMessage(receipt));
+    openWhatsAppShare(receipt, buildReceiptMessage(receipt));
   };
   var mail = bar.querySelector('[data-act="mail"]');
   if (mail) mail.onclick = function () {
@@ -2056,7 +2167,7 @@ function boot() {
   });
 
   window.addEventListener("hashchange", route);
-  $("topLogo").src = LOGO;
+  refreshChromeBrand();
   updateWords();
 
   /* A customer opening a verification link must never be asked to log in. */
