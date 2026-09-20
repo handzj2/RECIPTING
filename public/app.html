@@ -360,6 +360,7 @@ tbody tr:last-child td{border-bottom:0}
   margin-top:8px;padding-top:4px;
 }
 .wa-actions .btn{
+  position:relative;z-index:2;pointer-events:auto;
   width:100%;box-sizing:border-box;
   padding:14px 16px;min-height:52px;
   font-size:1rem;font-weight:600;
@@ -2904,6 +2905,7 @@ async function issue() {
     showTab("view");
     mountShareBar(r);
     showIssuedBanner(r, true);
+    syncDeliveryButtons();
     say("✓ Receipt <b>" + esc(no) + "</b> issued and recorded. Delivery (PDF, print, WhatsApp) is optional.", "good");
     peekNextNumber();
     /* PDF is optional delivery — never fails the issue */
@@ -3013,9 +3015,11 @@ function showIssuedBanner(r, justIssued) {
   bind("new", function () {
     el.hidden = true;
     current = null;
+    syncDeliveryButtons();
     showTab("new");
     renderLineItems([emptyLine()]);
   });
+  syncDeliveryButtons();
 }
 
 function smsConfigured() {
@@ -3187,7 +3191,10 @@ async function nativeShare(r) {
 }
 
 function sendWhatsApp() {
-  if (!current) return;
+  if (!isIssuedReceipt(current)) {
+    say("WhatsApp is only for issued receipts. Issue first, or open a receipt from the Register.", "warn");
+    return;
+  }
   openWhatsAppShare(current, buildClientMessage(current));
 }
 
@@ -3238,17 +3245,35 @@ function closeWaSheet(e) {
   return false;
 }
 
+
+function syncDeliveryButtons() {
+  var ok = isIssuedReceipt(current);
+  ["btnWhatsApp", "btnEmail", "btnCopyVerify"].forEach(function (id) {
+    var el = $(id);
+    if (!el) return;
+    el.disabled = !ok;
+    el.style.opacity = ok ? "" : "0.45";
+    el.title = ok ? "" : "Available after the receipt is issued";
+  });
+}
+
+function isIssuedReceipt(r) {
+  return !!(r && r.receiptNo && r.status === "VALID");
+}
+
 function openWhatsAppShare(receipt, message) {
-  _waReceipt = receipt || current;
-  _waMessage = message || (receipt ? buildClientMessage(receipt) : "");
+  var r = receipt || current;
+  if (!isIssuedReceipt(r)) {
+    say("WhatsApp is only for issued receipts. Issue the receipt first, or open one from the Register.", "warn");
+    return;
+  }
+  _waReceipt = r;
+  _waMessage = message || buildClientMessage(r);
   var ov = $("waOverlay");
   var input = $("waPhone");
   var chips = $("waChips");
   if (!ov || !input) {
-    /* fallback if DOM missing */
-    var fallback = (receipt && (receipt.custPhone || "")) || "";
-    var url = whatsappLink(fallback, _waMessage);
-    window.location.href = url;
+    say("WhatsApp sheet could not open. Copy the verification link instead.", "warn");
     return;
   }
 
@@ -3309,49 +3334,45 @@ function confirmWaSend() {
 }
 
 function wireWaSheet() {
-  var ov = $("waOverlay");
-  if (!ov) return;
+  if (document.documentElement.dataset.waWired) {
+    /* still refresh direct handlers */
+  } else {
+    document.documentElement.dataset.waWired = "1";
+    /* Capture phase: Cancel always wins even if something stops bubbling */
+    document.addEventListener("click", function (e) {
+      var t = e.target;
+      if (!t) return;
+      if (t.id === "waCancel" || (t.closest && t.closest("#waCancel"))) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeWaSheet(e);
+        return;
+      }
+      if (t.id === "waOpen" || (t.closest && t.closest("#waOpen"))) {
+        e.preventDefault();
+        e.stopPropagation();
+        confirmWaSend();
+        return;
+      }
+      if (t.id === "waOverlay") {
+        closeWaSheet(e);
+      }
+    }, true);
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      var o = $("waOverlay");
+      if (o && !o.hidden && o.style.display !== "none") closeWaSheet(e);
+    }, true);
+  }
 
-  var cancel = $("waCancel");
-  var openBtn = $("waOpen");
   var phone = $("waPhone");
-  var sheet = $("waSheet");
-
-  /* Always re-bind Cancel — avoids dead button after partial loads */
-  if (cancel) {
-    cancel.onclick = function (e) { return closeWaSheet(e); };
-    cancel.ontouchend = function (e) {
-      e.preventDefault();
-      closeWaSheet(e);
-    };
-  }
-  if (openBtn) openBtn.onclick = function (e) {
-    e.preventDefault();
-    confirmWaSend();
-  };
-
-  if (ov.dataset.wired) return;
-  ov.dataset.wired = "1";
-
-  ov.addEventListener("click", function (e) {
-    if (e.target === ov) closeWaSheet(e);
-  });
-  if (sheet) {
-    sheet.addEventListener("click", function (e) { e.stopPropagation(); });
-  }
-  if (phone) {
+  if (phone && !phone.dataset.waInput) {
+    phone.dataset.waInput = "1";
     phone.addEventListener("input", updateWaPreview);
     phone.addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); confirmWaSend(); }
-      if (e.key === "Escape") closeWaSheet(e);
     });
   }
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") {
-      var o = $("waOverlay");
-      if (o && !o.hidden) closeWaSheet(e);
-    }
-  });
 }
 
 function sendEmail() {
@@ -3368,6 +3389,10 @@ function mountShareBar(receipt) {
   var bar = $("share-bar");
   if (!bar) return;
   if (trial.checked && trial.expired) {
+    bar.hidden = true;
+    return;
+  }
+  if (!isIssuedReceipt(receipt)) {
     bar.hidden = true;
     return;
   }
@@ -3546,6 +3571,7 @@ function boot() {
     if (!r) return;
     current = r; showDoc("viewHost", r, {}); voidBar(false); showTab("view");
     showIssuedBanner(r, false);
+    syncDeliveryButtons();
     if (r.status === "VALID") mountShareBar(r);
     else {
       var sbEl = $("share-bar");
@@ -3663,7 +3689,7 @@ else boot();
     </div>
     <div class="wa-actions">
       <button type="button" class="btn primary" id="waOpen">Open WhatsApp</button>
-      <button type="button" class="btn" id="waCancel">Cancel</button>
+      <button type="button" class="btn" id="waCancel" data-wa-close="1">Cancel</button>
     </div>
   </div>
 </div>
