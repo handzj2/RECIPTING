@@ -286,17 +286,19 @@ tbody tr:last-child td{border-bottom:0}
         <div class="field">
           <label>Type</label>
           <div class="seg" id="kindSeg">
-            <button type="button" data-kind="software" aria-pressed="true">Product / software</button>
+            <button type="button" data-kind="goods" aria-pressed="true">Goods / products</button>
             <button type="button" data-kind="service" aria-pressed="false">Service</button>
+            <button type="button" data-kind="software" aria-pressed="false">Software</button>
           </div>
+          <p class="hint" id="kindHint" style="margin-top:6px">For shops: clothes, phones, electronics, groceries, etc.</p>
         </div>
-        <div class="field" id="w_product"><label>Item / product</label><input id="f_item" placeholder="20 bags maize or HZ SENTE"></div>
+        <div class="field" id="w_product"><label>Item / product</label><input id="f_item" placeholder="e.g. Samsung A15, Dress size M, 20 bags cement"></div>
         <div class="two" id="w_soft">
-          <div class="field"><label>Package / license</label><input id="f_package" placeholder="Annual Software License"></div>
-          <div class="field"><label>Period</label><input id="f_period" placeholder="18 Sep 2026 – 17 Sep 2027"></div>
+          <div class="field"><label id="lbl_pkg">Brand / model</label><input id="f_package" placeholder="e.g. Samsung, Nike, Tecno"></div>
+          <div class="field"><label id="lbl_period">Qty / size / colour</label><input id="f_period" placeholder="e.g. 2 pcs, Size 42, Black"></div>
         </div>
-        <div class="field" id="w_ref" style="display:none"><label>Project / reference</label><input id="f_projref" placeholder="HJT-PRJ-014"></div>
-        <div class="field"><label>Description</label><textarea id="f_desc" placeholder="What was paid for"></textarea></div>
+        <div class="field" id="w_ref" style="display:none"><label id="lbl_ref">Reference</label><input id="f_projref" placeholder="Invoice / job / order ref"></div>
+        <div class="field"><label>Description / notes on items</label><textarea id="f_desc" placeholder="Optional details about what was sold or done"></textarea></div>
         <div class="two">
           <div class="field"><label>Amount</label><input id="f_amount" inputmode="decimal" placeholder="1800000"></div>
           <div class="field"><label>Currency</label>
@@ -680,6 +682,9 @@ function applyBusiness(row) {
   CO.email = row.email || "";
   RECEIPT_PREFIX = row.prefix || "BIZ";
   LOGO = (row.logo_url || "").trim(); /* empty = no logo on receipts */
+  if (!row.category && row.receipt_layout && row.receipt_layout.extras) {
+    row.category = row.receipt_layout.extras.category || "";
+  }
   computeTrial();
   refreshChromeBrand();
 }
@@ -1122,21 +1127,59 @@ function readForm() {
 function validate(d) {
   var errs = [];
   if (!d.customer) errs.push("customer / company name");
-  if (!d.item) errs.push(kind === "software" ? "software / product" : "service provided");
+  if (!d.item) errs.push(kind === "goods" ? "item / product" : (kind === "software" ? "software / product" : "service provided"));
   if (!(d.amount > 0)) errs.push("a valid amount");
   if (!d.receivedBy) errs.push("who received the payment");
   return errs;
 }
+function defaultKindForBusiness() {
+  var cat = (biz && (biz.category || (biz.receipt_layout && biz.receipt_layout.extras && biz.receipt_layout.extras.category))) || "";
+  cat = String(cat).toLowerCase();
+  if (cat === "software" || cat === "saas" || cat === "it") return "software";
+  if (cat === "service" || cat === "agency" || cat === "professional") return "service";
+  /* boutique, electronics, phones, retail, shop, general → goods */
+  return "goods";
+}
+
 function setKind(k) {
+  if (k !== "goods" && k !== "service" && k !== "software") k = "goods";
   kind = k;
   Array.prototype.forEach.call(document.querySelectorAll("#kindSeg button"), function (b) {
     b.setAttribute("aria-pressed", String(b.dataset.kind === k));
   });
-  var soft = k === "software";
-  $("w_soft").style.display = soft ? "" : "none";
-  $("w_ref").style.display = soft ? "none" : "";
-  $("w_product").querySelector("label").textContent = soft ? "Software / product" : "Service provided";
-  $("f_item").placeholder = soft ? "HZ SENTE" : "Website design & deployment";
+  var hint = $("kindHint");
+  var lblPkg = $("lbl_pkg");
+  var lblPeriod = $("lbl_period");
+  var lblRef = $("lbl_ref");
+  if (k === "goods") {
+    $("w_soft").style.display = "";
+    $("w_ref").style.display = "none";
+    $("w_product").querySelector("label").textContent = "Item / product sold";
+    $("f_item").placeholder = "e.g. iPhone 12, Ankara dress, 50kg rice";
+    if (lblPkg) lblPkg.textContent = "Brand / model";
+    if (lblPeriod) lblPeriod.textContent = "Qty / size / colour";
+    $("f_package").placeholder = "e.g. Samsung, Gucci, Tecno Spark";
+    $("f_period").placeholder = "e.g. 1 pc, Size M, Red";
+    if (hint) hint.textContent = "Best for boutiques, phone shops, electronics, general stores — list the goods sold.";
+  } else if (k === "service") {
+    $("w_soft").style.display = "none";
+    $("w_ref").style.display = "";
+    $("w_product").querySelector("label").textContent = "Service provided";
+    $("f_item").placeholder = "e.g. Tailoring, phone repair, delivery, consultancy";
+    if (lblRef) lblRef.textContent = "Job / order reference";
+    $("f_projref").placeholder = "e.g. JOB-014";
+    if (hint) hint.textContent = "Best for repairs, salons, transport, professional services.";
+  } else {
+    $("w_soft").style.display = "";
+    $("w_ref").style.display = "none";
+    $("w_product").querySelector("label").textContent = "Software / product";
+    $("f_item").placeholder = "e.g. POS system, website package";
+    if (lblPkg) lblPkg.textContent = "Package / license";
+    if (lblPeriod) lblPeriod.textContent = "License period";
+    $("f_package").placeholder = "e.g. Annual license";
+    $("f_period").placeholder = "e.g. 1 year";
+    if (hint) hint.textContent = "Best for software sellers and digital products.";
+  }
 }
 function updateWords() {
   var d = readForm();
@@ -1156,9 +1199,18 @@ function receiptHTML(r, opts) {
   var rows = [];
   var push = function (k, v) { if (v) rows.push("<div>" + esc(k) + "</div><div>" + esc(v) + "</div>"); };
 
-  push(r.kind === "software" ? "Software / product" : "Service provided", r.item);
-  if (r.kind === "software") { push("License / package", r.pkg); push("License period", r.period); }
-  else { push("Project / service reference", r.projRef); }
+  if (r.kind === "goods") {
+    push("Item / product", r.item);
+    push("Brand / model", r.pkg);
+    push("Qty / size / colour", r.period);
+  } else if (r.kind === "software") {
+    push("Software / product", r.item);
+    push("License / package", r.pkg);
+    push("License period", r.period);
+  } else {
+    push("Service provided", r.item);
+    push("Job / reference", r.projRef);
+  }
   push("Description", r.description);
 
   var pay = [];
@@ -1326,6 +1378,23 @@ function applyTrialLock() {
 
 /* ---------------- business settings ---------------- */
 
+function categoryOptionsHtml(selected) {
+  var opts = [
+    ["retail", "General shop / retail"],
+    ["boutique", "Boutique / fashion"],
+    ["electronics", "Electronics shop"],
+    ["phones", "Mobile phone shop"],
+    ["grocery", "Grocery / produce"],
+    ["service", "Services (repair, salon, etc.)"],
+    ["software", "Software / digital products"],
+    ["other", "Other"]
+  ];
+  selected = String(selected || "retail");
+  return opts.map(function (o) {
+    return '<option value="' + o[0] + '"' + (o[0] === selected ? " selected" : "") + ">" + o[1] + "</option>";
+  }).join("");
+}
+
 function renderSettings() {
   var host = $("tab-settings");
   if (!biz) { host.innerHTML = lockedNotice(); return; }
@@ -1338,6 +1407,11 @@ function renderSettings() {
       '<span class="hint">Appears on every receipt you issue</span></div>' +
     '<div class="card-b">' +
       '<div class="field"><label>Business name</label><input id="s_name" value="' + f(biz.name) + '"></div>' +
+      '<div class="field"><label>Business type</label>' +
+        '<select id="s_category">' +
+          categoryOptionsHtml(biz.category || (biz.receipt_layout && biz.receipt_layout.extras && biz.receipt_layout.extras.category) || "retail") +
+        '</select>' +
+        '<div class="hint" style="margin-top:4px">Controls receipt wording (goods vs service vs software) for your shop type.</div></div>' +
       '<div class="field"><label>Tagline</label><input id="s_tagline" value="' + f(biz.tagline) + '"></div>' +
       '<div class="two">' +
         '<div class="field"><label>Phone</label><input id="s_phone" value="' + f(biz.phone) + '"></div>' +
@@ -1520,6 +1594,9 @@ async function saveLayoutJson() {
 async function saveBusinessProfile() {
   if (!sb || !biz) return;
   var btn = $("btnSaveBiz");
+  var cat = ($("s_category") && $("s_category").value) || "retail";
+  var layout = Object.assign({}, biz.receipt_layout || {});
+  layout.extras = Object.assign({}, layout.extras || {}, { category: cat });
   var patch = {
     name: $("s_name").value.trim(),
     tagline: $("s_tagline").value.trim() || null,
@@ -1527,18 +1604,26 @@ async function saveBusinessProfile() {
     whatsapp: $("s_whatsapp").value.trim() || null,
     email: $("s_email").value.trim() || null,
     prefix: ($("s_prefix").value.trim().toUpperCase().replace(/[^A-Z]/g, "") || "BIZ").slice(0, 4),
-    logo_url: $("s_logo").value.trim() || null
+    logo_url: $("s_logo").value.trim() || null,
+    category: cat,
+    receipt_layout: layout
   };
   if (!patch.name) { say("A business name is required.", "warn"); return; }
   btn.disabled = true; btn.textContent = "Saving…";
   try {
-    var { data, error } = await sb.from("businesses").update(patch).eq("id", biz.id).select("*").single();
-    if (error) throw error;
-    applyBusiness(data);
+    var res = await sb.from("businesses").update(patch).eq("id", biz.id).select("*").single();
+    if (res.error && /category/i.test(res.error.message || "")) {
+      /* column not migrated yet — still save layout.extras.category */
+      delete patch.category;
+      res = await sb.from("businesses").update(patch).eq("id", biz.id).select("*").single();
+    }
+    if (res.error) throw res.error;
+    applyBusiness(res.data);
     paintChrome();
     renderSettings();
     peekNextNumber();
-    say("Business profile saved. New receipts use these details.", "good");
+    setKind(defaultKindForBusiness());
+    say("Business profile saved. New receipts use your shop type and branding.", "good");
   } catch (e) {
     say("Could not save: " + esc(e && e.message ? e.message : "unknown error"), "warn");
   } finally {
@@ -1688,7 +1773,7 @@ async function renderVerify(no, vid) {
       '<div>Issued</div><div>' + esc(fmtStamp(r.createdAt)) + '</div>' +
       '<div>Payment date</div><div>' + esc(fmtDate(r.paidOn)) + '</div>' +
       '<div>Issued to</div><div>' + esc(custShown) + '</div>' +
-      '<div>' + (r.kind === "software" ? "Software / product" : "Service") + '</div><div>' + esc(r.item) + '</div>' +
+      '<div>' + (r.kind === "goods" ? "Item / product" : (r.kind === "software" ? "Software / product" : "Service")) + '</div><div>' + esc(r.item) + '</div>' +
       '<div>Amount</div><div>' + esc(money(r.amount, r.currency)) + '</div>' +
       '<div>Payment method</div><div>' + esc(r.method) + '</div>' +
       '<div>Payment reference</div><div>' + esc(refShown) + '</div>' +
@@ -2050,7 +2135,7 @@ function injectExtras() {
 
 function boot() {
   $("f_date").value = todayISO();
-  setKind("software");
+  setKind(defaultKindForBusiness());
   injectExtras();
 
   Array.prototype.forEach.call(document.querySelectorAll("#kindSeg button"), function (b) {
