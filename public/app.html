@@ -599,6 +599,8 @@ tbody tr:last-child td{border-bottom:0}
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1.11.17/bundle/libphonenumber-min.js"></script>
+
 <script>
 "use strict";
 
@@ -1542,18 +1544,51 @@ function isEmailOk(v) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
+/** libphonenumber-js helpers — default region Uganda (UG) */
+function phoneLibAvailable() {
+  return typeof libphonenumber !== "undefined" || typeof parsePhoneNumberFromString !== "undefined";
+}
+
+function parsePhone(v, defaultCountry) {
+  defaultCountry = defaultCountry || "UG";
+  v = String(v || "").trim();
+  if (!v) return null;
+  try {
+    var parse = (typeof parsePhoneNumberFromString === "function")
+      ? parsePhoneNumberFromString
+      : (libphonenumber && libphonenumber.parsePhoneNumberFromString);
+    if (!parse) return null;
+    var pn = parse(v, defaultCountry);
+    return pn || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 function isPhoneOk(v) {
   v = String(v || "").trim();
   if (!v) return true; /* optional on form */
-  var d = v.replace(/\D/g, "");
-  return d.length >= 9 && d.length <= 15;
+  var pn = parsePhone(v, "UG");
+  if (pn && pn.isValid && pn.isValid()) return true;
+  /* fallback if library missing */
+  if (!phoneLibAvailable()) {
+    var d = v.replace(/\D/g, "");
+    return d.length >= 9 && d.length <= 15;
+  }
+  return false;
 }
 
 function isPhoneRequiredOk(v) {
   v = String(v || "").trim();
   if (!v) return false;
-  var n = normalizePhone(v);
-  return n.length >= 11 && n.length <= 15;
+  var pn = parsePhone(v, "UG");
+  if (pn && pn.isValid && pn.isValid()) return true;
+  if (!phoneLibAvailable()) {
+    var n = String(v).replace(/\D/g, "");
+    if (n.startsWith("0")) n = "256" + n.slice(1);
+    return n.length >= 11 && n.length <= 15;
+  }
+  return false;
 }
 
 function clearFieldErrors() {
@@ -1614,7 +1649,7 @@ function validate(d) {
 
   if (d.custPhone && !isPhoneOk(d.custPhone)) {
     errs.push("customer phone looks invalid");
-    markInvalid($("f_custPhone"), "Use 07XXXXXXXX or 2567XXXXXXXX");
+    markInvalid($("f_custPhone"), "Enter a valid phone (07… or +256…)");
   }
 
   var hasLines = d.lines && d.lines.length;
@@ -2897,13 +2932,33 @@ function render() { renderLog(); }
 
 /* ---- commercial: send receipt to client ---- */
 function normalizePhone(p) {
-  var d = String(p || "").replace(/[^\d]/g, "");
+  /* Returns digits for wa.me (no +). Prefers libphonenumber-js. */
+  var pn = parsePhone(p, "UG");
+  if (pn && pn.isValid && pn.isValid()) {
+    return String(pn.number || "").replace(/^\+/, "");
+  }
+  var d = String(p || "").replace(/\D/g, "");
   if (!d) return "";
-  /* Uganda local → E.164 without plus for wa.me */
   if (d.startsWith("0") && d.length >= 9) return "256" + d.slice(1);
   if (d.startsWith("256")) return d;
-  /* already international without country assumptions */
   return d;
+}
+
+function formatPhoneNational(p) {
+  var pn = parsePhone(p, "UG");
+  if (pn && pn.isValid && pn.isValid() && pn.formatNational) {
+    try { return pn.formatNational(); } catch (e) {}
+  }
+  return String(p || "").trim();
+}
+
+function formatPhoneInternational(p) {
+  var pn = parsePhone(p, "UG");
+  if (pn && pn.isValid && pn.isValid() && pn.formatInternational) {
+    try { return pn.formatInternational(); } catch (e) {}
+  }
+  var n = normalizePhone(p);
+  return n ? ("+" + n) : "";
 }
 
 function buildReceiptMessage(r) {
@@ -2983,10 +3038,20 @@ var _waReceipt = null;
 var _waMessage = null;
 
 function phonePreviewText(raw) {
+  if (!raw || !String(raw).trim()) {
+    return { cls: "", text: "Uganda numbers: 07… or +256… · Other countries: include country code" };
+  }
+  var pn = parsePhone(raw, "UG");
+  if (pn && pn.isValid && pn.isValid()) {
+    var intl = formatPhoneInternational(raw);
+    var nat = formatPhoneNational(raw);
+    return { cls: "ok", text: "Valid · WhatsApp will open for " + intl + (nat ? " (" + nat + ")" : "") };
+  }
+  if (phoneLibAvailable()) {
+    return { cls: "bad", text: "Not a valid phone number — try 07XXXXXXXX or +2567XXXXXXXX" };
+  }
   var n = normalizePhone(raw);
-  if (!raw || !String(raw).trim()) return { cls: "", text: "Uganda: 07… becomes 2567… · Also 256… or +256…" };
-  if (!n || n.length < 11) return { cls: "bad", text: "Number looks short — use 07XXXXXXXX or 2567XXXXXXXX" };
-  if (n.length > 15) return { cls: "bad", text: "Number looks too long — check digits" };
+  if (!n || n.length < 11) return { cls: "bad", text: "Number looks short" };
   return { cls: "ok", text: "Will open WhatsApp for +" + n };
 }
 
@@ -3186,7 +3251,7 @@ function boot() {
         markInvalid(el, "Use a valid email like name@example.com");
       } else if (id === "f_custPhone" && el.value.trim() && !isPhoneOk(el.value)) {
         field.classList.add("invalid");
-        markInvalid(el, "Use 07XXXXXXXX or 2567XXXXXXXX");
+        markInvalid(el, "Enter a valid phone (07… or +256…)");
       } else if (id === "f_by" && el.value.trim() && el.value.trim().length < 2) {
         field.classList.add("invalid");
         markInvalid(el, "Enter the receiver name");
