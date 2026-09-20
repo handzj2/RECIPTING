@@ -788,7 +788,13 @@ var CURRENCY = {
 };
 
 var $ = function (id) { return document.getElementById(id); };
-var db = null, canWriteShared = true, current = null, kind = "software", cache = [];
+/* [FIX 2026-09-20] Reason: a legacy `window.claude` shared-db handle (`db`) let this
+   app silently allocate and store receipts outside Supabase — a second, offline
+   "authoritative" receipt engine, which violates the online-only issuance rule.
+   Fix: the `db` handle and every code path that wrote to it have been removed.
+   Risk: LOW — that path was already best-effort (try/catch, `window.claude` rarely
+   present outside the Claude artifact runtime); no cloud behaviour changes. */
+var canWriteShared = true, current = null, kind = "software", cache = [];
 var access = { canEdit: true, checked: false }; /* default open until checked, then locked down if not editor */
 
 /* ---------------- helpers ---------------- */
@@ -1333,8 +1339,11 @@ function paintChrome() {
 
 /* ---- local folder (File System Access API): a real designated folder on this
    device, chosen once, remembered across sessions via an IndexedDB-stored handle.
-   Only used as the fallback store when shared `db` storage is unavailable, and only
-   in browsers that support it (desktop Chrome/Edge). ---- */
+   [FIX 2026-09-20] Non-authoritative cache only: used to read/export a local mirror
+   of already-cloud-issued receipts for offline viewing/backup. It never allocates a
+   receipt number and is never written to as part of issuing a new receipt (see
+   saveReceipt / nextReceiptNo). Only available in browsers that support the API
+   (desktop Chrome/Edge). ---- */
 var folder = {
   handle: null,
   supported: typeof window.showDirectoryPicker === "function",
@@ -1476,11 +1485,25 @@ function notice(html, cls) {
 }
 
 async function initStore() {
-  /* 1) Supabase cloud (preferred when configured) */
+  /* [FIX 2026-09-20] Reason: on a failed cloud *load*, this used to fall through to a
+     legacy shared-db handle or to plain local storage and treat whichever it found as
+     the receipt register — i.e. a second, offline-authoritative store. That is exactly
+     the "local fallback" the online-only directive forbids.
+     Fix: cloud load failure now sets cloudMode = false and shows a *read-only, cached*
+     view (last successful sync + any pre-existing local mirror). `issue()` / `saveReceipt()`
+     / `nextReceiptNo()` all require `cloudMode && sb`, so new issuance is fail-closed
+     until a reload succeeds in reaching Supabase again.
+     Risk: LOW-MEDIUM — a transient load failure now blocks new issuance instead of
+     silently continuing offline; this is the intended, safer behaviour per the
+     controlled-correction directive (Section 3/5), not a regression. */
+
+  var cloudLoadFailed = false;
+
+  /* 1) Supabase cloud (preferred, and the only authoritative source) */
   try {
     if (await initSupabase()) {
       cache = await cloudLoadReceipts();
-      local.replaceAll(cache); /* keep offline mirror */
+      local.replaceAll(cache); /* non-authoritative offline mirror, for display only */
       paintChrome();
       notice(cloudNoticeHTML(), trialNoticeClass());
       applyTrialLock();
@@ -1488,72 +1511,62 @@ async function initStore() {
       return;
     }
   } catch (e) {
-    notice("Supabase connected but failed to load: " + esc(e && e.message ? e.message : e) +
-      ". Falling back to local storage.", "warn");
+    cloudMode = false;
+    cloudLoadFailed = true;
+    notice("Signed in, but could not reach the receipt register: " + esc(e && e.message ? e.message : e) +
+      ". Showing the last saved copy of your receipts — issuing new receipts is disabled until this " +
+      "reconnects. <button class=\"btn\" id=\"btnRetryCloud\" type=\"button\" style=\"padding:3px 9px;font-size:12px;margin-left:4px\">Retry</button>",
+      "warn");
   }
 
-  /* 2) Legacy shared db (Claude / internal) */
-  try { db = (window.claude && claude.use) ? await claude.use("db") : null; } catch (e) { db = null; }
-  if (!db) {
-    await folder.init();
-    if (folder.handle) {
-      cache = await folder.read();
-      if (!cache.length) cache = local.all();
-    } else {
-      cache = local.all();
-    }
-    notice(storageNoticeHTML(), folder.handle ? "good" : "warn");
+  /* 2) Cloud unreachable / not configured: local data shown is a cache only —
+     never treated as the authoritative receipt register, and never used to
+     allocate new receipt numbers (see nextReceiptNo/saveReceipt). */
+  await folder.init();
+  if (folder.handle) {
+    cache = await folder.read();
+    if (!cache.length) cache = local.all();
   } else {
-    try {
-      var snap = await db.collection("receipts").orderBy("createdAt", "desc").limit(500).get();
-      cache = snap.docs.map(function (d) { return d.data(); });
-      notice("");
-    } catch (e) {
-      cache = [];
-      notice("Could not load the receipt log (" + esc(e && e.code ? e.code : "error") + ").", "warn");
-    }
+    cache = local.all();
+  }
+  if (!cloudLoadFailed && !(cloudMode && sb)) {
+    notice(storageNoticeHTML() +
+      "<br><b>New receipts cannot be issued while offline.</b> Reconnect to the receipt register first.",
+      "warn");
   }
   render();
 }
 
 async function saveReceipt(r) {
-  if (cloudMode && sb) {
-    await cloudSaveReceipt(r);
-    local.put(r); /* offline mirror */
-  } else if (db) {
-    await db.doc("receipts/" + r.receiptNo).set(r);
-  } else {
-    local.put(r);
-    if (folder.handle) { try { await folder.write(local.all()); } catch (e) {} }
+  /* [FIX 2026-09-20] Reason: previously fell back to local/legacy storage as an
+     authoritative write when the cloud path wasn't active — could silently issue a
+     receipt nobody else, and no other device, would ever see registered.
+     Fix: a receipt is only ever saved through Supabase. Any other state throws, and
+     issue() reports the receipt as NOT issued (fail closed) rather than pretending
+     success. The local mirror is written only *after* Supabase confirms, purely as an
+     offline-readable cache of an already-authoritative record.
+     Risk: LOW — the cloud path itself (cloudSaveReceipt) is unchanged. */
+  if (!(cloudMode && sb)) {
+    throw new Error("OFFLINE_NO_ISSUE: Not connected to the receipt register.");
   }
+  await cloudSaveReceipt(r);
+  local.put(r); /* offline mirror of a confirmed cloud record — not authoritative */
   cache = cache.filter(function (x) { return x.receiptNo !== r.receiptNo; });
   cache.unshift(r);
 }
 
 async function nextReceiptNo() {
-  var year = new Date().getFullYear();
-  var mk = function (n) { return RECEIPT_PREFIX + "-" + year + "-" + String(n).padStart(6, "0"); };
-  if (cloudMode && sb) {
-    return cloudNextReceiptNo();
+  /* [FIX 2026-09-20] Reason: locally-computed numbers (from `cache`) and the legacy
+     shared-db sequence counter were both ways to allocate a receipt number without the
+     cloud database, i.e. a second numbering authority. Two independently-numbered
+     registers can collide or diverge, which the directive explicitly prohibits.
+     Fix: numbering is now exclusively `cloudNextReceiptNo()` (the atomic Postgres RPC).
+     Risk: LOW — cloud numbering logic itself is untouched; offline callers now get a
+     clear error instead of a locally-fabricated number. */
+  if (!(cloudMode && sb)) {
+    throw new Error("OFFLINE_NO_ISSUE: Not connected to the receipt register.");
   }
-  if (!db) {
-    var mine = cache.filter(function (r) { return r.receiptNo.indexOf(RECEIPT_PREFIX + "-" + year + "-") === 0; })
-      .map(function (r) { return parseInt(r.receiptNo.slice(-6), 10) || 0; });
-    return mk((mine.length ? Math.max.apply(null, mine) : 0) + 1);
-  }
-  var ref = db.doc("meta/sequence"), snap = await ref.get();
-  var data = snap.exists ? snap.data() : {};
-  var seq = (data && data.year === year && typeof data.seq === "number") ? data.seq : 0;
-  for (var i = 0; i < 60; i++) {
-    seq += 1;
-    var no = mk(seq);
-    var probe = await db.doc("receipts/" + no).get();
-    if (!probe.exists) {
-      await ref.set({ year: year, seq: seq, updatedAt: new Date().toISOString() });
-      return no;
-    }
-  }
-  throw new Error("Could not allocate a receipt number");
+  return cloudNextReceiptNo();
 }
 
 /* ---------------- form ---------------- */
@@ -2678,13 +2691,6 @@ async function lookup(no, vid) {
       };
     } catch (e) { return null; }
   }
-
-  if (db) {
-    try {
-      var s2 = await db.doc("receipts/" + no).get();
-      if (s2.exists) return s2.data();
-    } catch (e) {}
-  }
   return null;
 }
 
@@ -2907,21 +2913,20 @@ function genReference() {
   return RECEIPT_PREFIX + "-REF-" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + randId(4);
 }
 async function peekNextNumber() {
+  /* [FIX 2026-09-20] Reason: previously computed a "next number" from the local cache
+     when offline, which looks authoritative (a cashier could read it as the number
+     about to be issued) but is not — it can diverge from the real cloud sequence.
+     Fix: only ever peek the real, atomic cloud sequence; show a plain "offline"
+     placeholder otherwise instead of a fabricated number.
+     Risk: LOW — display-only value, does not affect actual numbering. */
   var el = $("nextNo");
   if (!el) return;
+  if (!(cloudMode && sb)) { el.textContent = "— (offline)"; return; }
   el.textContent = "checking…";
-  var year = new Date().getFullYear();
-  var mk = function (n) { return RECEIPT_PREFIX + "-" + year + "-" + String(n).padStart(6, "0"); };
   try {
-    if (cloudMode && sb) {
-      var { data, error } = await sb.rpc("peek_receipt_no");
-      if (error) throw error;
-      el.textContent = data || "—";
-    } else {
-      var mine = cache.filter(function (r) { return r.receiptNo.indexOf(RECEIPT_PREFIX + "-" + year + "-") === 0; })
-        .map(function (r) { return parseInt(r.receiptNo.slice(-6), 10) || 0; });
-      el.textContent = mk((mine.length ? Math.max.apply(null, mine) : 0) + 1);
-    }
+    var { data, error } = await sb.rpc("peek_receipt_no");
+    if (error) throw error;
+    el.textContent = data || "—";
   } catch (e) { el.textContent = "—"; }
 }
 
@@ -2934,6 +2939,14 @@ async function issue() {
   if (trial.checked && trial.expired) {
     say("Your free trial has ended. Subscribe to issue new receipts — your existing records are untouched.", "warn");
     showTab("settings");
+    return;
+  }
+  /* [FIX 2026-09-20] Reason: this is the "fail closed" gate required by the online-only
+     directive — new issuance must never proceed without a live cloud connection.
+     Fix: check cloudMode up front, before touching the form/number/save path, and show
+     the exact required message. Risk: LOW — purely additive guard. */
+  if (!(cloudMode && sb)) {
+    say("Could not connect to the receipt register. The receipt was not issued. Check your internet connection and try again.", "warn");
     return;
   }
   var d = readForm(), errs = validate(d);
@@ -2962,6 +2975,16 @@ async function issue() {
     /* PDF is optional delivery — never fails the issue */
     try { await downloadReceipt(r, true); } catch (pe) { /* ignore */ }
   } catch (e) {
+    /* [FIX 2026-09-20] Reason: every failure used to get the same generic "could not
+       confirm" message, which doesn't match the directive's required distinction
+       between (a) a clear pre-registration rejection — "not issued", safe to just
+       retry — and (b) a network failure with an *uncertain* outcome, where a blind
+       retry risks a duplicate receipt.
+       Fix: classify the error text into OFFLINE_NO_ISSUE / network-uncertain / other
+       explicit rejection, each with the directive's wording. No behavior change to
+       the double-issue lock itself (still no automatic retry either way).
+       Risk: LOW — classification is message-pattern based (best-effort); worst case
+       is a slightly generic wording, never a false "issued" claim. */
     var em = (e && e.message) ? e.message : "unknown error";
     if (/TRIAL_EXPIRED/i.test(em) || /row-level security/i.test(em)) {
       trial.expired = true; trial.active = false;
@@ -2969,8 +2992,12 @@ async function issue() {
       applyTrialLock();
       say("Your trial has ended. Existing receipts remain available; new issues are paused.", "warn");
       showTab("settings");
+    } else if (/OFFLINE_NO_ISSUE/i.test(em)) {
+      say("Could not connect to the receipt register. The receipt was not issued. Check your internet connection and try again.", "warn");
+    } else if (/Failed to fetch|NetworkError|network|timeout|ETIMEDOUT|ENOTFOUND/i.test(em)) {
+      say("We could not confirm the result. Check the Receipt Register before trying again. (" + esc(humanErr(em)) + ")", "warn");
     } else {
-      say("Could not confirm issuance. Check the Receipt Log before trying again. (" + esc(humanErr(em)) + ")", "warn");
+      say("Receipt was not issued. (" + esc(humanErr(em)) + ")", "warn");
     }
   } finally {
     _issuingLock = false;
@@ -3062,6 +3089,11 @@ function showIssuedBanner(r, justIssued) {
       CO.name + " — Receipt " + r.receiptNo,
       buildClientMessage(r)
     );
+    /* [FIX 2026-09-20] Reason: this path opened the mail client with no confirmation,
+       unlike sendEmail(), and easily read as silent/uncertain rather than "opened".
+       Fix: match sendEmail()'s wording — never implies the email was actually sent.
+       Risk: LOW — copy-only change. */
+    say("Email draft opened. Attach the PDF from your downloads if required.", "good");
   });
   bind("new", function () {
     el.hidden = true;
@@ -3599,7 +3631,14 @@ function boot() {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    if (e.target && e.target.id === "btnConnectFolder") {
+    if (e.target && e.target.id === "btnRetryCloud") {
+      /* [FIX 2026-09-20] Lets the cashier retry reaching the receipt register after
+         a load failure, without a full page reload. Purely a reconnect attempt —
+         never issues or fabricates a receipt. */
+      notice("Reconnecting to the receipt register…", "");
+      try { await initStore(); peekNextNumber(); }
+      catch (err) { notice("Still could not reach the receipt register. Check your connection and try again.", "warn"); }
+    } else if (e.target && e.target.id === "btnConnectFolder") {
       try {
         await folder.connect();
         notice(storageNoticeHTML(), "good");
@@ -3717,10 +3756,18 @@ function boot() {
 /* Require a signed-in account for everything except verification links. */
 async function guardAndStart() {
   if (!supabaseConfigured()) {
-    /* No cloud configured at all: fall back to the old local-only behaviour
-       so the tool still works offline / during setup. */
-    notice("Not connected to Supabase — running in local-only mode. Add your keys in <code>config.js</code> " +
-           "and run <code>sql/002_auth_multitenant.sql</code> to enable accounts.", "warn");
+    /* [FIX 2026-09-20] Reason: "local-only mode" used to mean a fully working offline
+       app that silently numbered and stored receipts itself — a second authoritative
+       register with no cloud backing at all, which the online-only directive forbids
+       outright, not just as a failure fallback.
+       Fix: the UI still loads (so the operator can see the setup instructions and any
+       already-cloud-issued receipts once configured), but cloudMode stays false, so
+       issue()/saveReceipt()/nextReceiptNo() fail closed — no new receipt can be issued
+       until config.js has valid Supabase keys.
+       Risk: LOW — this branch only runs on an unconfigured install (setup time), never
+       for a live, already-configured business. */
+    notice("Not connected to Supabase — <b>issuing new receipts is disabled</b> until this is configured. " +
+           "Add your keys in <code>config.js</code> and run <code>sql/002_auth_multitenant.sql</code> to enable accounts.", "warn");
     route();
     initAccess().then(route);
     initStore().then(peekNextNumber);
