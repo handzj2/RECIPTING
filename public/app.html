@@ -239,6 +239,31 @@ tbody tr:last-child td{border-bottom:0}
   .field input,.field select,.field textarea{font-size:16px;padding:11px} /* avoids iOS zoom */
 }
 
+
+/* line items editor */
+.lines-wrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px;background:var(--panel-2)}
+.lines-head,.line-row{display:grid;grid-template-columns:1.6fr .55fr .7fr .7fr 36px;gap:6px;align-items:center;padding:8px}
+.lines-head{background:var(--panel);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--line)}
+.line-row{border-bottom:1px solid var(--line-soft)}
+.line-row:last-child{border-bottom:0}
+.line-row input{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit}
+.line-row .line-total{font-variant-numeric:tabular-nums;font-weight:600;text-align:right;padding-right:4px}
+.line-row .btn-x{border:0;background:transparent;color:var(--bad);font-size:18px;cursor:pointer;padding:4px}
+.lines-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 4px}
+.lines-sum{font-size:13.5px;font-weight:600;margin:6px 0 10px}
+@media (max-width:720px){
+  .lines-head{display:none}
+  .line-row{grid-template-columns:1fr 1fr;gap:8px;padding:10px;border-bottom:1px solid var(--line)}
+  .line-row .li-name{grid-column:1 / -1}
+  .line-row .line-total{grid-column:1 / -1;text-align:left}
+}
+/* printed items table on receipt */
+.items-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.items-table th{text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#4a586e;padding:7px 8px;border-bottom:1px solid #d7dee8;background:#f0f4f9}
+.items-table td{padding:7px 8px;border-bottom:1px solid #eef2f7;vertical-align:top}
+.items-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.items-table tr:last-child td{border-bottom:0}
+
 </style>
   <script src="/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -292,15 +317,27 @@ tbody tr:last-child td{border-bottom:0}
           </div>
           <p class="hint" id="kindHint" style="margin-top:6px">For shops: clothes, phones, electronics, groceries, etc.</p>
         </div>
-        <div class="field" id="w_product"><label>Item / product</label><input id="f_item" placeholder="e.g. Samsung A15, Dress size M, 20 bags cement"></div>
-        <div class="two" id="w_soft">
-          <div class="field"><label id="lbl_pkg">Brand / model</label><input id="f_package" placeholder="e.g. Samsung, Nike, Tecno"></div>
-          <div class="field"><label id="lbl_period">Qty / size / colour</label><input id="f_period" placeholder="e.g. 2 pcs, Size 42, Black"></div>
+        <div class="section-label" id="linesLabel">Line items</div>
+        <div class="lines-wrap">
+          <div class="lines-head">
+            <div>Item / description</div><div>Qty</div><div>Unit price</div><div>Total</div><div></div>
+          </div>
+          <div id="lineItems"></div>
         </div>
-        <div class="field" id="w_ref" style="display:none"><label id="lbl_ref">Reference</label><input id="f_projref" placeholder="Invoice / job / order ref"></div>
-        <div class="field"><label>Description / notes on items</label><textarea id="f_desc" placeholder="Optional details about what was sold or done"></textarea></div>
+        <div class="lines-actions">
+          <button type="button" class="btn" id="btnAddLine">+ Add line</button>
+          <span class="hint" id="linesHint">Add one or more products or services</span>
+        </div>
+        <div class="lines-sum" id="linesSum">Total: —</div>
+        <!-- hidden compatibility fields (filled from line items) -->
+        <input type="hidden" id="f_item" value="">
+        <input type="hidden" id="f_package" value="">
+        <input type="hidden" id="f_period" value="">
+        <input type="hidden" id="f_projref" value="">
+        <div class="field" id="w_ref" style="display:none"><label id="lbl_ref">Reference</label><input id="f_projref_vis" placeholder="Invoice / job / order ref"></div>
+        <div class="field"><label>Extra notes <span style="text-transform:none;font-weight:400">(optional)</span></label><textarea id="f_desc" placeholder="Any extra note for this receipt"></textarea></div>
         <div class="two">
-          <div class="field"><label>Amount</label><input id="f_amount" inputmode="decimal" placeholder="1800000"></div>
+          <div class="field"><label>Amount (auto from lines)</label><input id="f_amount" inputmode="decimal" placeholder="0" readonly style="opacity:.9"></div>
           <div class="field"><label>Currency</label>
             <select id="f_currency"><option>UGX</option><option>USD</option><option>KES</option><option>EUR</option><option>GBP</option></select>
           </div>
@@ -601,7 +638,10 @@ function rowToReceipt(row) {
     notes: row.notes || "",
     createdAt: row.created_at || null,
     voidedAt: row.voided_at || null,
-    voidReason: row.void_reason || ""
+    voidReason: row.void_reason || "",
+    lines: Array.isArray(row.lines) ? row.lines : (function () {
+      try { return row.lines_json ? JSON.parse(row.lines_json) : []; } catch (e) { return []; }
+    })()
   };
 }
 
@@ -611,7 +651,7 @@ function receiptToRow(r) {
     receipt_no: r.receiptNo,
     verify_id: r.verifyId,
     status: r.status || "VALID",
-    kind: r.kind || "software",
+    kind: r.kind || "goods",
     customer: r.customer,
     cust_email: r.custEmail || null,
     cust_phone: r.custPhone || null,
@@ -627,6 +667,7 @@ function receiptToRow(r) {
     paid_on: r.paidOn || null,
     received_by: r.receivedBy || null,
     notes: r.notes || null,
+    lines: (r.lines && r.lines.length) ? r.lines : null,
     created_at: r.createdAt || new Date().toISOString(),
     voided_at: r.voidedAt || null,
     void_reason: r.voidReason || null
@@ -810,8 +851,12 @@ async function cloudSaveReceipt(r) {
   /* Issue only: INSERT. Issued receipts are immutable in Postgres
      (trigger + no client UPDATE policy). Voiding uses void_receipt RPC. */
   var row = receiptToRow(r);
-  var { error } = await sb.from("receipts").insert(row);
-  if (error) throw error;
+  var res = await sb.from("receipts").insert(row);
+  if (res.error && /lines/i.test(res.error.message || "")) {
+    delete row.lines;
+    res = await sb.from("receipts").insert(row);
+  }
+  if (res.error) throw res.error;
 }
 
 async function cloudVoidReceipt(receiptNo, reason) {
@@ -1104,18 +1149,125 @@ async function nextReceiptNo() {
 
 /* ---------------- form ---------------- */
 
+
+/* ---------------- line items ---------------- */
+
+function emptyLine() {
+  return { name: "", qty: 1, price: 0 };
+}
+
+function readLinesFromDom() {
+  var host = $("lineItems");
+  if (!host) return [];
+  var out = [];
+  Array.prototype.forEach.call(host.querySelectorAll(".line-row"), function (row) {
+    var name = (row.querySelector(".li-name") || {}).value || "";
+    var qty = Number(String((row.querySelector(".li-qty") || {}).value || "1").replace(/[^0-9.\-]/g, "")) || 0;
+    var price = Number(String((row.querySelector(".li-price") || {}).value || "0").replace(/[^0-9.\-]/g, "")) || 0;
+    name = String(name).trim();
+    if (!name && !price) return;
+    out.push({ name: name, qty: qty, price: price, total: Math.round(qty * price * 100) / 100 });
+  });
+  return out;
+}
+
+function linesTotal(lines) {
+  var t = 0;
+  (lines || []).forEach(function (L) { t += Number(L.total) || (Number(L.qty) || 0) * (Number(L.price) || 0); });
+  return Math.round(t * 100) / 100;
+}
+
+function syncAmountFromLines() {
+  var lines = readLinesFromDom();
+  var total = linesTotal(lines);
+  if ($("f_amount")) $("f_amount").value = total ? String(total) : "";
+  if ($("linesSum")) {
+    var cur = ($("f_currency") && $("f_currency").value) || "UGX";
+    $("linesSum").textContent = total > 0 ? ("Total: " + money(total, cur)) : "Total: —";
+  }
+  /* keep hidden summary fields for older code paths */
+  if ($("f_item")) {
+    if (!lines.length) $("f_item").value = "";
+    else if (lines.length === 1) $("f_item").value = lines[0].name;
+    else $("f_item").value = lines.length + " items: " + lines.map(function (L) { return L.name; }).filter(Boolean).join(", ");
+  }
+  if ($("f_package")) $("f_package").value = lines.length === 1 ? (lines[0].qty + " × " + money(lines[0].price, ($("f_currency")||{}).value || "UGX")) : "";
+  updateWords();
+}
+
+function renderLineItems(lines) {
+  var host = $("lineItems");
+  if (!host) return;
+  if (!lines || !lines.length) lines = [emptyLine()];
+  host.innerHTML = lines.map(function (L, i) {
+    var tot = (Number(L.qty) || 0) * (Number(L.price) || 0);
+    return '<div class="line-row" data-i="' + i + '">' +
+      '<input class="li-name" placeholder="Item name" value="' + esc(L.name || "") + '">' +
+      '<input class="li-qty" inputmode="decimal" placeholder="Qty" value="' + esc(L.qty != null ? L.qty : 1) + '">' +
+      '<input class="li-price" inputmode="decimal" placeholder="Price" value="' + esc(L.price != null && L.price !== 0 ? L.price : "") + '">' +
+      '<div class="line-total">' + (tot ? tot.toLocaleString() : "—") + '</div>' +
+      '<button type="button" class="btn-x" title="Remove line" data-remove="' + i + '">×</button>' +
+    '</div>';
+  }).join("");
+
+  Array.prototype.forEach.call(host.querySelectorAll("input"), function (inp) {
+    inp.addEventListener("input", function () {
+      /* refresh this row total display */
+      var row = inp.closest(".line-row");
+      if (row) {
+        var q = Number(String((row.querySelector(".li-qty") || {}).value || "0").replace(/[^0-9.\-]/g, "")) || 0;
+        var pr = Number(String((row.querySelector(".li-price") || {}).value || "0").replace(/[^0-9.\-]/g, "")) || 0;
+        var el = row.querySelector(".line-total");
+        if (el) el.textContent = (q * pr) ? (q * pr).toLocaleString() : "—";
+      }
+      syncAmountFromLines();
+    });
+  });
+  Array.prototype.forEach.call(host.querySelectorAll("[data-remove]"), function (btn) {
+    btn.addEventListener("click", function () {
+      var all = readLinesFromDom();
+      var idx = Number(btn.getAttribute("data-remove"));
+      if (all.length <= 1) { renderLineItems([emptyLine()]); syncAmountFromLines(); return; }
+      all.splice(idx, 1);
+      renderLineItems(all);
+      syncAmountFromLines();
+    });
+  });
+  syncAmountFromLines();
+}
+
+function addLineItem() {
+  var all = readLinesFromDom();
+  all.push(emptyLine());
+  renderLineItems(all);
+  var host = $("lineItems");
+  var last = host && host.querySelector(".line-row:last-child .li-name");
+  if (last) last.focus();
+}
+
+
 function readForm() {
+  var lines = readLinesFromDom().filter(function (L) { return L.name; });
+  var total = linesTotal(lines);
+  var refVis = $("f_projref_vis");
+  var proj = (refVis && refVis.value.trim()) || ($("f_projref") && $("f_projref").value.trim()) || "";
+  var itemSummary = "";
+  if (lines.length === 1) itemSummary = lines[0].name;
+  else if (lines.length > 1) itemSummary = lines.length + " items: " + lines.map(function (L) { return L.name; }).join(", ");
+  if ($("f_item")) $("f_item").value = itemSummary;
+  if ($("f_amount")) $("f_amount").value = total ? String(total) : "";
   return {
     kind: kind,
     customer: $("f_customer").value.trim(),
     custEmail: $("f_custEmail").value.trim(),
     custPhone: $("f_custPhone").value.trim(),
-    item: $("f_item").value.trim(),
-    pkg: $("f_package").value.trim(),
-    period: $("f_period").value.trim(),
-    projRef: $("f_projref").value.trim(),
+    item: itemSummary,
+    pkg: lines.length === 1 ? (String(lines[0].qty) + " × " + String(lines[0].price)) : "",
+    period: lines.length === 1 ? String(lines[0].qty) : "",
+    projRef: proj,
     description: $("f_desc").value.trim(),
-    amount: Number(String($("f_amount").value).replace(/[^0-9.\-]/g, "")) || 0,
+    lines: lines,
+    amount: total,
     currency: $("f_currency").value,
     method: $("f_method").value,
     txn: $("f_txn").value.trim(),
@@ -1127,8 +1279,16 @@ function readForm() {
 function validate(d) {
   var errs = [];
   if (!d.customer) errs.push("customer / company name");
-  if (!d.item) errs.push(kind === "goods" ? "item / product" : (kind === "software" ? "software / product" : "service provided"));
-  if (!(d.amount > 0)) errs.push("a valid amount");
+  var hasLines = d.lines && d.lines.length;
+  if (!hasLines && !d.item) errs.push("at least one line item");
+  if (hasLines) {
+    d.lines.forEach(function (L, i) {
+      if (!L.name) errs.push("name on line " + (i + 1));
+      if (!(L.qty > 0)) errs.push("qty on line " + (i + 1));
+      if (!(L.price >= 0) || (L.price === 0 && L.total === 0)) errs.push("price on line " + (i + 1));
+    });
+  }
+  if (!(d.amount > 0)) errs.push("a valid amount (add prices on line items)");
   if (!d.receivedBy) errs.push("who received the payment");
   return errs;
 }
@@ -1151,33 +1311,23 @@ function setKind(k) {
   var lblPkg = $("lbl_pkg");
   var lblPeriod = $("lbl_period");
   var lblRef = $("lbl_ref");
+  var linesHint = $("linesHint");
+  var linesLabel = $("linesLabel");
   if (k === "goods") {
-    $("w_soft").style.display = "";
-    $("w_ref").style.display = "none";
-    $("w_product").querySelector("label").textContent = "Item / product sold";
-    $("f_item").placeholder = "e.g. iPhone 12, Ankara dress, 50kg rice";
-    if (lblPkg) lblPkg.textContent = "Brand / model";
-    if (lblPeriod) lblPeriod.textContent = "Qty / size / colour";
-    $("f_package").placeholder = "e.g. Samsung, Gucci, Tecno Spark";
-    $("f_period").placeholder = "e.g. 1 pc, Size M, Red";
-    if (hint) hint.textContent = "Best for boutiques, phone shops, electronics, general stores — list the goods sold.";
+    if ($("w_ref")) $("w_ref").style.display = "none";
+    if (linesLabel) linesLabel.textContent = "Goods / products sold";
+    if (linesHint) linesHint.textContent = "Add each product on its own line (name, qty, price).";
+    if (hint) hint.textContent = "Best for boutiques, phone shops, electronics, general stores.";
   } else if (k === "service") {
-    $("w_soft").style.display = "none";
-    $("w_ref").style.display = "";
-    $("w_product").querySelector("label").textContent = "Service provided";
-    $("f_item").placeholder = "e.g. Tailoring, phone repair, delivery, consultancy";
+    if ($("w_ref")) $("w_ref").style.display = "";
+    if (linesLabel) linesLabel.textContent = "Services";
+    if (linesHint) linesHint.textContent = "Add each service on its own line.";
     if (lblRef) lblRef.textContent = "Job / order reference";
-    $("f_projref").placeholder = "e.g. JOB-014";
     if (hint) hint.textContent = "Best for repairs, salons, transport, professional services.";
   } else {
-    $("w_soft").style.display = "";
-    $("w_ref").style.display = "none";
-    $("w_product").querySelector("label").textContent = "Software / product";
-    $("f_item").placeholder = "e.g. POS system, website package";
-    if (lblPkg) lblPkg.textContent = "Package / license";
-    if (lblPeriod) lblPeriod.textContent = "License period";
-    $("f_package").placeholder = "e.g. Annual license";
-    $("f_period").placeholder = "e.g. 1 year";
+    if ($("w_ref")) $("w_ref").style.display = "none";
+    if (linesLabel) linesLabel.textContent = "Software / digital items";
+    if (linesHint) linesHint.textContent = "Add each software product or license on its own line.";
     if (hint) hint.textContent = "Best for software sellers and digital products.";
   }
 }
@@ -1199,19 +1349,33 @@ function receiptHTML(r, opts) {
   var rows = [];
   var push = function (k, v) { if (v) rows.push("<div>" + esc(k) + "</div><div>" + esc(v) + "</div>"); };
 
-  if (r.kind === "goods") {
+  var itemsBlockHtml = "";
+  if (r.lines && r.lines.length) {
+    var cur = r.currency || "UGX";
+    itemsBlockHtml = '<table class="items-table"><thead><tr>' +
+      '<th>Item</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Total</th></tr></thead><tbody>' +
+      r.lines.map(function (L) {
+        var tot = L.total != null ? L.total : (Number(L.qty) || 0) * (Number(L.price) || 0);
+        return '<tr><td>' + esc(L.name) + '</td><td class="num">' + esc(L.qty) +
+          '</td><td class="num">' + esc(money(L.price, cur)) + '</td><td class="num">' + esc(money(tot, cur)) + '</td></tr>';
+      }).join("") + '</tbody></table>';
+    if (r.description) push("Notes", r.description);
+    if (r.projRef) push("Reference", r.projRef);
+  } else if (r.kind === "goods") {
     push("Item / product", r.item);
     push("Brand / model", r.pkg);
     push("Qty / size / colour", r.period);
+    push("Description", r.description);
   } else if (r.kind === "software") {
     push("Software / product", r.item);
     push("License / package", r.pkg);
     push("License period", r.period);
+    push("Description", r.description);
   } else {
     push("Service provided", r.item);
     push("Job / reference", r.projRef);
+    push("Description", r.description);
   }
-  push("Description", r.description);
 
   var pay = [];
   pay.push("<div>Payment method</div><div>" + esc(r.method) + "</div>");
@@ -1273,7 +1437,9 @@ function receiptHTML(r, opts) {
       (r.custEmail ? '<div>Email</div><div>' + esc(r.custEmail) + '</div>' : '') +
       (r.custPhone ? '<div>Phone</div><div>' + esc(r.custPhone) + '</div>' : '') +
     '</div></div>' +
-    (show("items") ? '<div class="block"><div class="bh">Payment for</div><div class="kv">' + rows.join("") + '</div></div>' : '') +
+    (show("items") ? '<div class="block"><div class="bh">Payment for</div>' +
+      (itemsBlockHtml ? itemsBlockHtml + (rows.length ? '<div class="kv">' + rows.join("") + '</div>' : '') : '<div class="kv">' + rows.join("") + '</div>') +
+    '</div>' : '') +
     (show("total") ? '<div class="amountbar"><div class="l">Amount paid</div><div class="v">' + esc(money(r.amount, r.currency)) + '</div></div>' +
       '<p class="words"><b>Amount in words:</b> ' + esc(amountInWords(r.amount, r.currency)) + '</p>' : '') +
     '<div class="block"><div class="bh">Payment details</div><div class="kv">' + pay.join("") + '</div></div>' +
@@ -1987,7 +2153,14 @@ function buildClientMessage(r) {
   lines.push("");
   lines.push("Receipt No: " + r.receiptNo);
   lines.push("Customer: " + r.customer);
-  lines.push("For: " + r.item + (r.pkg ? " (" + r.pkg + ")" : ""));
+  if (r.lines && r.lines.length) {
+    lines.push("Items:");
+    r.lines.forEach(function (L) {
+      lines.push("- " + L.name + " × " + L.qty + " @ " + money(L.price, r.currency));
+    });
+  } else {
+    lines.push("For: " + r.item + (r.pkg ? " (" + r.pkg + ")" : ""));
+  }
   lines.push("Amount: " + money(r.amount, r.currency));
   lines.push("Payment date: " + fmtDate(r.paidOn));
   lines.push("Method: " + r.method);
@@ -2137,6 +2310,9 @@ function boot() {
   $("f_date").value = todayISO();
   setKind(defaultKindForBusiness());
   injectExtras();
+  renderLineItems([emptyLine()]);
+  if ($("btnAddLine")) $("btnAddLine").addEventListener("click", addLineItem);
+  if ($("f_currency")) $("f_currency").addEventListener("change", function () { syncAmountFromLines(); updateWords(); });
 
   Array.prototype.forEach.call(document.querySelectorAll("#kindSeg button"), function (b) {
     b.addEventListener("click", function () { setKind(b.dataset.kind); });
@@ -2145,8 +2321,10 @@ function boot() {
     b.addEventListener("click", function () { showTab(b.dataset.tab); });
   });
   ["f_amount", "f_currency"].forEach(function (id) {
-    $(id).addEventListener("input", updateWords);
-    $(id).addEventListener("change", updateWords);
+    var el = $(id);
+    if (!el) return;
+    el.addEventListener("input", updateWords);
+    el.addEventListener("change", updateWords);
   });
 
   $("btnSignOut").addEventListener("click", async function () {
@@ -2198,7 +2376,9 @@ function boot() {
   $("btnIssue").addEventListener("click", issue);
   $("btnClear").addEventListener("click", function () {
     ["f_customer","f_custEmail","f_custPhone","f_item","f_package","f_period","f_projref","f_desc","f_amount","f_txn","f_by","f_notes"]
-      .forEach(function (id) { $(id).value = ""; });
+      .forEach(function (id) { if ($(id)) $(id).value = ""; });
+    if ($("f_projref_vis")) $("f_projref_vis").value = "";
+    renderLineItems([emptyLine()]);
     $("f_date").value = todayISO();
     $("previewHost").innerHTML = '<div class="empty">Enter details — the document preview updates here.</div>';
     $("btnPrintPreview").disabled = true;
