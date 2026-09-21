@@ -463,37 +463,116 @@ tbody tr:last-child td{border-bottom:0}
 
 /* ---- mobile friendly ---- */
 @media (max-width: 720px) {
-  .wrap{padding:10px 10px 48px}
-  .topbar{padding:10px 12px;gap:10px;border-radius:12px}
-  .topbar img{width:40px;height:40px}
-  .topbar .t1{font-size:18px}
-  .topbar .t2{font-size:11px}
-  .tabs{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .tabs button{padding:8px 10px;font-size:12.5px;white-space:nowrap}
-  .grid{grid-template-columns:1fr;gap:12px;margin-top:12px}
-  .card{border-radius:12px}
-  .card-b{padding:12px}
+  /* —— App shell —— */
+  .wrap{padding:8px 8px calc(56px + env(safe-area-inset-bottom,0));max-width:100%}
+  body{font-size:15px;-webkit-text-size-adjust:100%}
+  .topbar{
+    padding:10px 12px;gap:8px;border-radius:0;
+    margin:0 -8px 0;width:calc(100% + 16px);max-width:none;
+    position:sticky;top:0;z-index:40;
+  }
+  .topbar img{width:36px;height:36px}
+  .topbar .t1{font-size:15px;letter-spacing:.06em}
+  .topbar .t2{font-size:10px}
+  .topbar .grow{flex:1 1 100%;order:2}
+  .tabs{
+    order:3;width:100%;display:flex;gap:0;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;margin-top:4px;
+    border-top:1px solid rgba(255,255,255,.12);padding-top:4px;
+  }
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{
+    flex:1 0 auto;padding:10px 12px;font-size:11.5px;
+    white-space:nowrap;min-height:44px;
+  }
+  #btnSignOut,#lnkAdmin{min-height:40px;padding:8px 12px!important;font-size:12px!important}
+
+  /* —— Forms / panels —— */
+  .grid,.issue-desk{grid-template-columns:1fr!important;gap:12px;margin-top:10px}
+  .panel,.card{border-radius:10px}
+  .panel-b,.card-b{padding:12px}
+  .panel-h,.card-h{padding:10px 12px}
   .two{grid-template-columns:1fr}
-  .row-actions{gap:8px}
-  .row-actions .btn,.btn{width:100%;text-align:center;padding:12px 14px;font-size:15px}
-  .row-actions{flex-direction:column}
-  #share-bar{flex-direction:column;align-items:stretch !important}
-  #share-bar .btn{width:100%}
-  .paper{width:100%;padding:18px 14px 16px;border-radius:8px}
-  .rhead{flex-direction:column;align-items:flex-start;gap:10px}
-  .rhead img.logo{width:64px;height:64px}
-  .rhead .co .name{font-size:22px}
-  .rtitle .lbl{font-size:18px;letter-spacing:.1em}
-  .kv{grid-template-columns:1fr}
-  .kv>div:nth-child(odd){border-bottom:0;padding-bottom:2px}
-  .amountbar{flex-direction:column;align-items:flex-start;gap:6px}
-  .amountbar .v{font-size:26px}
+  .field{margin-bottom:12px}
+  .field label{font-size:12px;margin-bottom:4px}
+  .field input,.field select,.field textarea{
+    font-size:16px;padding:12px;min-height:46px;border-radius:8px;width:100%;
+  } /* 16px avoids iOS zoom */
+  .field textarea{min-height:88px}
+  .row-actions{flex-direction:column;gap:8px;width:100%}
+  .row-actions .btn,.panel-b > .btn,.card-b .btn.primary{
+    width:100%;text-align:center;padding:14px 16px;font-size:15px;min-height:48px;
+  }
+  .btn{min-height:44px}
+
+  /* —— Receipt document (readable on phone) —— */
+  .paper-scroll{
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    margin:0 -4px;padding:0 4px;
+  }
+  .paper{
+    width:100%!important;max-width:100%!important;
+    padding:16px 12px 14px!important;
+    border-radius:8px;box-sizing:border-box;
+    overflow:visible!important;
+  }
+  .rhead{flex-direction:column;align-items:flex-start;gap:10px;padding-bottom:12px}
+  .rhead img.logo{width:56px;height:56px;border-radius:6px}
+  .rhead .co .name{font-size:20px;line-height:1.15;word-break:break-word}
+  .rhead .co .tag{font-size:12px}
+  .rhead .co .contact{font-size:11.5px;line-height:1.5}
+  .rtitle{flex-direction:column;align-items:flex-start;gap:6px;margin:12px 0}
+  .rtitle .lbl{font-size:16px;letter-spacing:.1em}
+  .rtitle .meta{text-align:left;font-size:12.5px}
+  .rtitle .meta b{font-size:14px;word-break:break-all}
+  .block{margin-bottom:10px;border-radius:6px}
+  .block .bh{padding:6px 10px;font-size:10.5px}
+  .kv{grid-template-columns:1fr!important}
+  .kv>div{padding:6px 10px;font-size:13.5px;word-break:break-word}
+  .kv>div:nth-child(odd){
+    border-bottom:0;padding-bottom:0;padding-top:8px;
+    font-size:11px;letter-spacing:.04em;
+  }
+  .kv>div:nth-child(even){padding-top:2px;padding-bottom:10px;font-weight:600;color:#0a1628}
+  .amountbar{flex-direction:column;align-items:flex-start;gap:4px;padding:12px 14px}
+  .amountbar .v{font-size:28px}
+  .words{font-size:12px;margin-bottom:10px}
+  .items-table{font-size:12px}
+  .items-table th,.items-table td{padding:6px 4px}
+  .rfoot{flex-direction:column;gap:14px;align-items:center}
+  .rfoot .sig{flex:1 1 auto;width:100%;font-size:12px}
+  .rfoot .sig .line{width:100%;max-width:220px}
+  .qrbox{width:100%;max-width:180px;margin:0 auto}
+  .qrbox .qr{width:140px;height:140px}
+  .qrbox .cap{font-size:10px;word-break:break-all;padding:0 4px}
+  .stamp{
+    top:72px!important;right:8px!important;
+    font-size:18px;padding:3px 10px;opacity:.85;
+    max-width:42%;text-align:center;line-height:1.1;
+  }
+  .wm img{width:220px;max-width:70%;opacity:.04}
+  .wm .wmtext .a{font-size:28px}
+  .wm .wmtext .b,.wm .wmtext .c{font-size:14px}
+
+  /* —— Share / action bars —— */
+  #share-bar,.issued-actions,.share-bar-icos{
+    flex-direction:column!important;align-items:stretch!important;gap:8px!important;
+  }
+  #share-bar .btn,.issued-actions .btn,.share-bar-icos .btn,
+  .issued-actions .btn-ico,.share-bar-icos .btn-ico{
+    width:100%!important;flex:1 1 auto!important;min-width:0!important;
+    min-height:48px;justify-content:center;
+  }
   .tools{flex-direction:column}
   .tools input,.tools select{width:100%}
   table{min-width:0;font-size:12.5px}
   th,td{padding:8px 6px}
-  .stamp{top:120px;right:12px;font-size:22px;padding:3px 10px}
-  .field input,.field select,.field textarea{font-size:16px;padding:11px} /* avoids iOS zoom */
+
+  /* Log table: horizontal scroll */
+  .tablewrap,#tab-log .tablewrap,table.log, .log-table{
+    display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;
+  }
 }
 
 
@@ -520,6 +599,33 @@ tbody tr:last-child td{border-bottom:0}
 .items-table td{padding:7px 8px;border-bottom:1px solid #eef2f7;vertical-align:top}
 .items-table td.num{text-align:right;font-variant-numeric:tabular-nums}
 .items-table tr:last-child td{border-bottom:0}
+
+
+.rcpt-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 16px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
+.rcpt-toolbar-group{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.rcpt-toolbar-group + .rcpt-toolbar-group{padding-left:14px;border-left:1px solid var(--line)}
+.rcpt-toolbar .btn{padding:8px 12px;font-size:12.5px;font-weight:600;border-radius:8px;min-height:40px}
+.rcpt-toolbar .btn-wa{background:#128C7E;border-color:#128C7E;color:#fff}
+.rcpt-toolbar .btn-pdf{background:#0a1628;border-color:#0a1628;color:#fff}
+.rcpt-toolbar .btn-mail{background:#1a56a8;border-color:#1a56a8;color:#fff}
+.rcpt-toolbar label.fmt{display:flex;align-items:center;gap:6px;margin:0;font-size:12px;color:var(--ink-soft);font-weight:600}
+.rcpt-toolbar select{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);font:inherit;font-size:12.5px;min-height:40px}
+.rcpt-toolbar .btn-danger-ghost{background:transparent;border-color:#e8bcbc;color:var(--bad)}
+.issued-banner{margin-bottom:12px;padding:16px 18px;border-radius:10px;border:1px solid #c8e6d4;background:#f0faf4}
+.issued-banner.voided{border-color:#f0c4c4;background:#fdf4f4}
+.issued-banner h3{margin:0 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ok);font-weight:700}
+.issued-banner.voided h3{color:var(--bad)}
+.issued-banner .rcpt-no{font-size:22px;font-weight:700;margin:0 0 6px}
+.issued-banner .rcpt-hint{margin:0 0 10px;font-size:13px;color:var(--ink-soft);line-height:1.45}
+.issued-banner .meta{font-size:13.5px;line-height:1.55}
+.issued-banner .issued-note{margin:10px 0 0;font-size:12.5px;color:var(--ink-soft)}
+#share-bar{display:none!important}
+@media (max-width:720px){
+  .rcpt-toolbar{flex-direction:column;align-items:stretch}
+  .rcpt-toolbar-group{padding-left:0!important;border-left:0!important;display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+  .rcpt-toolbar-group .btn{width:100%;justify-content:center}
+  .rcpt-toolbar-group label.fmt{grid-column:1/-1}
+}
 
 </style>
   <script src="/config.js"></script>
@@ -687,64 +793,49 @@ tbody tr:last-child td{border-bottom:0}
   <!-- ===== single receipt view (also used for print) ===== -->
   <div id="tab-view" style="display:none;margin-top:18px">
     <div id="issuedBanner" class="issued-banner noprint" hidden></div>
-    <div class="row-actions noprint share-bar-icos" style="margin-bottom:14px">
-      <button class="btn btn-ico" id="btnBack" type="button" title="Back to register">← Register</button>
-      <button class="btn btn-ico btn-pdf" id="btnDownload" type="button" title="Download PDF" disabled>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-        <span class="ico-label">PDF</span>
-      </button>
-      <button class="btn btn-ico" id="btnDownloadImage" type="button" title="Download receipt image (PNG)" disabled>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-        <span class="ico-label">Image</span>
-      </button>
-      <button class="btn btn-ico btn-print" id="btnPrintOne" type="button" title="Print" disabled>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
-        <span class="ico-label">Print</span>
-      </button>
-      <label class="hint noprint" style="display:flex;align-items:center;gap:6px;margin:0">
-        Format
-        <select id="printFormat" style="padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);font:inherit">
-          <option value="a4">A4 / large printer</option>
-          <option value="thermal80">Thermal 80mm</option>
-          <option value="thermal40">Thermal 40mm</option>
-        </select>
-      </label>
-      <button class="btn btn-ico btn-copy" id="btnCopyVerify" type="button" title="Copy verification link" disabled>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
-        <span class="ico-label">Link</span>
-      </button>
-      <button class="btn btn-ico btn-wa" id="btnWhatsApp" type="button" title="WhatsApp" disabled>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        <span class="ico-label">WhatsApp</span>
-      </button>
-      <button class="btn btn-ico btn-mail" id="btnEmail" type="button" title="Email" disabled>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-        <span class="ico-label">Email</span>
-      </button>
+    <div class="rcpt-toolbar noprint" id="rcptToolbar">
+      <div class="rcpt-toolbar-group nav-group">
+        <button class="btn btn-ico" id="btnBack" type="button" title="Back to register">← Register</button>
+        <button class="btn btn-ico" id="btnNewFromView" type="button" title="Issue another">New</button>
+      </div>
+      <div class="rcpt-toolbar-group">
+        <button class="btn btn-ico btn-wa" id="btnWhatsApp" type="button" title="Send image via WhatsApp" disabled>
+          <span class="ico-label">WhatsApp</span>
+        </button>
+        <button class="btn btn-ico btn-mail" id="btnEmail" type="button" title="Email" disabled>
+          <span class="ico-label">Email</span>
+        </button>
+        <button class="btn btn-ico btn-share" id="btnNativeShare" type="button" title="Device share" disabled>
+          <span class="ico-label">Share</span>
+        </button>
+        <button class="btn btn-ico btn-copy" id="btnCopyVerify" type="button" title="Copy verification link" disabled>
+          <span class="ico-label">Link</span>
+        </button>
+      </div>
+      <div class="rcpt-toolbar-group">
+        <button class="btn btn-ico btn-pdf" id="btnDownload" type="button" title="Download PDF" disabled>
+          <span class="ico-label">PDF</span>
+        </button>
+        <button class="btn btn-ico" id="btnDownloadImage" type="button" title="Download PNG" disabled>
+          <span class="ico-label">Image</span>
+        </button>
+        <button class="btn btn-ico btn-print" id="btnPrintOne" type="button" title="Print" disabled>
+          <span class="ico-label">Print</span>
+        </button>
+        <label class="fmt">Format
+          <select id="printFormat">
+            <option value="a4">A4</option>
+            <option value="thermal80">80mm</option>
+            <option value="thermal40">40mm</option>
+          </select>
+        </label>
+      </div>
+      <div class="rcpt-toolbar-group">
+        <button class="btn btn-danger-ghost" id="btnVoid" type="button">Void</button>
+      </div>
     </div>
-    <div id="share-bar" class="noprint share-bar-icos" hidden style="margin-bottom:14px;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px">
-      <span class="share-label" style="font-weight:600;font-size:13px;width:100%;margin-bottom:4px">Share issued receipt</span>
-      <button type="button" class="btn btn-ico btn-wa" data-act="wa" title="WhatsApp">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        <span class="ico-label">WhatsApp</span>
-      </button>
-      <button type="button" class="btn btn-ico btn-mail" data-act="mail" title="Email">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-        <span class="ico-label">Email</span>
-      </button>
-      <button type="button" class="btn btn-ico btn-share" data-act="native" hidden title="Share">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
-        <span class="ico-label">Share</span>
-      </button>
-      <button type="button" class="btn btn-ico btn-copy" data-act="copy" title="Copy link">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
-        <span class="ico-label">Link</span>
-      </button>
-      <span id="share-msg" class="hint"></span>
-    </div>
-    <div class="row-actions noprint" style="margin-bottom:14px">
-      <button class="btn danger" id="btnVoid" type="button">Void receipt</button>
-    </div>
+    <!-- legacy share-bar kept hidden for any residual JS -->
+    <div id="share-bar" class="noprint" hidden></div>
     <div id="viewHost" class="paper-scroll"></div>
   </div>
 
@@ -3250,81 +3341,24 @@ function showIssuedBanner(r, justIssued) {
     if (br) brName = br.name;
   }
   var voided = r.status === "VOIDED";
-  var vurl = verifyUrl(r);
   el.hidden = false;
   el.className = "issued-banner noprint" + (voided ? " voided" : "");
-
-  var actions = [];
-  if (!voided) {
-    actions.push(icoBtn("btn-copy", "link", "Link", 'data-ia="copy" title="Copy verification link"'));
-    if (navigator.share) actions.push(icoBtn("btn-share", "share", "Share", 'data-ia="share" title="Share"'));
-    actions.push(icoBtn("btn-pdf", "pdf", "PDF", 'data-ia="pdf" title="Download PDF"'));
-    actions.push(icoBtn("", "image", "Image", 'data-ia="image" title="Download receipt image (PNG)"'));
-    actions.push(icoBtn("btn-print", "print", "Print", 'data-ia="print" title="Print"'));
-    actions.push(icoBtn("btn-wa", "whatsapp", "WhatsApp", 'data-ia="wa" title="WhatsApp"'));
-    if (smsConfigured()) actions.push('<button type="button" class="btn btn-ico" data-ia="sms" title="SMS">SMS</button>');
-    if (r.custEmail) actions.push(icoBtn("btn-mail", "mail", "Email", 'data-ia="mail" title="Email"'));
-  }
-  actions.push('<button type="button" class="btn btn-ico" data-ia="new" title="New receipt">New</button>');
-
   el.innerHTML =
-    "<h3>" + (voided ? "VOIDED" : (justIssued ? "✓ Receipt issued" : "Receipt recorded")) + "</h3>" +
+    "<h3>" + (voided ? "Voided" : (justIssued ? "Receipt issued" : "Receipt recorded")) + "</h3>" +
     '<div class="rcpt-no mono">' + esc(r.receiptNo) + "</div>" +
-    '<p class="rcpt-hint">This number is the official record. The customer can verify later with the link — no WhatsApp or printer required.</p>' +
+    '<p class="rcpt-hint">Official record on the HandzJ register. Customer verifies with the link or QR — no printer required.</p>' +
     '<div class="meta">' +
       '<div><b>' + esc(CO.name) + '</b>' + (brName ? " · " + esc(brName) : "") + "</div>" +
       "<div>" + esc(money(r.amount, r.currency)) + " · " + esc(r.method || "—") + " · " + esc(fmtDate(r.paidOn)) + "</div>" +
       (r.customer ? "<div>Customer: " + esc(r.customer) + "</div>" : "") +
       (voided && r.voidReason ? "<div>Reason: " + esc(r.voidReason) + "</div>" : "") +
     "</div>" +
-    '<div class="issued-actions">' + actions.join("") + "</div>" +
     (justIssued && !voided
-      ? '<p class="issued-note">Optional: download PDF, print, or share the verification link. Issuing already succeeded.</p>'
+      ? '<p class="issued-note">Use the toolbar below to send or download. The receipt is already saved.</p>'
       : "");
-
-  var bind = function (act, fn) {
-    var b = el.querySelector('[data-ia="' + act + '"]');
-    if (b) b.onclick = fn;
-  };
-  bind("copy", async function () {
-    try {
-      await navigator.clipboard.writeText(vurl);
-      say("Verification link copied. Customer can open it any time.", "good");
-    } catch (e) {
-      say("Copy manually: " + vurl, "");
-    }
-  });
-  bind("share", async function () {
-    var result = await nativeShare(r);
-    if (result === "shared") say("Share sheet opened — choose WhatsApp, Messages, or another app.", "good");
-    else if (result === "aborted") say("Share cancelled.", "");
-    else if (result === "unsupported") say("Share not available on this device — use Download Image or WhatsApp.", "warn");
-    else say("Could not share. Download the receipt image and send it manually.", "warn");
-  });
-  bind("pdf", function () {
-    downloadReceipt(r, false).then(function (ok) {
-      if (!ok) say("PDF unavailable right now. Receipt is still issued — try Print → Save as PDF, or Download Image.", "warn");
-    });
-  });
-  bind("image", function () {
-    downloadReceiptImage(r, false);
-  });
-  bind("print", function () {
-    try { printReceipt(); }
-    catch (e) { say("Printing is unavailable on this device. Download the PDF or Image instead — the receipt is already issued.", "warn"); }
-  });
-  bind("wa", function () { openWhatsAppShare(r, shortShareCaption(r)); });
-  bind("sms", function () { sendSmsReceipt(r); });
-  bind("mail", function () { sendEmail(); });
-  bind("new", function () {
-    el.hidden = true;
-    current = null;
-    syncDeliveryButtons();
-    showTab("new");
-    renderLineItems([emptyLine()]);
-  });
   syncDeliveryButtons();
 }
+
 
 function smsConfigured() {
   var c = cfg() || {};
@@ -3585,15 +3619,16 @@ function closeWaSheet(e) {
 
 function syncDeliveryButtons() {
   var ok = isIssuedReceipt(current);
-  ["btnWhatsApp", "btnEmail", "btnCopyVerify", "btnDownload", "btnDownloadImage", "btnPrintOne"].forEach(function (id) {
+  ["btnWhatsApp", "btnEmail", "btnCopyVerify", "btnDownload", "btnDownloadImage", "btnPrintOne", "btnNativeShare", "btnVoid"].forEach(function (id) {
     var el = $(id);
     if (!el) return;
     el.disabled = !ok;
     el.style.opacity = ok ? "" : "0.45";
-    if (!ok) el.title = (el.title || "").indexOf("Available") >= 0 ? el.title : "Available after the receipt is issued";
   });
   var bar = $("share-bar");
-  if (bar) bar.hidden = !ok;
+  if (bar) bar.hidden = true;
+  var ns = $("btnNativeShare");
+  if (ns && !navigator.share) ns.style.display = "none";
 }
 
 
@@ -3858,45 +3893,17 @@ async function downloadReceiptImage(r, silent) {
 }
 
 function mountShareBar(receipt) {
+  /* Single premium toolbar is static in the DOM; only enable/disable. */
   var bar = $("share-bar");
-  if (!bar) return;
-  if (trial.checked && trial.expired) {
-    bar.hidden = true;
-    return;
+  if (bar) bar.hidden = true;
+  syncDeliveryButtons();
+  var ns = $("btnNativeShare");
+  if (ns) {
+    ns.disabled = !receipt || receipt.status === "VOIDED";
+    ns.hidden = !navigator.share;
   }
-  if (!isIssuedReceipt(receipt)) {
-    bar.hidden = true;
-    return;
-  }
-  bar.hidden = false;
-  var nativeBtn = bar.querySelector('[data-act="native"]');
-  if (nativeBtn) nativeBtn.hidden = !navigator.share;
-
-  var wa = bar.querySelector('[data-act="wa"]');
-  if (wa) wa.onclick = function () {
-    openWhatsAppShare(receipt, shortShareCaption(receipt));
-  };
-  var mail = bar.querySelector('[data-act="mail"]');
-  if (mail) mail.onclick = function () { sendEmail(); };
-  if (nativeBtn) nativeBtn.onclick = async function () {
-    var result = await nativeShare(receipt);
-    if (result === "shared") say("Share sheet opened — choose WhatsApp or another app.", "good");
-    else if (result === "aborted") say("Share cancelled.", "");
-    else if (result === "unsupported") say("Share not available — use Download Image or WhatsApp.", "warn");
-    else say("Could not share. Download the receipt image instead.", "warn");
-  };
-  var copy = bar.querySelector('[data-act="copy"]');
-  if (copy) copy.onclick = async function () {
-    try {
-      await navigator.clipboard.writeText(verifyUrl(receipt));
-      var m = $("share-msg");
-      if (m) { m.textContent = "Verification link copied"; m.className = "hint ok"; }
-    } catch (e) {
-      var m2 = $("share-msg");
-      if (m2) { m2.textContent = "Copy failed"; m2.className = "hint warn"; }
-    }
-  };
 }
+
 
 /* ---------------- wiring ---------------- */
 
@@ -4073,6 +4080,18 @@ function boot() {
   });
   $("btnPrintOne").addEventListener("click", function () { printReceipt(); });
   $("btnDownload").addEventListener("click", function () { if (current) downloadReceipt(current, false); });
+  if ($("btnNewFromView")) $("btnNewFromView").addEventListener("click", function () {
+    var el = $("issuedBanner"); if (el) el.hidden = true;
+    current = null; syncDeliveryButtons(); showTab("new"); renderLineItems([emptyLine()]);
+  });
+  if ($("btnNativeShare")) $("btnNativeShare").addEventListener("click", async function () {
+    if (!current) return;
+    var result = await nativeShare(current);
+    if (result === "shared") say("Share sheet opened. Choose WhatsApp to send the receipt image.", "good");
+    else if (result === "aborted") say("Share cancelled.", "");
+    else if (result === "unsupported") say("Share not available — use WhatsApp or Download Image.", "warn");
+    else say("Could not share. Download the image and send it manually.", "warn");
+  });
   if ($("btnDownloadImage")) {
     $("btnDownloadImage").addEventListener("click", function () {
       if (current) downloadReceiptImage(current, false);

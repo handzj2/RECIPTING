@@ -72,6 +72,20 @@ body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-seri
   background:var(--brand);color:#fff;text-decoration:none;border:none;
 }
 .growth-cta .g-btn:hover{filter:brightness(1.08)}
+
+/* mobile receipt verify */
+@media (max-width: 560px) {
+  .wrap{padding:16px 12px 48px;max-width:100%}
+  body{font-size:15px;-webkit-text-size-adjust:100%}
+  .card{padding:14px 12px;border-radius:10px}
+  h1{font-size:1.35rem}
+  .status{font-size:1rem;padding:10px 12px}
+  .kv,.meta{font-size:13.5px}
+  .kv div,.row{word-break:break-word}
+  .qr img,.qr canvas{max-width:160px;height:auto}
+  .growth-cta{padding:14px 12px}
+  .btn,a.btn{display:block;width:100%;text-align:center;padding:14px;min-height:48px;box-sizing:border-box}
+}
 </style>
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
