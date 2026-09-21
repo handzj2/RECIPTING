@@ -10,7 +10,9 @@ window.HANDZJ_CONFIG = {
   /* Shown to a tenant whose trial has ended, so they know who to pay. */
   SUPPORT_CONTACT: "0781 909 507 / handzj2@gmail.com",
 
-  APP_URL: "",
+  /* Production origin (no trailing slash). Ensures verification links
+     always resolve to /verify.html even when the app is opened as /app. */
+  APP_URL: "https://recipting.vercel.app",
 
   /* Optional SMS gateway. Leave empty = SMS button hidden (no fake send).
      When set, POST JSON { to, message, receipt_no } to this URL from the browser.

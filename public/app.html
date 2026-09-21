@@ -746,6 +746,7 @@ tbody tr:last-child td{border-bottom:0}
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1.11.17/bundle/libphonenumber-min.js"></script>
 
 <script>
@@ -877,7 +878,13 @@ function randId(len) {
 function baseUrl() {
   var c = (window.HANDZJ_CONFIG || {});
   if (c.APP_URL) return String(c.APP_URL).replace(/\/$/, "");
-  return location.origin + location.pathname.replace(/\/app\.html$/, "/");
+  /* Fix for Vercel cleanUrls: /app and /app.html both map to the same page.
+     Without this, pathname="/app" produced /app/verify.html → 404 NOT_FOUND. */
+  var path = location.pathname
+    .replace(/\/app\.html$/, "/")
+    .replace(/\/app\/?$/, "/")
+    .replace(/\/+$/, "");
+  return location.origin + (path || "");
 }
 function verifyUrl(r) {
   /* Clean public URL — independent of app.html hash routing.
@@ -2840,6 +2847,38 @@ async function buildPdfBlob(r) {
   }
 }
 
+/** High-quality PNG of the receipt for WhatsApp / native share (looks like the web receipt). */
+async function buildReceiptImageBlob(r) {
+  if (typeof html2canvas === "undefined") {
+    throw new Error("html2canvas library not loaded");
+  }
+  var box = offscreen(receiptHTML(r, {}));
+  paintQRs(box);
+  await waitForImages(box, 2000);
+  await new Promise(function (res) { setTimeout(res, 250); });
+  try {
+    var paper = box.querySelector(".paper") || box.firstElementChild;
+    var canvas = await html2canvas(paper, {
+      scale: 2.5,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: 794
+    });
+    return await new Promise(function (resolve, reject) {
+      canvas.toBlob(function (blob) {
+        if (blob) resolve(blob);
+        else reject(new Error("Failed to create receipt image"));
+      }, "image/png", 0.95);
+    });
+  } finally {
+    try { box.remove(); } catch (e) {}
+  }
+}
+
 function triggerBrowserDownload(blob, filename) {
   var url = URL.createObjectURL(blob);
   var a = document.createElement("a");
@@ -3413,7 +3452,7 @@ function openWhatsAppShare(receipt, message) {
   }, 80);
 }
 
-function confirmWaSend() {
+async function confirmWaSend() {
   var input = $("waPhone");
   var raw = input ? String(input.value || "").trim() : "";
   if (!raw) {
@@ -3431,11 +3470,38 @@ function confirmWaSend() {
     }
     return;
   }
-  var n = normalizePhone(raw);
-  var msg = _waMessage || (_waReceipt ? buildClientMessage(_waReceipt) : "");
-  var url = whatsappLink(raw, msg);
+  var r = _waReceipt;
+  var msg = _waMessage || (r ? buildClientMessage(r) : "");
   closeWaSheet();
-  /* location.href works more reliably on mobile than window.open */
+
+  /* Prefer real receipt IMAGE (looks exactly like the web/PDF receipt).
+     On mobile (Android/iOS) Web Share with files opens the share sheet → user picks WhatsApp → image is attached.
+     Fallback: classic wa.me text + verification link. */
+  if (r && navigator.share && navigator.canShare) {
+    try {
+      say("Preparing receipt image…", "info");
+      var blob = await buildReceiptImageBlob(r);
+      var file = new File([blob], "Receipt-" + (r.receiptNo || "image") + ".png", { type: "image/png" });
+      var shareData = {
+        files: [file],
+        title: "Receipt " + (r.receiptNo || ""),
+        text: (CO.name || "Receipt") + " — " + (r.receiptNo || "") + "\n" +
+          money(r.amount, r.currency) + "\nVerify: " + verifyUrl(r)
+      };
+      if (navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        say("Receipt image shared.", "good");
+        return;
+      }
+    } catch (err) {
+      /* user cancelled or share failed → fall through to text link */
+      if (err && err.name === "AbortError") return;
+      console.warn("Image share failed, falling back to text:", err);
+    }
+  }
+
+  /* Fallback: open WhatsApp with professional text receipt + live verify link */
+  var url = whatsappLink(raw, msg);
   window.location.href = url;
 }
 
