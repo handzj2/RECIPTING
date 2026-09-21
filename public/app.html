@@ -689,6 +689,10 @@ tbody tr:last-child td{border-bottom:0}
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
         <span class="ico-label">PDF</span>
       </button>
+      <button class="btn btn-ico" id="btnDownloadImage" type="button" title="Download receipt image (PNG)" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+        <span class="ico-label">Image</span>
+      </button>
       <button class="btn btn-ico btn-print" id="btnPrintOne" type="button" title="Print" disabled>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
         <span class="ico-label">Print</span>
@@ -2790,6 +2794,12 @@ function pdfFilename(r) {
   return (r.receiptNo || "receipt") + (cust ? " - " + cust : "") + ".pdf";
 }
 
+/** Deterministic PNG filename for customer proof-of-payment. */
+function imageFilename(r) {
+  var no = String(r.receiptNo || "receipt").replace(/[^\w\-]/g, "");
+  return "receipt-" + (no || "image") + ".png";
+}
+
 function offscreen(html) {
   var box = document.createElement("div");
   box.style.cssText = "position:fixed;left:-20000px;top:0;width:794px;background:#fff;z-index:-1;pointer-events:none";
@@ -3073,6 +3083,7 @@ function showIssuedBanner(r, justIssued) {
     actions.push(icoBtn("btn-copy", "link", "Link", 'data-ia="copy" title="Copy verification link"'));
     if (navigator.share) actions.push(icoBtn("btn-share", "share", "Share", 'data-ia="share" title="Share"'));
     actions.push(icoBtn("btn-pdf", "pdf", "PDF", 'data-ia="pdf" title="Download PDF"'));
+    actions.push(icoBtn("", "image", "Image", 'data-ia="image" title="Download receipt image (PNG)"'));
     actions.push(icoBtn("btn-print", "print", "Print", 'data-ia="print" title="Print"'));
     actions.push(icoBtn("btn-wa", "whatsapp", "WhatsApp", 'data-ia="wa" title="WhatsApp"'));
     if (smsConfigured()) actions.push('<button type="button" class="btn btn-ico" data-ia="sms" title="SMS">SMS</button>');
@@ -3108,32 +3119,27 @@ function showIssuedBanner(r, justIssued) {
     }
   });
   bind("share", async function () {
-    var ok = await nativeShare(r);
-    if (!ok) say("Share not available on this device — use Copy link or Download PDF.", "warn");
+    var result = await nativeShare(r);
+    if (result === "shared") say("Share sheet opened — choose WhatsApp, Messages, or another app.", "good");
+    else if (result === "aborted") say("Share cancelled.", "");
+    else if (result === "unsupported") say("Share not available on this device — use Download Image or WhatsApp.", "warn");
+    else say("Could not share. Download the receipt image and send it manually.", "warn");
   });
   bind("pdf", function () {
     downloadReceipt(r, false).then(function (ok) {
-      if (!ok) say("PDF unavailable right now. Receipt is still issued — try Print → Save as PDF, or copy the verification link.", "warn");
+      if (!ok) say("PDF unavailable right now. Receipt is still issued — try Print → Save as PDF, or Download Image.", "warn");
     });
+  });
+  bind("image", function () {
+    downloadReceiptImage(r, false);
   });
   bind("print", function () {
     try { printReceipt(); }
-    catch (e) { say("Printing is unavailable on this device. Download the PDF instead — the receipt is already issued.", "warn"); }
+    catch (e) { say("Printing is unavailable on this device. Download the PDF or Image instead — the receipt is already issued.", "warn"); }
   });
-  bind("wa", function () { openWhatsAppShare(r, buildClientMessage(r)); });
+  bind("wa", function () { openWhatsAppShare(r, shortShareCaption(r)); });
   bind("sms", function () { sendSmsReceipt(r); });
-  bind("mail", function () {
-    window.location.href = mailtoLink(
-      r.custEmail || "",
-      CO.name + " — Receipt " + r.receiptNo,
-      buildClientMessage(r)
-    );
-    /* [FIX 2026-09-20] Reason: this path opened the mail client with no confirmation,
-       unlike sendEmail(), and easily read as silent/uncertain rather than "opened".
-       Fix: match sendEmail()'s wording — never implies the email was actually sent.
-       Risk: LOW — copy-only change. */
-    say("Email draft opened. Attach the PDF from your downloads if required.", "good");
-  });
+  bind("mail", function () { sendEmail(); });
   bind("new", function () {
     el.hidden = true;
     current = null;
@@ -3299,16 +3305,41 @@ function mailtoLink(to, subject, body) {
     "&body=" + encodeURIComponent(body);
 }
 
+/**
+ * Native device share — prefers the real receipt PNG (same visual as web).
+ * Returns: "shared" | "aborted" | "unsupported" | "failed"
+ */
 async function nativeShare(r) {
-  if (!navigator.share) return false;
+  if (!navigator.share) return "unsupported";
   try {
+    /* Prefer image file when the browser can share files */
+    if (navigator.canShare) {
+      try {
+        var blob = await buildReceiptImageBlob(r);
+        var file = new File([blob], imageFilename(r), { type: "image/png" });
+        var withFile = {
+          files: [file],
+          title: "Receipt " + r.receiptNo,
+          text: (CO.name || "Receipt") + " " + r.receiptNo
+        };
+        if (navigator.canShare(withFile)) {
+          await navigator.share(withFile);
+          return "shared";
+        }
+      } catch (imgErr) {
+        if (imgErr && imgErr.name === "AbortError") return "aborted";
+        console.warn("Image share unavailable, trying text:", imgErr);
+      }
+    }
+    /* Text-only fallback (still better than nothing) */
     await navigator.share({
       title: "Receipt " + r.receiptNo,
       text: buildReceiptMessage(r)
     });
-    return true;
+    return "shared";
   } catch (e) {
-    return e && e.name === "AbortError";
+    if (e && e.name === "AbortError") return "aborted";
+    return "failed";
   }
 }
 
@@ -3317,7 +3348,15 @@ function sendWhatsApp() {
     say("WhatsApp is only for issued receipts. Issue first, or open a receipt from the Register.", "warn");
     return;
   }
-  openWhatsAppShare(current, buildClientMessage(current));
+  /* Pass a short caption only — the real payload is the PNG image. */
+  openWhatsAppShare(current, shortShareCaption(current));
+}
+
+/** Short caption used when the image itself is the primary payload. */
+function shortShareCaption(r) {
+  return (CO.name || "Receipt") + " — " + (r.receiptNo || "") +
+    "\n" + money(r.amount, r.currency) +
+    "\nVerify: " + verifyUrl(r);
 }
 
 /** Mobile-first sheet: enter client number → open WhatsApp with message. No contact save needed. */
@@ -3370,7 +3409,7 @@ function closeWaSheet(e) {
 
 function syncDeliveryButtons() {
   var ok = isIssuedReceipt(current);
-  ["btnWhatsApp", "btnEmail", "btnCopyVerify", "btnDownload", "btnPrintOne"].forEach(function (id) {
+  ["btnWhatsApp", "btnEmail", "btnCopyVerify", "btnDownload", "btnDownloadImage", "btnPrintOne"].forEach(function (id) {
     var el = $(id);
     if (!el) return;
     el.disabled = !ok;
@@ -3388,6 +3427,7 @@ function svgIcon(name) {
     mail: '<path fill="currentColor" d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>',
     print: '<path fill="currentColor" d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>',
     pdf: '<path fill="currentColor" d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>',
+    image: '<path fill="currentColor" d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>',
     share: '<path fill="currentColor" d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>',
     copy: '<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>',
     link: '<path fill="currentColor" d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>'
@@ -3413,7 +3453,7 @@ function openWhatsAppShare(receipt, message) {
     return;
   }
   _waReceipt = r;
-  _waMessage = message || buildClientMessage(r);
+  _waMessage = message || shortShareCaption(r);
   var ov = $("waOverlay");
   var input = $("waPhone");
   var chips = $("waChips");
@@ -3452,6 +3492,13 @@ function openWhatsAppShare(receipt, message) {
   }, 80);
 }
 
+/**
+ * Capability-aware WhatsApp flow (directive):
+ *   1. Always render the canonical receipt → PNG
+ *   2. If browser can share files → native share sheet (user picks WhatsApp → image attached)
+ *   3. Else → download the PNG + open WhatsApp chat + clear instruction to attach the image
+ * Never pretends wa.me can attach a local image. Never claims "sent successfully".
+ */
 async function confirmWaSend() {
   var input = $("waPhone");
   var raw = input ? String(input.value || "").trim() : "";
@@ -3471,38 +3518,64 @@ async function confirmWaSend() {
     return;
   }
   var r = _waReceipt;
-  var msg = _waMessage || (r ? buildClientMessage(r) : "");
+  if (!r) {
+    say("No receipt selected.", "warn");
+    return;
+  }
   closeWaSheet();
 
-  /* Prefer real receipt IMAGE (looks exactly like the web/PDF receipt).
-     On mobile (Android/iOS) Web Share with files opens the share sheet → user picks WhatsApp → image is attached.
-     Fallback: classic wa.me text + verification link. */
-  if (r && navigator.share && navigator.canShare) {
+  say("Generating receipt image…", "info");
+  var blob = null;
+  try {
+    blob = await buildReceiptImageBlob(r);
+  } catch (genErr) {
+    console.error(genErr);
+    say("Could not generate receipt image. The receipt is still issued — try Download Image or PDF.", "warn");
+    return;
+  }
+
+  var fname = imageFilename(r);
+  var caption = shortShareCaption(r);
+
+  /* Path A — browser/device can share files (mobile Chrome/Safari, some desktop) */
+  if (navigator.share && navigator.canShare) {
     try {
-      say("Preparing receipt image…", "info");
-      var blob = await buildReceiptImageBlob(r);
-      var file = new File([blob], "Receipt-" + (r.receiptNo || "image") + ".png", { type: "image/png" });
-      var shareData = {
-        files: [file],
-        title: "Receipt " + (r.receiptNo || ""),
-        text: (CO.name || "Receipt") + " — " + (r.receiptNo || "") + "\n" +
-          money(r.amount, r.currency) + "\nVerify: " + verifyUrl(r)
-      };
+      var file = new File([blob], fname, { type: "image/png" });
+      var shareData = { files: [file], title: "Receipt " + r.receiptNo, text: caption };
       if (navigator.canShare(shareData)) {
         await navigator.share(shareData);
-        say("Receipt image shared.", "good");
+        say("Share sheet opened. Choose <b>WhatsApp</b> to send the receipt image.", "good");
         return;
       }
-    } catch (err) {
-      /* user cancelled or share failed → fall through to text link */
-      if (err && err.name === "AbortError") return;
-      console.warn("Image share failed, falling back to text:", err);
+    } catch (shareErr) {
+      if (shareErr && shareErr.name === "AbortError") {
+        say("Share cancelled.", "");
+        return;
+      }
+      console.warn("Native file share failed:", shareErr);
     }
   }
 
-  /* Fallback: open WhatsApp with professional text receipt + live verify link */
-  var url = whatsappLink(raw, msg);
-  window.location.href = url;
+  /* Path B — unsupported: download PNG + open WhatsApp chat + instruct user */
+  try {
+    triggerBrowserDownload(blob, fname);
+  } catch (dlErr) {
+    console.warn("Download failed:", dlErr);
+  }
+
+  var openMsg =
+    "Please attach the receipt image you just downloaded (" + fname + ").\n\n" +
+    caption;
+  var url = whatsappLink(raw, openMsg);
+  say(
+    "Receipt image downloaded as <b>" + esc(fname) + "</b>. " +
+    "WhatsApp is opening — attach that image to the chat.",
+    "good"
+  );
+  /* Small delay so the download starts before navigation on some mobile browsers */
+  setTimeout(function () {
+    window.location.href = url;
+  }, 400);
 }
 
 function wireWaSheet() {
@@ -3547,17 +3620,65 @@ function wireWaSheet() {
   }
 }
 
-function sendEmail() {
+/**
+ * Email flow (browser limitation honest):
+ * mailto: cannot attach a generated Blob from pure client-side JS.
+ * Therefore: generate PNG → download it → open mail client with short note
+ * telling the user to attach the downloaded image.
+ * Never claims the email was sent or that an attachment was included automatically.
+ */
+async function sendEmail() {
   if (!isIssuedReceipt(current)) {
     say("Email is only for issued receipts. Issue first, or open one from the Register.", "warn");
     return;
   }
+  var r = current;
+  say("Generating receipt image for email…", "info");
+  var blob = null;
+  try {
+    blob = await buildReceiptImageBlob(r);
+  } catch (e) {
+    console.error(e);
+    say("Could not generate receipt image. You can still download the PDF and attach it manually.", "warn");
+    return;
+  }
+  var fname = imageFilename(r);
+  try {
+    triggerBrowserDownload(blob, fname);
+  } catch (e) {
+    console.warn(e);
+  }
+  var body =
+    "Please find the digital receipt attached as an image (" + fname + ").\n\n" +
+    shortShareCaption(r) +
+    "\n\n(If the image is not already attached, please attach the file that was just downloaded.)";
   window.location.href = mailtoLink(
-    current.custEmail || "",
-    CO.name + " — Receipt " + current.receiptNo,
-    buildClientMessage(current) + "\n\n(Attach the PDF receipt if you downloaded it.)"
+    r.custEmail || r.customer_email || "",
+    CO.name + " — Receipt " + r.receiptNo,
+    body
   );
-  say("Email draft opened. Attach the PDF from your downloads if required.", "good");
+  say(
+    "Receipt image downloaded as <b>" + esc(fname) + "</b>. " +
+    "Email draft opened — attach that image before sending.",
+    "good"
+  );
+}
+
+/** Explicit Download Image action (PNG of the canonical receipt). */
+async function downloadReceiptImage(r, silent) {
+  if (!r) return false;
+  say(silent ? "" : "Generating receipt image…", silent ? "" : "info");
+  try {
+    var blob = await buildReceiptImageBlob(r);
+    var fname = imageFilename(r);
+    triggerBrowserDownload(blob, fname);
+    if (!silent) say("Receipt image downloaded: <b>" + esc(fname) + "</b>", "good");
+    return true;
+  } catch (e) {
+    console.error(e);
+    if (!silent) say("Could not generate receipt image. Try Download PDF instead.", "warn");
+    return false;
+  }
 }
 
 function mountShareBar(receipt) {
@@ -3577,23 +3698,23 @@ function mountShareBar(receipt) {
 
   var wa = bar.querySelector('[data-act="wa"]');
   if (wa) wa.onclick = function () {
-    openWhatsAppShare(receipt, buildClientMessage(receipt));
+    openWhatsAppShare(receipt, shortShareCaption(receipt));
   };
   var mail = bar.querySelector('[data-act="mail"]');
-  if (mail) mail.onclick = function () {
-    window.location.href = mailtoLink(
-      receipt.custEmail || receipt.customer_email || "",
-      "Your receipt " + receipt.receiptNo,
-      buildReceiptMessage(receipt)
-    );
+  if (mail) mail.onclick = function () { sendEmail(); };
+  if (nativeBtn) nativeBtn.onclick = async function () {
+    var result = await nativeShare(receipt);
+    if (result === "shared") say("Share sheet opened — choose WhatsApp or another app.", "good");
+    else if (result === "aborted") say("Share cancelled.", "");
+    else if (result === "unsupported") say("Share not available — use Download Image or WhatsApp.", "warn");
+    else say("Could not share. Download the receipt image instead.", "warn");
   };
-  if (nativeBtn) nativeBtn.onclick = function () { nativeShare(receipt); };
   var copy = bar.querySelector('[data-act="copy"]');
   if (copy) copy.onclick = async function () {
     try {
-      await navigator.clipboard.writeText(buildReceiptMessage(receipt));
+      await navigator.clipboard.writeText(verifyUrl(receipt));
       var m = $("share-msg");
-      if (m) { m.textContent = "Copied"; m.className = "hint ok"; }
+      if (m) { m.textContent = "Verification link copied"; m.className = "hint ok"; }
     } catch (e) {
       var m2 = $("share-msg");
       if (m2) { m2.textContent = "Copy failed"; m2.className = "hint warn"; }
@@ -3776,6 +3897,11 @@ function boot() {
   });
   $("btnPrintOne").addEventListener("click", function () { printReceipt(); });
   $("btnDownload").addEventListener("click", function () { if (current) downloadReceipt(current, false); });
+  if ($("btnDownloadImage")) {
+    $("btnDownloadImage").addEventListener("click", function () {
+      if (current) downloadReceiptImage(current, false);
+    });
+  }
   if ($("printFormat")) {
     $("printFormat").addEventListener("change", function () {
       applyPrintFormat(this.value);
