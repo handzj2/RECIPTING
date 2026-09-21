@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Disallow: /login.html
+Disallow: /app.html
+Disallow: /admin.html
+
+Sitemap: https://recipting.vercel.app/sitemap.xml

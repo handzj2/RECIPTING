@@ -1,5 +1,19 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/app/verify",
+      "destination": "/verify.html"
+    },
+    {
+      "source": "/app/verify.html",
+      "destination": "/verify.html"
+    },
+    {
+      "source": "/verify",
+      "destination": "/verify.html"
+    }
+  ]
 }

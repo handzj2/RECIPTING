@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HandzJ Digital Receipt</title>
+<meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -892,8 +893,9 @@ function baseUrl() {
 }
 function verifyUrl(r) {
   /* Clean public URL — independent of app.html hash routing.
-     Authority remains verify_receipt() RPC on the server. */
-  return baseUrl() + "/verify.html?no=" + encodeURIComponent(r.receiptNo) +
+     Use /verify (not /verify.html or /app/verify) so Vercel cleanUrls
+     and our rewrites always resolve. Authority = verify_receipt() RPC. */
+  return baseUrl() + "/verify?no=" + encodeURIComponent(r.receiptNo) +
     "&id=" + encodeURIComponent(r.verifyId);
 }
 function maskName(name) {
@@ -2119,19 +2121,28 @@ function lockedNotice() {
 
 function subscribePanelHTML() {
   var ends = trial.endsAt ? fmtDate(trial.endsAt.toISOString()) : "—";
+  var support = cfg().SUPPORT_CONTACT || "0781 909 507 / handzj2@gmail.com";
+  var who = (CO && CO.name) ? CO.name : "your business";
   return '<div class="card"><div class="card-b">' +
     '<h2 style="font-size:17px;margin-bottom:6px">Your free trial has ended</h2>' +
     '<p class="hint" style="font-size:13.5px;margin-top:0">Your 5-day trial ran out on ' + esc(ends) + '. ' +
       'Nothing has been deleted — every receipt you issued is still in your log, still printable, ' +
       'and every verification link you sent to a customer still works. ' +
-      'To issue <b>new</b> receipts, pick a plan below.</p>' +
+      'To issue <b>new</b> receipts, subscribe below.</p>' +
     '<div class="grid" style="margin-top:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">' +
-      planCard("Starter", "UGX 30,000", "per month", ["Unlimited receipts", "Verification links + QR", "PDF download & WhatsApp send"]) +
-      planCard("Business", "UGX 300,000", "per year — 2 months free", ["Everything in Starter", "Your logo and branding", "Priority support"]) +
+      planCard("Business", "UGX 50,000", "per month", ["Unlimited receipts", "Receipt image for WhatsApp", "Online verification + QR", "Cloud register & team access"]) +
+      planCard("Business Annual", "UGX 500,000", "per year — save 2 months", ["Everything in monthly", "Priority support", "Onboarding help"]) +
     '</div>' +
-    '<p class="hint" style="margin-top:14px">To activate, contact us on ' +
-      esc(cfg().SUPPORT_CONTACT || "the number on your invoice") +
-      '. Once payment clears, your account is switched on again immediately — no data to re-enter.</p>' +
+    '<div style="margin-top:16px;padding:14px 14px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px">' +
+      '<div style="font-weight:700;font-size:13.5px;margin-bottom:6px">Pay via Mobile Money (manual activation)</div>' +
+      '<ol style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-soft);line-height:1.55">' +
+        '<li>Send <b>UGX 50,000</b> (monthly) or <b>UGX 500,000</b> (annual) via MTN or Airtel Money.</li>' +
+        '<li>Use reference: <b>HJT-' + esc(who).slice(0, 24) + '</b> (or your business name).</li>' +
+        '<li>Message the payment reference and your login email to <b>' + esc(support) + '</b>.</li>' +
+        '<li>We activate your plan in the admin dashboard — usually same day. No data to re-enter.</li>' +
+      '</ol>' +
+      '<p class="hint" style="margin:10px 0 0">This is manual verification for the first commercial release. Automatic Mobile Money is not required yet.</p>' +
+    '</div>' +
     '</div></div>';
 }
 
@@ -2551,7 +2562,7 @@ async function route() {
     var no = decodeURIComponent(m[1]);
     var vid = m[2] ? decodeURIComponent(m[2]) : "";
     location.replace(
-      "/verify.html?no=" + encodeURIComponent(no) +
+      "/verify?no=" + encodeURIComponent(no) +
       (vid ? "&id=" + encodeURIComponent(vid) : "")
     );
     return;

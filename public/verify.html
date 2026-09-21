@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Receipt Verification — HandzJ Digital Receipts</title>
+<title>Receipt Verification | HandzJ Digital Receipts</title>
+<meta name="description" content="Verify a HandzJ digital receipt and confirm its receipt status and details.">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -52,11 +54,24 @@ body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-seri
 .issuer-bar .t1{font-family:"Barlow Condensed",Inter,sans-serif;font-size:16px;font-weight:700;letter-spacing:.04em}
 .issuer-bar .t2{font-size:11.5px;color:var(--ink-soft);letter-spacing:.03em}
 
-.foot{text-align:center;margin-top:22px;font-size:12px;color:var(--ink-soft);line-height:1.65}
+.foot{text-align:center;margin-top:18px;font-size:12px;color:var(--ink-soft);line-height:1.65}
 .foot a{color:inherit;text-decoration:underline}
 .mono{font-variant-numeric:tabular-nums;letter-spacing:.03em}
 
 .loading{padding:48px 22px;text-align:center;color:var(--ink-soft);font-size:14px}
+
+/* Subtle growth CTA — secondary to the receipt, not an ad inside the document */
+.growth-cta{
+  margin-top:20px;padding:18px 16px;text-align:center;
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;
+}
+.growth-cta .g-title{font-weight:600;font-size:14.5px;margin-bottom:6px;color:var(--ink)}
+.growth-cta .g-sub{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-bottom:12px;max-width:320px;margin-left:auto;margin-right:auto}
+.growth-cta .g-btn{
+  display:inline-block;padding:9px 18px;border-radius:8px;font-size:13.5px;font-weight:600;
+  background:var(--brand);color:#fff;text-decoration:none;border:none;
+}
+.growth-cta .g-btn:hover{filter:brightness(1.08)}
 </style>
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -120,22 +135,31 @@ async function lookup(no, id) {
   return data && data[0] ? data[0] : null;
 }
 
+function appOrigin() {
+  var c = window.HANDZJ_CONFIG || {};
+  if (c.APP_URL) return String(c.APP_URL).replace(/\/$/, "");
+  return location.origin;
+}
+
 function render(no, id, row, err) {
   var root = document.getElementById("root");
-  var status = "unk", mark = "?", label = "NOT FOUND", sub = "This record could not be located.";
+  /* Clear, distinct states — never leave the user on "Retrieving…" */
+  var status = "unk", mark = "?", label = "RECEIPT NOT FOUND", sub = "No matching record was found for this receipt number.";
 
   if (err) {
-    status = "unk"; mark = "!"; label = "UNAVAILABLE"; sub = "The verification service could not be reached.";
+    status = "unk"; mark = "!"; label = "VERIFICATION UNAVAILABLE"; sub = "The verification service could not be reached. Try again in a moment.";
   } else if (row) {
     if (row.status === "VOIDED") {
-      status = "bad"; mark = "✕"; label = "VOIDED"; sub = "This receipt was voided by the issuer.";
+      status = "bad"; mark = "✕"; label = "RECEIPT VOIDED"; sub = "This receipt was voided by the issuer and is no longer valid.";
     } else {
-      status = "ok"; mark = "✓"; label = "VALID"; sub = "This record was retrieved from the issuing platform.";
+      status = "ok"; mark = "✓"; label = "VALID RECEIPT"; sub = "This record was retrieved from the issuing platform.";
     }
   }
 
   var logo = (row && row.business_logo) || "/logo.jpg";
   var who = (row && row.business_name) || "HandzJ Digital Receipts";
+  var origin = appOrigin();
+  var signup = origin + "/login.html?mode=signup";
 
   var body = "";
   if (row) {
@@ -159,6 +183,14 @@ function render(no, id, row, err) {
       '</div>';
   }
 
+  /* Growth CTA — secondary to the receipt, does not claim HandzJ made the sale */
+  var cta =
+    '<div class="growth-cta">' +
+      '<div class="g-title">Digital receipts for your business?</div>' +
+      '<div class="g-sub">Create professional receipts, share them with customers, and let customers verify them online.</div>' +
+      '<a class="g-btn" href="' + esc(signup) + '">Start Free</a>' +
+    '</div>';
+
   root.innerHTML =
     '<div class="vdoc">' +
       '<div class="vdoc-head">' +
@@ -173,14 +205,14 @@ function render(no, id, row, err) {
       '</div>' +
       '<div class="issuer-bar">' +
         '<img src="' + esc(logo) + '" alt="">' +
-        '<div><div class="t1">' + esc(who) + '</div><div class="t2">Issuing platform record</div></div>' +
+        '<div><div class="t1">' + esc(who) + '</div><div class="t2">Issuing merchant record</div></div>' +
       '</div>' +
     '</div>' +
+    cta +
     '<p class="foot">' +
-      'This record was retrieved from the issuing platform.<br>' +
-      'Receipt identity: <span class="mono">' + esc(no || "—") + '</span><br><br>' +
-      'This is not a government or tax authority certification.<br>' +
-      '<a href="/">HandzJ Digital Receipts</a>' +
+      'Powered by <a href="' + esc(origin + "/") + '">HandzJ Digital Receipts</a><br>' +
+      'Receipt identity: <span class="mono">' + esc(no || "—") + '</span><br>' +
+      'This is not a government or tax authority certification.' +
     '</p>';
 }
 
@@ -191,10 +223,20 @@ function render(no, id, row, err) {
     render("", "", null, null);
     return;
   }
+  /* Hard timeout so the UI never stays on "Retrieving record…" indefinitely */
+  var timedOut = false;
+  var timer = setTimeout(function () {
+    timedOut = true;
+    render(no, id, null, new Error("timeout"));
+  }, 12000);
   try {
     var row = await lookup(no, id);
+    if (timedOut) return;
+    clearTimeout(timer);
     render(no, id, row, null);
   } catch (e) {
+    if (timedOut) return;
+    clearTimeout(timer);
     render(no, id, null, e);
   }
 })();
