@@ -310,6 +310,10 @@ function render() {
         '<button class="btn tiny" data-act="kyc_no" data-id="' + esc(b.id) + '">KYC reject</button>' +
         '<button class="btn tiny" data-act="suspend" data-id="' + esc(b.id) + '">Suspend</button>' +
         '<button class="btn tiny" data-act="reinstate" data-id="' + esc(b.id) + '">Reinstate</button>' +
+        '<button class="btn tiny" data-act="rename" data-id="' + esc(b.id) + '">Edit name</button>' +
+        '<button class="btn tiny" data-act="prefix" data-id="' + esc(b.id) + '">Edit prefix</button>' +
+        '<button class="btn tiny" data-act="logo_grant" data-id="' + esc(b.id) + '">Allow 1 logo change</button>' +
+        '<button class="btn tiny" data-act="logo_clear" data-id="' + esc(b.id) + '">Clear logo</button>' +
       '</div></td>' +
     '</tr>';
   }).join("");
@@ -343,6 +347,25 @@ $("rows").addEventListener("click", async function (e) {
       res = await sb.rpc("admin_set_account_status", { p_business: id, p_status: "suspended", p_reason: (sreason || "Suspended by admin").trim() });
     }
     else if (act === "reinstate") res = await sb.rpc("admin_set_account_status", { p_business: id, p_status: "active", p_reason: null });
+    else if (act === "rename") {
+      var nn = prompt("New business name:", b && b.name ? b.name : "");
+      if (!nn || nn.trim().length < 2) { btn.disabled = false; btn.textContent = prevLabel; return; }
+      res = await sb.rpc("admin_update_business_identity", { p_business: id, p_name: nn.trim(), p_prefix: null });
+    }
+    else if (act === "prefix") {
+      var pp = prompt("New receipt prefix (letters, max 4):", b && b.prefix ? b.prefix : "");
+      if (!pp || !pp.trim()) { btn.disabled = false; btn.textContent = prevLabel; return; }
+      res = await sb.rpc("admin_update_business_identity", { p_business: id, p_name: null, p_prefix: pp.trim() });
+    }
+    else if (act === "logo_grant") {
+      res = await sb.rpc("admin_set_logo", { p_business: id, p_logo_url: null, p_grant_one_change: true });
+    }
+    else if (act === "logo_clear") {
+      if (!confirm("Clear logo for " + (b && b.name ? b.name : "this business") + "?")) {
+        btn.disabled = false; btn.textContent = prevLabel; return;
+      }
+      res = await sb.rpc("admin_set_logo", { p_business: id, p_logo_url: "", p_grant_one_change: false });
+    }
     else res = { error: { message: "Unknown action" } };
     if (res.error) throw res.error;
 
@@ -352,6 +375,10 @@ $("rows").addEventListener("click", async function (e) {
       : act === "kyc_no" ? "KYC rejected"
       : act === "suspend" ? "suspended"
       : act === "reinstate" ? "reinstated"
+      : act === "rename" ? "name updated"
+      : act === "prefix" ? "prefix updated"
+      : act === "logo_grant" ? "allowed one logo change"
+      : act === "logo_clear" ? "logo cleared"
       : "activated";
     msg("<b>" + esc(label) + "</b> " + verb + ". They'll see it on their next refresh.", "good");
     await load();

@@ -613,7 +613,10 @@ tbody tr:last-child td{border-bottom:0}
               <option>Card</option><option>Cheque</option><option>Other</option>
             </select>
           </div>
-          <div class="field"><label>Reference / txn ID</label><input id="f_txn" placeholder="TXN458921"></div>
+          <div class="field"><label>Reference / txn ID</label>
+            <input id="f_txn" placeholder="Auto-generated on Issue" readonly style="opacity:.9;background:var(--panel-2)">
+            <div class="hint" style="margin-top:4px">Filled automatically when you click Issue Receipt.</div>
+          </div>
         </div>
         <div class="two">
           <div class="field"><label>Date</label><input id="f_date" type="date"></div>
@@ -2153,6 +2156,14 @@ function subscribePanelHTML() {
         '<li>We activate your plan in the admin dashboard — usually same day. No data to re-enter.</li>' +
       '</ol>' +
       '<p class="hint" style="margin:10px 0 0">This is manual verification for the first commercial release. Automatic Mobile Money is not required yet.</p>' +
+      '<div class="row-actions" style="margin-top:14px;flex-wrap:wrap;gap:8px">' +
+        '<a class="btn primary" id="btnSubMail" href="mailto:handzj2@gmail.com?subject=' + encodeURIComponent("HandzJ subscribe — " + who) +
+          '&body=' + encodeURIComponent("I paid for HandzJ Digital Receipts.\n\nPlan: UGX 50,000/month or UGX 500,000/year\nBusiness: " + who + "\nLogin email: " + ((authUser && authUser.email) || "") + "\nPayment reference: \n") +
+          '">Email to activate</a>' +
+        '<a class="btn" id="btnSubWa" target="_blank" rel="noopener" href="https://wa.me/256757632884?text=' +
+          encodeURIComponent("Hello HandzJ, I paid for Digital Receipts.\nBusiness: " + who + "\nEmail: " + ((authUser && authUser.email) || "") + "\nPayment ref: ") +
+          '">WhatsApp to activate</a>' +
+      '</div>' +
     '</div>' +
     '</div></div>';
 }
@@ -2404,7 +2415,9 @@ function renderSettings() {
     '<div class="card"><div class="card-h"><h2>Business profile</h2>' +
       '<span class="hint">Appears on every receipt you issue</span></div>' +
     '<div class="card-b">' +
-      '<div class="field"><label>Business name</label><input id="s_name" value="' + f(biz.name) + '"></div>' +
+      '<div class="field"><label>Business name</label>' +
+        '<input id="s_name" value="' + f(biz.name) + '" readonly style="opacity:.85;background:var(--panel-2)">' +
+        '<div class="hint" style="margin-top:4px">Shop name is fixed after signup. To change it, contact HandzJ support — a platform admin verifies and updates it.</div></div>' +
       '<div class="field"><label>Business type</label>' +
         '<select id="s_category">' +
           categoryOptionsHtml(biz.category || (biz.receipt_layout && biz.receipt_layout.extras && biz.receipt_layout.extras.category) || "retail") +
@@ -2417,17 +2430,34 @@ function renderSettings() {
       '</div>' +
       '<div class="two">' +
         '<div class="field"><label>Email</label><input id="s_email" value="' + f(biz.email) + '"></div>' +
-        '<div class="field"><label>Receipt prefix</label><input id="s_prefix" maxlength="4" value="' + f(biz.prefix) + '">' +
-          '<div class="hint" style="margin-top:4px">Receipt numbers look like ' +
-            esc((biz.prefix || "BIZ") + "-" + new Date().getFullYear() + "-000001") + '</div></div>' +
+        '<div class="field"><label>Receipt prefix</label>' +
+          '<input id="s_prefix" maxlength="4" value="' + f(biz.prefix) + '" readonly style="opacity:.85;background:var(--panel-2)">' +
+          '<div class="hint" style="margin-top:4px">Prefix is fixed once set. Numbers look like ' +
+            esc((biz.prefix || "BIZ") + "-" + new Date().getFullYear() + "-000001") +
+            '. Contact support if a change is required.</div></div>' +
       '</div>' +
-      '<div class="field"><label>Your logo <span style="text-transform:none;font-weight:400">(optional — your shop/company only)</span></label>' +
-        '<input id="s_logo" value="' + f(biz.logo_url) + '" placeholder="https://…/logo.png">' +
-        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">' +
-          '<input type="file" id="s_logo_file" accept="image/*" style="font-size:13px;max-width:100%">' +
-          '<button type="button" class="btn" id="btnClearLogo" style="padding:6px 10px;font-size:12px">Remove logo</button>' +
-        '</div>' +
-        '<p class="hint" style="margin-top:6px">Upload or paste a link to <b>your</b> logo. Each business uses its own branding — not the platform logo.</p></div>' +
+      (function () {
+        var hasLogo = !!(biz.logo_url && String(biz.logo_url).trim());
+        var grant = !!(biz.logo_change_allowed);
+        var canEditLogo = !hasLogo || grant;
+        if (!canEditLogo) {
+          return '<div class="field"><label>Your logo</label>' +
+            (hasLogo ? '<div style="margin:8px 0"><img src="' + f(biz.logo_url) + '" alt="Logo" style="max-height:56px;max-width:160px;object-fit:contain;border:1px solid var(--line);border-radius:4px;background:#fff;padding:4px"></div>' : '') +
+            '<p class="hint">Logo is locked after the first upload. Contact HandzJ support — a platform admin can update it or authorize a one-time change.</p></div>';
+        }
+        return '<div class="field"><label>Your logo <span style="text-transform:none;font-weight:400">' +
+          (grant ? '(one-time change authorized)' : '(optional — set once)') + '</span></label>' +
+          '<input id="s_logo" value="' + f(biz.logo_url) + '" placeholder="https://…/logo.png">' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">' +
+            '<input type="file" id="s_logo_file" accept="image/*" style="font-size:13px;max-width:100%">' +
+            (hasLogo ? '<button type="button" class="btn" id="btnClearLogo" style="padding:6px 10px;font-size:12px">Remove logo</button>' : '') +
+          '</div>' +
+          '<p class="hint" style="margin-top:6px">' +
+            (grant
+              ? 'Admin authorized one logo change. Upload or paste a URL, then Save profile. After save, the logo locks again.'
+              : 'Upload once. After you save a logo, it is locked. Only HandzJ support can authorize another change.') +
+          '</p></div>';
+      })() +
 
       '<div class="row-actions"><button class="btn primary" id="btnSaveBiz" type="button">Save profile</button></div>' +
     '</div></div>' +
@@ -2600,18 +2630,21 @@ async function saveBusinessProfile() {
   var cat = ($("s_category") && $("s_category").value) || "retail";
   var layout = Object.assign({}, biz.receipt_layout || {});
   layout.extras = Object.assign({}, layout.extras || {}, { category: cat });
+  /* Shop name and prefix are locked for merchants — only platform admin may change them. */
   var patch = {
-    name: $("s_name").value.trim(),
     tagline: $("s_tagline").value.trim() || null,
     phone: $("s_phone").value.trim() || null,
     whatsapp: $("s_whatsapp").value.trim() || null,
     email: $("s_email").value.trim() || null,
-    prefix: ($("s_prefix").value.trim().toUpperCase().replace(/[^A-Z]/g, "") || "BIZ").slice(0, 4),
-    logo_url: $("s_logo").value.trim() || null,
     category: cat,
     receipt_layout: layout
   };
-  if (!patch.name) { say("A business name is required.", "warn"); return; }
+  /* Logo: only send if not yet set, or admin granted one change */
+  var hasLogoAlready = !!(biz.logo_url && String(biz.logo_url).trim());
+  var logoGrant = !!(biz.logo_change_allowed);
+  if ($("s_logo") && (!hasLogoAlready || logoGrant)) {
+    patch.logo_url = $("s_logo").value.trim() || null;
+  }
   btn.disabled = true; btn.textContent = "Saving…";
   try {
     var res = await sb.from("businesses").update(patch).eq("id", biz.id).select("*").single();
@@ -3111,7 +3144,9 @@ async function issue() {
   if (errs.length) { say("Fix the highlighted fields before issuing.", "warn"); return; }
   var btn = $("btnIssue"); _issuingLock = true; btn.disabled = true; btn.textContent = "Issuing…";
   try {
-    if (!d.txn) { d.txn = genReference(); $("f_txn").value = d.txn; }
+    /* Always assign a fresh payment reference at issue time */
+    d.txn = genReference();
+    if ($("f_txn")) $("f_txn").value = d.txn;
     var no = await nextReceiptNo();
     var r = Object.assign({}, d, {
       receiptNo: no,
@@ -3130,6 +3165,15 @@ async function issue() {
     syncDeliveryButtons();
     say("✓ Receipt <b>" + esc(no) + "</b> issued and recorded. Delivery (PDF, print, WhatsApp) is optional.", "good");
     peekNextNumber();
+    /* Auto-refresh register after issue */
+    try {
+      if (cloudMode && sb) {
+        var rows = await cloudLoadReceipts();
+        cache = rows;
+        if (typeof renderLog === "function") renderLog();
+      }
+    } catch (re) { /* non-fatal */ }
+    if ($("f_txn")) $("f_txn").value = "";
     /* PDF is optional delivery — never fails the issue */
     try { await downloadReceipt(r, true); } catch (pe) { /* ignore */ }
   } catch (e) {
