@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Features | HandzJ Digital Receipts</title>
+<meta name="description" content="Digital receipt image, WhatsApp share, QR verification, receipt register, trial, and merchant branding.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://recipting.vercel.app/features">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c111a;--panel:#141b26;--ink:#e8edf5;--muted:#9dabc0;--brand:#0d9dc7;--ok:#5fd6a4;--line:#26303f;--bad:#ff8a8a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
+a{color:var(--brand);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:800px;margin:0 auto;padding:24px 18px 64px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:8px 0 28px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.nav .brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none}
+.nav .brand:hover{text-decoration:none}
+.nav img{width:36px;height:36px;border-radius:3px;object-fit:cover;border:1px solid var(--line)}
+.nav .name{font-family:"Barlow Condensed",sans-serif;font-size:16px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.nav .links{display:flex;gap:6px;flex-wrap:wrap}
+.btn{display:inline-block;padding:8px 14px;border-radius:2px;font-weight:600;font-size:13px;border:1px solid var(--line);color:var(--ink);background:transparent}
+.btn:hover{border-color:var(--brand);text-decoration:none}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#061018}
+h1{font-family:"Barlow Condensed",sans-serif;font-size:clamp(26px,4vw,34px);letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px;line-height:1.15}
+h2{font-family:"Barlow Condensed",sans-serif;font-size:20px;letter-spacing:.05em;text-transform:uppercase;margin:28px 0 10px}
+h3{font-size:15.5px;margin:18px 0 6px;color:var(--ink)}
+p,li{color:var(--muted);margin-bottom:10px}
+ul,ol{padding-left:20px;margin-bottom:14px}
+li{margin-bottom:6px}
+.lead{font-size:16.5px;color:var(--muted);margin-bottom:22px}
+.panel{background:var(--panel);border:1px solid var(--line);padding:18px 16px;margin:16px 0;border-radius:2px}
+.panel strong{color:var(--ink)}
+.note{font-size:13.5px;color:var(--muted);border-left:3px solid var(--brand);padding-left:12px;margin:16px 0}
+.warn{border-left-color:#c9a227}
+.flow{font-family:ui-monospace,monospace;font-size:13px;line-height:1.7;color:var(--ink);background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin:14px 0;white-space:pre-wrap}
+.footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between}
+.footer a{color:var(--muted)}
+.footer a:hover{color:var(--brand)}
+.legal-nav{display:flex;flex-wrap:wrap;gap:10px 16px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="nav">
+  <a class="brand" href="/"><img src="/logo.jpg" alt=""><span class="name">HandzJ Receipts</span></a>
+  <div class="links">
+    <a class="btn" href="/how-it-works">How it works</a>
+    <a class="btn" href="/features">Features</a>
+    <a class="btn" href="/pricing">Pricing</a>
+    <a class="btn" href="/verification">Verification</a>
+    <a class="btn" href="/tax-and-efris">Tax &amp; EFRIS</a>
+    <a class="btn" href="/contact">Contact</a>
+    <a class="btn primary" href="/login.html?mode=signup">Start free</a>
+  </div>
+</nav>
+<h1>Features</h1>
+<p class="lead">What the product actually does today.</p>
+<h2>For the merchant</h2>
+<ul>
+<li><strong style="color:var(--ink)">Issue receipts</strong> — customer, items, amount, payment method, permanent receipt number.</li>
+<li><strong style="color:var(--ink)">Receipt image</strong> — PNG of the same receipt shown on screen (for WhatsApp and download).</li>
+<li><strong style="color:var(--ink)">PDF and print</strong> — when you need a paper or PDF copy.</li>
+<li><strong style="color:var(--ink)">Receipt register</strong> — search and open past receipts in your account.</li>
+<li><strong style="color:var(--ink)">Void</strong> — mark a receipt voided; verification reflects that status.</li>
+<li><strong style="color:var(--ink)">Branding</strong> — business name, contacts, and logo on receipts.</li>
+<li><strong style="color:var(--ink)">Team access</strong> — on paid plans where configured.</li>
+</ul>
+<h2>For the customer</h2>
+<ul>
+<li>Keep the receipt image offline.</li>
+<li>Scan the QR or open the link to see VALID, VOIDED, or NOT FOUND.</li>
+<li>No login required for verification.</li>
+</ul>
+<h2>What it does not do</h2>
+<ul>
+<li>Does not replace URA EFRIS or other tax e-invoicing systems.</li>
+<li>Does not certify government tax status.</li>
+<li>Does not automatically send WhatsApp or email without the merchant completing the share flow.</li>
+<li>Is not an ERP, POS, inventory, or accounting package.</li>
+</ul>
+<p><a class="btn primary" href="/pricing">See pricing</a></p>
+<footer class="footer">
+  <div>
+    <div>© HandzJ Tech Solutions · Digital Receipts</div>
+    <div class="legal-nav">
+      <a href="/terms-of-service">Terms</a>
+      <a href="/privacy-policy">Privacy</a>
+      <a href="/cookie-policy">Cookies</a>
+      <a href="/disclaimer">Disclaimer</a>
+      <a href="/contact">Contact</a>
+    </div>
+  </div>
+  <div>0781 909 507 · 0757 632 884 · handzj2@gmail.com</div>
+</footer>
+</div>
+</body>
+</html>
