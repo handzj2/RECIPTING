@@ -106,7 +106,7 @@ h1{font-size:19px;margin:0 0 4px}
       <div id="pane-in">
         <h1>Welcome back</h1>
         <p class="sub">Sign in to issue and manage your receipts.</p>
-        <div class="field"><label>Email</label><input id="in_email" type="email" autocomplete="email" placeholder="you@business.com"></div>
+        <div class="field"><label>Email or phone number</label><input id="in_email" type="text" autocomplete="username" placeholder="you@business.com or 07XXXXXXXX"></div>
         <div class="field"><label>Password</label><input id="in_pass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
         <button class="btn primary" id="btnSignIn" type="button">Sign in</button>
         <p class="hint" style="margin-top:12px">
@@ -382,14 +382,24 @@ updatePwUI();
 /* ---------------- sign in ---------------- */
 $("btnSignIn").addEventListener("click", async function () {
   if (!sb) return;
-  var email = $("in_email").value.trim(), pass = $("in_pass").value;
-  if (!email || !pass) { msg("Enter your email and password.", "warn"); return; }
+  var ident = $("in_email").value.trim(), pass = $("in_pass").value;
+  if (!ident || !pass) { msg("Enter your email or phone number and password.", "warn"); return; }
   busy(this, true, "Signing in…");
   try {
+    var email = ident;
+    // Phone login: resolve to auth email via RPC (no SMS OTP)
+    if (ident.indexOf("@") < 0) {
+      var resolved = await sb.rpc("resolve_login_email", { p_identifier: ident });
+      if (resolved.error) throw resolved.error;
+      if (!resolved.data) throw new Error("No account found for that phone number. Try email, or sign up.");
+      email = resolved.data;
+    }
     var res = await sb.auth.signInWithPassword({ email: email, password: pass });
     if (res.error) throw res.error;
+    try { await sb.rpc("log_platform_event", { p_action: "LOGIN_SUCCESS", p_business_id: null, p_receipt_id: null, p_result: "ok", p_meta: {} }); } catch (ignore) {}
     location.replace(nextUrl());
   } catch (e) {
+    try { await sb.rpc("log_platform_event", { p_action: "LOGIN_FAILED", p_business_id: null, p_receipt_id: null, p_result: "fail", p_meta: {} }); } catch (ignore) {}
     msg(friendly(e), "warn");
     busy(this, false);
   }

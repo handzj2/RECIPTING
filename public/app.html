@@ -1253,6 +1253,17 @@ async function initSupabase() {
 
   applyBusiness(await ensureBusinessForUser());
   await loadStaffContext();
+  await loadKycState();
+  if (accountBlocked()) {
+    try {
+      var banner = document.getElementById("trial-banner");
+      if (banner) {
+        banner.style.display = "";
+        banner.className = "banner warn";
+        banner.innerHTML = "<b>Account suspended.</b> You cannot issue new receipts. Open Business settings for details.";
+      }
+    } catch (e) {}
+  }
 
   /* Platform owner? Reveal the dashboard link. Tenants never see it, and the
      dashboard itself re-checks server-side, so hiding it is only cosmetic. */
@@ -2159,7 +2170,7 @@ function planCard(name, price, per, features) {
 /* Disable issuing everywhere once the trial is over. The database refuses the
    insert too — this just makes the refusal visible before the click. */
 function applyTrialLock() {
-  var locked = trial.checked && trial.expired;
+  var locked = (trial.checked && trial.expired) || accountBlocked();
   var issueBtn = $("btnIssue");
   if (issueBtn) {
     issueBtn.disabled = locked;
@@ -2297,7 +2308,92 @@ function wireStaffSettings() {
 }
 
 
+
+/* ---------------- KYC (identity) — NIN never on receipts/verify ---------------- */
+var kycState = { status: "not_submitted", account_status: "active", loaded: false };
+function accountBlocked() {
+  return kycState.account_status === "suspended" || kycState.account_status === "terminated";
+}
+
+
+async function loadKycState() {
+  if (!sb) return;
+  try {
+    var res = await sb.rpc("my_kyc_status");
+    if (res.error) throw res.error;
+    var row = res.data && res.data[0];
+    if (row) {
+      kycState = {
+        status: row.kyc_status || "not_submitted",
+        account_status: row.account_status || "active",
+        legal_name: row.legal_name || "",
+        national_id_masked: row.national_id_masked || "",
+        tin: row.tin || "",
+        rejection: row.kyc_rejection_reason || "",
+        suspend_reason: row.suspend_reason || "",
+        loaded: true
+      };
+    }
+  } catch (e) {
+    kycState.loaded = false;
+  }
+}
+
+function kycPanelHTML() {
+  var st = kycState.status || "not_submitted";
+  var acct = kycState.account_status || "active";
+  var badge =
+    st === "approved" ? "Approved" :
+    st === "pending" ? "Pending review" :
+    st === "rejected" ? "Rejected — resubmit" :
+    "Not submitted";
+  var suspendNote = "";
+  if (acct === "suspended" || acct === "terminated") {
+    suspendNote = '<p class="hint warn" style="margin-top:10px"><b>Account ' + esc(acct) + '.</b> You cannot issue new receipts. Existing records remain available. ' +
+      (kycState.suspend_reason ? esc(kycState.suspend_reason) : "") + "</p>";
+  } else if (acct === "flagged" || acct === "under_review") {
+    suspendNote = '<p class="hint" style="margin-top:10px">Account status: <b>' + esc(acct) + "</b>. Support may contact you.</p>";
+  }
+  var form = "";
+  if (st === "not_submitted" || st === "rejected") {
+    form =
+      '<div class="field"><label>Legal full name</label><input id="kyc_legal" value="' + esc(kycState.legal_name || "") + '" placeholder="As on national ID"></div>' +
+      '<div class="field"><label>National ID / NIN</label><input id="kyc_nin" autocomplete="off" placeholder="Stored privately — never on receipts or QR">' +
+        '<div class="hint" style="margin-top:4px">Used only for identity review and abuse protection. Not shown to customers.</div></div>' +
+      '<div class="field"><label>TIN (optional)</label><input id="kyc_tin" value="' + esc(kycState.tin || "") + '" placeholder="Business TIN if any"></div>' +
+      (st === "rejected" && kycState.rejection ? '<p class="hint warn">Last rejection: ' + esc(kycState.rejection) + "</p>" : "") +
+      '<div class="row-actions"><button type="button" class="btn primary" id="btnSubmitKyc">Submit for review</button></div>';
+  } else if (st === "pending") {
+    form = '<p class="hint">Your identity details were submitted and are waiting for HandzJ review. You can keep using the trial or paid plan under normal rules.</p>';
+  } else {
+    form = '<p class="hint">Identity verified as <b>' + esc(kycState.legal_name || "") + "</b>" +
+      (kycState.national_id_masked ? " · ID " + esc(kycState.national_id_masked) : "") + ".</p>" +
+      '<p class="hint">KYC confirms identity only — it does not mean unlimited trust. Misuse can still lead to suspension.</p>';
+  }
+  return '<div class="card" style="margin-top:18px"><div class="card-h"><h2>Identity (KYC)</h2>' +
+    '<span class="hint">' + esc(badge) + "</span></div><div class=\"card-b\">" + form + suspendNote + "</div></div>";
+}
+
+async function submitKycForm() {
+  if (!sb) return;
+  var legal = ($("kyc_legal") && $("kyc_legal").value || "").trim();
+  var nin = ($("kyc_nin") && $("kyc_nin").value || "").trim();
+  var tin = ($("kyc_tin") && $("kyc_tin").value || "").trim();
+  if (legal.length < 2) { say("Enter your legal full name.", "warn"); return; }
+  if (nin.length < 5) { say("Enter your National ID / NIN.", "warn"); return; }
+  try {
+    var res = await sb.rpc("submit_kyc", { p_legal_name: legal, p_national_id: nin, p_tin: tin || null });
+    if (res.error) throw res.error;
+    say("KYC submitted for review.", "ok");
+    await loadKycState();
+    renderSettings();
+  } catch (e) {
+    say((e && e.message) || "Could not submit KYC.", "warn");
+  }
+}
+
 function renderSettings() {
+
   var host = $("tab-settings");
   if (!biz) { host.innerHTML = lockedNotice(); return; }
   var f = function (v) { return esc(v || ""); };
@@ -2358,6 +2454,7 @@ function renderSettings() {
       '</details>' +
     '</div></div>' +
 
+    kycPanelHTML() +
     '<div class="card" style="margin-top:18px"><div class="card-h"><h2>Account</h2></div><div class="card-b">' +
       '<div class="kv" style="display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13.5px">' +
         '<div class="hint" style="margin:0">Signed in as</div><div>' + f(authUser && authUser.email) + '</div>' +
@@ -2369,6 +2466,7 @@ function renderSettings() {
 
   $("btnSaveBiz").addEventListener("click", saveBusinessProfile);
   wireStaffSettings();
+  if ($("btnSubmitKyc")) $("btnSubmitKyc").addEventListener("click", submitKycForm);
 
   var logoFile = $("s_logo_file");
   if (logoFile) logoFile.addEventListener("change", function () {
@@ -2550,7 +2648,7 @@ function showTab(name) {
   });
   if (locked) $("tab-locked").innerHTML = lockedNotice();
   if (name === "log" && !locked) renderLog();
-  if (name === "settings") renderSettings();
+  if (name === "settings") { loadKycState().then(function () { renderSettings(); }); }
   if (name === "new") applyTrialLock();
 }
 
