@@ -2,18 +2,21 @@
   "version": 2,
   "cleanUrls": true,
   "trailingSlash": false,
-  "rewrites": [
+  "redirects": [
     {
       "source": "/app/verify",
-      "destination": "/verify.html"
+      "destination": "/verify",
+      "permanent": true
     },
     {
       "source": "/app/verify.html",
-      "destination": "/verify.html"
+      "destination": "/verify",
+      "permanent": true
     },
     {
-      "source": "/verify",
-      "destination": "/verify.html"
+      "source": "/verify.html",
+      "destination": "/verify",
+      "permanent": true
     }
   ]
 }
