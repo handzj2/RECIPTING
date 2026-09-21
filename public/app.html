@@ -464,7 +464,7 @@ tbody tr:last-child td{border-bottom:0}
 /* ---- mobile friendly ---- */
 @media (max-width: 720px) {
   /* —— App shell —— */
-  .wrap{padding:8px 8px calc(56px + env(safe-area-inset-bottom,0));max-width:100%}
+  .wrap{padding:8px 8px calc(74px + env(safe-area-inset-bottom,0));max-width:100%}
   body{font-size:15px;-webkit-text-size-adjust:100%}
   .topbar{
     padding:10px 12px;gap:8px;border-radius:0;
@@ -569,10 +569,104 @@ tbody tr:last-child td{border-bottom:0}
   table{min-width:0;font-size:12.5px}
   th,td{padding:8px 6px}
 
-  /* Log table: horizontal scroll */
-  .tablewrap,#tab-log .tablewrap,table.log, .log-table{
-    display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;
+  /* Log table: replaced by card list below (see .log-cards) */
+  .tblwrap{display:none}
+}
+
+/* ---------- receipt list cards (mobile Receipt Register) ---------- */
+.log-cards{display:none}
+@media (max-width:720px){
+  .log-cards{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .log-card{
+    border:1px solid var(--line);border-radius:12px;background:var(--panel);
+    padding:12px 14px;
   }
+  .log-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .log-card .lc-no{font-weight:700;font-size:14.5px;font-family:"Barlow Condensed",Inter,sans-serif;letter-spacing:.02em}
+  .log-card .lc-cust{font-size:13px;color:var(--ink-soft);margin-top:2px}
+  .log-card .lc-amt{font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .log-card .lc-meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11.5px;color:var(--ink-soft)}
+  .log-card .lc-actions{display:flex;gap:8px;margin-top:10px}
+  .log-card .lc-actions .btn{flex:1 1 0;min-height:40px;font-size:12.5px;padding:8px;justify-content:center}
+}
+
+/* ---------- bottom nav — mobile operating environment ---------- */
+.bottom-nav{display:none}
+@media (max-width:720px){
+  .topbar .tabs{display:none}
+  .bottom-nav{
+    display:flex;position:fixed;left:0;right:0;bottom:0;z-index:45;
+    background:var(--panel);border-top:1px solid var(--line);
+    padding:4px 4px calc(4px + env(safe-area-inset-bottom,0));
+    box-shadow:0 -2px 10px rgba(15,23,36,.08);
+  }
+  .bottom-nav button{
+    flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    background:transparent;border:0;color:var(--ink-soft);
+    padding:6px 2px;min-height:52px;font-size:10.5px;font-weight:600;
+    letter-spacing:.02em;text-transform:uppercase;border-radius:10px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .bottom-nav button svg{width:21px;height:21px;flex:none}
+  .bottom-nav button[aria-selected="true"]{color:var(--accent)}
+  .bottom-nav .bn-create .bn-ico{
+    width:42px;height:42px;border-radius:50%;background:var(--accent);
+    display:flex;align-items:center;justify-content:center;margin-top:-16px;
+    box-shadow:0 2px 8px rgba(10,126,164,.4);color:#fff;
+  }
+  .bottom-nav .bn-create[aria-selected="true"] .bn-ico{background:var(--brand)}
+}
+
+/* ---------- mobile home ---------- */
+.home-create-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:16px;border-radius:12px;border:0;
+  background:var(--accent);color:#fff;font-size:16px;font-weight:700;
+  letter-spacing:.01em;min-height:54px;box-shadow:var(--shadow);
+}
+.home-create-btn:active{filter:brightness(.95)}
+.home-recent{margin-top:20px}
+.home-recent h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+.home-recent-item{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);
+  margin-bottom:8px;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit;
+}
+.home-recent-item .hr-main{min-width:0}
+.home-recent-item .hr-no{font-weight:700;font-size:13.5px}
+.home-recent-item .hr-cust{font-size:12px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-recent-item .hr-amt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:8px}
+.home-recent-item .status{margin-left:8px}
+.home-empty{padding:22px 16px;text-align:center;color:var(--ink-soft);font-size:13.5px;border:1px dashed var(--line);border-radius:10px}
+
+/* ---------- More sheet reuses the wa-sheet pattern ---------- */
+.more-list{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+.more-list button,.more-list a{
+  display:flex;align-items:center;width:100%;text-align:left;
+  padding:14px 4px;border-radius:10px;border:0;background:transparent;border-top:1px solid var(--line-soft);
+  color:var(--ink);font-size:15px;font-weight:600;text-decoration:none;
+  min-height:48px;font:inherit;-webkit-tap-highlight-color:transparent;
+}
+.more-list button:first-child,.more-list a:first-child{border-top:0}
+.more-list button:active,.more-list a:active{background:var(--panel-2)}
+.more-list .ml-danger{color:var(--bad)}
+
+/* ---------- receipt-ready quick actions (mobile, just-issued only) ---------- */
+.ready-checklist{display:none}
+.ready-actions{display:none}
+@media (max-width:720px){
+  .ready-checklist{
+    display:flex;flex-direction:column;gap:4px;margin:10px 0 14px;
+    font-size:13px;color:var(--ok);font-weight:600;
+  }
+  .ready-checklist span{display:flex;align-items:center;gap:6px}
+  .ready-actions{
+    display:flex;flex-direction:column;gap:8px;margin-bottom:16px;
+  }
+  .ready-actions .btn{
+    width:100%;min-height:50px;font-size:15px;font-weight:700;justify-content:center;
+  }
+  .ready-actions .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 }
 
 
@@ -589,9 +683,13 @@ tbody tr:last-child td{border-bottom:0}
 .lines-sum{font-size:13.5px;font-weight:600;margin:6px 0 10px}
 @media (max-width:720px){
   .lines-head{display:none}
-  .line-row{grid-template-columns:1fr 1fr;gap:8px;padding:10px;border-bottom:1px solid var(--line)}
+  .line-row{grid-template-columns:1fr 1fr;gap:8px;padding:10px;border-bottom:1px solid var(--line);position:relative}
   .line-row .li-name{grid-column:1 / -1}
   .line-row .line-total{grid-column:1 / -1;text-align:left}
+  .line-row .btn-x{
+    min-width:44px;min-height:44px;font-size:20px;
+    display:flex;align-items:center;justify-content:center;
+  }
 }
 /* printed items table on receipt */
 .items-table{width:100%;border-collapse:collapse;font-size:12.5px}
@@ -656,6 +754,35 @@ tbody tr:last-child td{border-bottom:0}
 
   <div id="dbNotice" class="noprint" style="margin-top:14px"></div>
 
+  <!-- ===== mobile bottom navigation — Home / Receipts / + / More ===== -->
+  <nav class="bottom-nav noprint" id="bottomNav" aria-label="Primary">
+    <button type="button" data-tab="home" aria-selected="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3.2l8.5 7.3h-2.4V20h-4.6v-6H10.5v6H5.9v-9.5H3.5z"/></svg>
+      Home
+    </button>
+    <button type="button" data-tab="log" aria-selected="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 2h8l5 5v15H6zm7 1.5V8h4.5zM8 12h8v1.6H8zm0 3.6h8v1.6H8z"/></svg>
+      Receipts
+    </button>
+    <button type="button" class="bn-create" data-tab="new" aria-selected="true">
+      <span class="bn-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg></span>
+    </button>
+    <button type="button" id="btnMore" data-tab="_more" aria-selected="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 10a2 2 0 110 4 2 2 0 010-4zm6 0a2 2 0 110 4 2 2 0 010-4zm6 0a2 2 0 110 4 2 2 0 010-4z"/></svg>
+      More
+    </button>
+  </nav>
+
+  <!-- ===== HOME — mobile operating summary ===== -->
+  <div id="tab-home" class="noprint" style="display:none;margin-top:14px">
+    <button type="button" class="home-create-btn" id="btnHomeCreate">+ Create Receipt</button>
+    <div id="opsDashHome" class="ops-dash" style="margin-top:16px"></div>
+    <div class="home-recent">
+      <h3>Recent receipts</h3>
+      <div id="homeRecentList"></div>
+    </div>
+  </div>
+
   <!-- ===== ISSUE RECEIPT — document desk ===== -->
   <div id="tab-new" class="issue-desk noprint">
     <div class="panel issue-form">
@@ -665,10 +792,10 @@ tbody tr:last-child td{border-bottom:0}
       </div>
       <div class="panel-b">
         <div class="section-label">Customer</div>
-        <div class="field"><label>Name / company <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_customer" placeholder="Walk-in or customer name"></div>
+        <div class="field"><label>Name / company <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_customer" placeholder="Walk-in or customer name" autocomplete="name"></div>
         <div class="two">
-          <div class="field"><label>Phone <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custPhone" placeholder="0700 000 000"></div>
-          <div class="field"><label>Email <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custEmail" type="email" placeholder="name@company.com"></div>
+          <div class="field"><label>Phone <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0700 000 000"></div>
+          <div class="field"><label>Email <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custEmail" type="email" inputmode="email" autocomplete="email" placeholder="name@company.com"></div>
         </div>
 
         <div class="field" id="branchField" style="display:none">
@@ -726,7 +853,7 @@ tbody tr:last-child td{border-bottom:0}
         </div>
         <div class="two">
           <div class="field"><label>Date</label><input id="f_date" type="date"></div>
-          <div class="field"><label>Received by</label><input id="f_by" placeholder="Full name"></div>
+          <div class="field"><label>Received by <span style="color:var(--bad)">*</span></label><input id="f_by" placeholder="Full name" autocomplete="name"></div>
         </div>
         <div class="field"><label>Notes <span style="text-transform:none;font-weight:400">(optional)</span></label><textarea id="f_notes" placeholder="Visible on the receipt"></textarea></div>
 
@@ -787,6 +914,7 @@ tbody tr:last-child td{border-bottom:0}
         <tbody id="logBody"></tbody>
       </table>
     </div>
+    <div id="logCards" class="log-cards"></div>
     <div id="logEmpty" class="empty" style="margin-top:12px">No receipts recorded yet. Issue your first receipt to begin the register.</div>
   </div>
 
@@ -2759,7 +2887,8 @@ async function saveBusinessProfile() {
 }
 
 function showTab(name) {
-  var locked = access.checked && !access.canEdit && (name === "new" || name === "log");
+  var locked = access.checked && !access.canEdit && (name === "new" || name === "log" || name === "home");
+  $("tab-home").style.display = (name === "home" && !locked) ? "" : "none";
   $("tab-new").style.display = (name === "new" && !locked) ? "" : "none";
   $("tab-log").style.display = (name === "log" && !locked) ? "" : "none";
   $("tab-view").style.display = name === "view" ? "" : "none";
@@ -2767,10 +2896,12 @@ function showTab(name) {
   $("tab-settings").style.display = name === "settings" ? "" : "none";
   $("tab-locked").style.display = locked ? "" : "none";
   $("topbar").style.display = name === "verify" ? "none" : "";
-  Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function (b) {
+  if ($("bottomNav")) $("bottomNav").style.display = name === "verify" ? "none" : "";
+  Array.prototype.forEach.call(document.querySelectorAll("#tabs button, .bottom-nav button[data-tab]"), function (b) {
     b.setAttribute("aria-selected", String(b.dataset.tab === name));
   });
   if (locked) $("tab-locked").innerHTML = lockedNotice();
+  if (name === "home" && !locked) renderHome();
   if (name === "log" && !locked) renderLog();
   if (name === "settings") { loadKycState().then(function () { renderSettings(); }); }
   if (name === "new") applyTrialLock();
@@ -2822,8 +2953,8 @@ function todayISODate() {
   return todayISO();
 }
 
-function renderOpsDash() {
-  var host = $("opsDash");
+function renderOpsDash(hostId) {
+  var host = $(hostId || "opsDash");
   if (!host) return;
   var today = todayISODate();
   var scopeRows = filtered(); /* uses current filters except we want today stats from scope */
@@ -2891,6 +3022,66 @@ function renderLog() {
       '<td><span class="status ' + (r.status === "VOIDED" ? "void" : "valid") + '">' + esc(r.status) + '</span></td>' +
       '</tr>';
   }).join("");
+  var cardHost = $("logCards");
+  if (cardHost) {
+    cardHost.innerHTML = rows.map(function (r) {
+      var valid = r.status !== "VOIDED";
+      return '<div class="log-card" data-no="' + esc(r.receiptNo) + '">' +
+        '<div class="log-card-top">' +
+          '<div><div class="lc-no">' + esc(r.receiptNo) + '</div>' +
+          '<div class="lc-cust">' + esc(r.customer || "Walk-in customer") + '</div></div>' +
+          '<div class="lc-amt">' + esc(money(r.amount, r.currency)) + '</div>' +
+        '</div>' +
+        '<div class="lc-meta"><span>' + esc(fmtStamp(r.createdAt || r.paidOn)) + '</span>' +
+          '<span class="status ' + (valid ? "valid" : "void") + '">' + esc(r.status) + '</span></div>' +
+        '<div class="lc-actions">' +
+          '<button type="button" class="btn lc-view" data-act="view" data-no="' + esc(r.receiptNo) + '">View</button>' +
+          (valid ? '<button type="button" class="btn lc-share" data-act="share" data-no="' + esc(r.receiptNo) + '">Share</button>' : '') +
+        '</div>' +
+      '</div>';
+    }).join("");
+  }
+}
+
+/* ---------------- home (mobile dashboard) ---------------- */
+
+function renderHome() {
+  renderOpsDash("opsDashHome");
+  renderHomeRecent();
+}
+
+function renderHomeRecent() {
+  var host = $("homeRecentList");
+  if (!host) return;
+  var rows = cache.slice().sort(function (a, b) {
+    return String(b.createdAt || b.paidOn || "").localeCompare(String(a.createdAt || a.paidOn || ""));
+  }).slice(0, 5);
+  if (!rows.length) {
+    host.innerHTML = '<div class="home-empty">No receipts yet. Issue your first receipt to see it here.</div>';
+    return;
+  }
+  host.innerHTML = rows.map(function (r) {
+    return '<button type="button" class="home-recent-item" data-no="' + esc(r.receiptNo) + '">' +
+      '<span class="hr-main"><span class="hr-no">' + esc(r.receiptNo) + '</span><br>' +
+      '<span class="hr-cust">' + esc(r.customer || "Walk-in") + '</span></span>' +
+      '<span class="hr-amt">' + esc(money(r.amount, r.currency)) +
+      '<span class="status ' + (r.status === "VOIDED" ? "void" : "valid") + '">' + esc(r.status) + '</span></span>' +
+      '</button>';
+  }).join("");
+}
+
+function openReceiptByNo(no) {
+  var r = cache.filter(function (x) { return x.receiptNo === no; })[0];
+  if (!r) return;
+  current = r; showDoc("viewHost", r, {}); voidBar(false); showTab("view");
+  showIssuedBanner(r, false);
+  syncDeliveryButtons();
+  if (r.status === "VALID") mountShareBar(r);
+  else {
+    var sbEl = $("share-bar");
+    if (sbEl) sbEl.hidden = true;
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 /* ---------------- verification ---------------- */
@@ -3354,7 +3545,13 @@ function showIssuedBanner(r, justIssued) {
       (voided && r.voidReason ? "<div>Reason: " + esc(r.voidReason) + "</div>" : "") +
     "</div>" +
     (justIssued && !voided
-      ? '<p class="issued-note">Use the toolbar below to send or download. The receipt is already saved.</p>'
+      ? '<div class="ready-checklist"><span>✓ Registered</span><span>✓ QR verification available</span></div>' +
+        '<div class="ready-actions">' +
+          '<button type="button" class="btn primary" id="btnReadyShare">Share Receipt</button>' +
+          '<button type="button" class="btn" id="btnReadyDownload">Download</button>' +
+          '<button type="button" class="btn" id="btnReadyView">View Receipt</button>' +
+        '</div>' +
+        '<p class="issued-note">Use the toolbar below to send or download. The receipt is already saved.</p>'
       : "");
   syncDeliveryButtons();
 }
@@ -3978,6 +4175,13 @@ function boot() {
   Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function (b) {
     b.addEventListener("click", function () { showTab(b.dataset.tab); });
   });
+  Array.prototype.forEach.call(document.querySelectorAll(".bottom-nav button[data-tab]"), function (b) {
+    b.addEventListener("click", function () {
+      if (b.dataset.tab === "_more") { openMoreSheet(); return; }
+      showTab(b.dataset.tab);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
   ["f_amount", "f_currency"].forEach(function (id) {
     var el = $(id);
     if (!el) return;
@@ -3985,10 +4189,40 @@ function boot() {
     el.addEventListener("change", updateWords);
   });
 
-  $("btnSignOut").addEventListener("click", async function () {
-    try { if (sb) await sb.auth.signOut(); } catch (e) {}
-    try { localStorage.removeItem("handzj_receipts_v1"); } catch (e) {}
-    location.replace("/login.html");
+  function doSignOut() {
+    (async function () {
+      try { if (sb) await sb.auth.signOut(); } catch (e) {}
+      try { localStorage.removeItem("handzj_receipts_v1"); } catch (e) {}
+      location.replace("/login.html");
+    })();
+  }
+  $("btnSignOut").addEventListener("click", doSignOut);
+
+  function openMoreSheet() {
+    var ov = $("moreOverlay");
+    if (!ov) return;
+    var adminBtn = $("moreAdmin");
+    if (adminBtn) adminBtn.style.display = ($("lnkAdmin") && $("lnkAdmin").style.display !== "none") ? "" : "none";
+    ov.hidden = false;
+    ov.removeAttribute("hidden");
+    document.body.style.overflow = "hidden";
+  }
+  function closeMoreSheet() {
+    var ov = $("moreOverlay");
+    if (!ov) return;
+    ov.hidden = true;
+    document.body.style.overflow = "";
+  }
+  $("moreOverlay").addEventListener("click", function (e) {
+    if (e.target && e.target.id === "moreOverlay") closeMoreSheet();
+  });
+  $("moreBusiness").addEventListener("click", function () { closeMoreSheet(); showTab("settings"); window.scrollTo({ top: 0, behavior: "smooth" }); });
+  $("moreAdmin").addEventListener("click", function () { location.href = "/admin.html"; });
+  $("moreSignOut").addEventListener("click", function () { closeMoreSheet(); doSignOut(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    var ov = $("moreOverlay");
+    if (ov && !ov.hidden) closeMoreSheet();
   });
 
   $("btnGenRef").addEventListener("click", function () { $("f_txn").value = genReference(); });
@@ -4053,18 +4287,32 @@ function boot() {
 
   $("logBody").addEventListener("click", function (e) {
     var tr = e.target.closest("tr[data-no]"); if (!tr) return;
-    var r = cache.filter(function (x) { return x.receiptNo === tr.dataset.no; })[0];
-    if (!r) return;
-    current = r; showDoc("viewHost", r, {}); voidBar(false); showTab("view");
-    showIssuedBanner(r, false);
-    syncDeliveryButtons();
-    if (r.status === "VALID") mountShareBar(r);
-    else {
-      var sbEl = $("share-bar");
-      if (sbEl) sbEl.hidden = true;
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    openReceiptByNo(tr.dataset.no);
   });
+  $("logCards").addEventListener("click", function (e) {
+    var actBtn = e.target.closest("[data-act]");
+    if (actBtn) {
+      var r = cache.filter(function (x) { return x.receiptNo === actBtn.dataset.no; })[0];
+      if (!r) return;
+      if (actBtn.dataset.act === "view") { openReceiptByNo(r.receiptNo); return; }
+      if (actBtn.dataset.act === "share") {
+        nativeShare(r).then(function (result) {
+          if (result === "shared") say("Share sheet opened. Choose WhatsApp to send the receipt image.", "good");
+          else if (result === "aborted") say("Share cancelled.", "");
+          else if (result === "unsupported") say("Share not available on this device — open the receipt and use Download instead.", "warn");
+          else say("Could not share. Open the receipt and download the image to send it manually.", "warn");
+        });
+        return;
+      }
+    }
+    var card = e.target.closest(".log-card[data-no]");
+    if (card) openReceiptByNo(card.dataset.no);
+  });
+  $("homeRecentList").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-no]"); if (!b) return;
+    openReceiptByNo(b.dataset.no);
+  });
+  if ($("btnHomeCreate")) $("btnHomeCreate").addEventListener("click", function () { showTab("new"); });
   ["q", "fStatus", "fFrom", "fTo", "fBranchScope"].forEach(function (id) {
     var el = $(id);
     if (!el) return;
@@ -4080,6 +4328,16 @@ function boot() {
   });
   $("btnPrintOne").addEventListener("click", function () { printReceipt(); });
   $("btnDownload").addEventListener("click", function () { if (current) downloadReceipt(current, false); });
+
+  /* Receipt-ready quick actions (mobile) — delegated since issuedBanner is re-rendered */
+  $("issuedBanner").addEventListener("click", function (e) {
+    if (e.target.closest("#btnReadyShare")) { $("btnNativeShare").click(); return; }
+    if (e.target.closest("#btnReadyDownload")) { $("btnDownload").click(); return; }
+    if (e.target.closest("#btnReadyView")) {
+      var host = $("viewHost");
+      if (host) host.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
   if ($("btnNewFromView")) $("btnNewFromView").addEventListener("click", function () {
     var el = $("issuedBanner"); if (el) el.hidden = true;
     current = null; syncDeliveryButtons(); showTab("new"); renderLineItems([emptyLine()]);
@@ -4201,6 +4459,20 @@ else boot();
     <div class="wa-actions">
       <button type="button" class="btn primary" id="waOpen">Open WhatsApp</button>
       <button type="button" class="btn" id="waCancel" data-wa-close="1">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- More menu (mobile bottom-nav overflow) -->
+<div id="moreOverlay" class="wa-overlay noprint" hidden role="dialog" aria-modal="true" aria-labelledby="moreTitle">
+  <div class="wa-sheet" id="moreSheet">
+    <div class="wa-handle" aria-hidden="true"></div>
+    <h2 id="moreTitle">More</h2>
+    <div class="more-list">
+      <button type="button" id="moreBusiness">Business &amp; settings</button>
+      <button type="button" id="moreAdmin" style="display:none">Platform Admin</button>
+      <a href="/contact.html">Help &amp; contact</a>
+      <button type="button" class="ml-danger" id="moreSignOut">Sign out</button>
     </div>
   </div>
 </div>
