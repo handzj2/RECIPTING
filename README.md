@@ -10,7 +10,7 @@ Then open:
 
 - Landing (CTA): http://localhost:3000/
 - Sign in / sign up: http://localhost:3000/login.html
-- Platform Admin dashboard: http://localhost:3000/admin.html (platform owner only)
+- Platform Admin dashboard: http://localhost:3000/admin.html (Platform Admin only)
 - Receipt app: http://localhost:3000/app.html (redirects to login when signed out)
 
 ## Features
@@ -91,4 +91,4 @@ RECIPTING/
 
 Configured via `public/config.js`. Full steps: `docs/SUPABASE_SETUP.md`.
 
-When keys are set, issue/void/log use the cloud database. localStorage stays as an offline mirror.
+When keys are set, issue/void/log use the cloud database. local browser storage is retained only as a local mirror; cloud data remains authoritative.

@@ -116,16 +116,10 @@ a{color:var(--brand);text-decoration:none}
 }
 
 
-/* ScrollTrigger preparation — visible without JS */
+/* Motion is progressive enhancement: content remains visible if animation libraries fail. */
 [data-animate]{will-change:transform,opacity}
-.gsap-ready [data-animate="hero"],
-.gsap-ready [data-animate="demo"],
-.gsap-ready [data-animate="section"],
-.gsap-ready [data-animate="step"],
-.gsap-ready [data-animate="card"],
-.gsap-ready [data-animate="cta"]{opacity:0}
 @media(prefers-reduced-motion:reduce){
-  .gsap-ready [data-animate]{opacity:1!important;transform:none!important}
+  [data-animate]{opacity:1!important;transform:none!important}
 }
 
 </style>
@@ -208,49 +202,50 @@ a{color:var(--brand);text-decoration:none}
   </section>
 
   <section class="section" id="pricing" data-animate="section">
-    <h2>Plans</h2>
-    <p class="sub">Start free. Upgrade when you need the cloud register and online verification.</p>
+    <h2>Receipt packs</h2>
+    <p class="sub">Buy the number of digital receipts your business needs. No monthly commitment for occasional use.</p>
     <div class="pricing">
       <div class="price" data-animate="card">
-        <div class="plan">Starter</div>
-        <div class="amt">Free <span>/ local</span></div>
+        <div class="plan">Small business</div>
+        <div class="amt">20 <span>receipts</span></div>
         <ul>
-          <li>5-day free trial</li>
-          <li>Receipt image for WhatsApp</li>
-          <li>PDF download + QR verify</li>
-          <li>Your logo on receipts</li>
+          <li>Professional receipt image</li>
+          <li>QR verification</li>
+          <li>WhatsApp-ready sharing</li>
+          <li>Use when your business needs them</li>
         </ul>
-        <a class="btn" href="/login.html?mode=signup">Start trial</a>
+        <a class="btn" href="/pricing">View pack options</a>
       </div>
       <div class="price featured" data-animate="card">
-        <div class="plan">Business</div>
-        <div class="amt">UGX 50,000 <span>/ mo</span></div>
+        <div class="plan">Growing business</div>
+        <div class="amt">100 <span>receipts</span></div>
         <ul>
           <li>Cloud receipt register</li>
-          <li>Online verification (any phone)</li>
-          <li>WhatsApp image + email</li>
-          <li>Team access · pay via Mobile Money</li>
+          <li>Online verification from any phone</li>
+          <li>Receipt image + download</li>
+          <li>Team access and business controls</li>
         </ul>
-        <a class="btn primary" href="mailto:handzj2@gmail.com?subject=HandzJ%20Business%20Plan%20—%20Mobile%20Money">Subscribe (Mobile Money)</a>
+        <a class="btn primary" href="/pricing">View pack options</a>
       </div>
       <div class="price" data-animate="card">
-        <div class="plan">Enterprise</div>
-        <div class="amt">Custom</div>
+        <div class="plan">Higher volume</div>
+        <div class="amt">500+ <span>receipts</span></div>
         <ul>
-          <li>Multi-branch</li>
-          <li>Custom domain &amp; branding</li>
-          <li>API access</li>
-          <li>SLA &amp; onboarding</li>
+          <li>Higher receipt volume</li>
+          <li>Cloud register and verification</li>
+          <li>Multi-user operation</li>
+          <li>Contact HandzJ for larger requirements</li>
         </ul>
-        <a class="btn" href="mailto:handzj2@gmail.com?subject=HandzJ%20Receipts%20Enterprise">Talk to us</a>
+        <a class="btn" href="/contact">Talk to HandzJ</a>
       </div>
     </div>
   </section>
 
   <section class="cta-band" data-animate="cta">
     <h2>Stop sending payment screenshots.</h2>
-    <p>Issue a real digital receipt your customer can verify online.</p>
+    <p>Issue a real digital receipt your customer can keep, share and verify online.</p>
     <a class="btn primary" href="/login.html?mode=signup">Start your 5-day free trial</a>
+    <a class="btn" href="/pricing">See receipt packs</a>
   </section>
 
   <footer class="footer">
