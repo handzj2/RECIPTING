@@ -673,6 +673,7 @@ tbody tr:last-child td{border-bottom:0}
 /* line items editor */
 .lines-wrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px;background:var(--panel-2)}
 .lines-head,.line-row{display:grid;grid-template-columns:1.6fr .55fr .7fr .7fr 36px;gap:6px;align-items:center;padding:8px}
+.line-row .li-serial,.line-row .li-imei{grid-column:1 / -1;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;font-size:13px}
 .lines-head{background:var(--panel);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--line)}
 .line-row{border-bottom:1px solid var(--line-soft)}
 .line-row:last-child{border-bottom:0}
@@ -681,6 +682,7 @@ tbody tr:last-child td{border-bottom:0}
 .line-row .btn-x{border:0;background:transparent;color:var(--bad);font-size:18px;cursor:pointer;padding:4px}
 .lines-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 4px}
 .lines-sum{font-size:13.5px;font-weight:600;margin:6px 0 10px}
+.line-id{font-size:11px;color:#4a586e;margin-top:3px;font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.02em}
 @media (max-width:720px){
   .lines-head{display:none}
   .line-row{grid-template-columns:1fr 1fr;gap:8px;padding:10px;border-bottom:1px solid var(--line);position:relative}
@@ -822,7 +824,7 @@ tbody tr:last-child td{border-bottom:0}
         </div>
         <div class="lines-actions">
           <button type="button" class="btn" id="btnAddLine">+ Add line</button>
-          <span class="hint" id="linesHint">Add one or more products or services</span>
+          <span class="hint" id="linesHint">Add products or services. Serial / IMEI optional (phones, laptops, electronics).</span>
         </div>
         <div class="lines-sum" id="linesSum">Total: —</div>
         <!-- hidden compatibility fields (filled from line items) -->
@@ -1233,6 +1235,16 @@ function receiptToRow(r) {
     received_by: r.receivedBy || null,
     notes: r.notes || null,
     lines: (r.lines && r.lines.length) ? r.lines : null,
+    primary_serial: (function () {
+      if (!r.lines || !r.lines.length) return null;
+      for (var i = 0; i < r.lines.length; i++) if (r.lines[i].serial) return String(r.lines[i].serial);
+      return null;
+    })(),
+    primary_imei: (function () {
+      if (!r.lines || !r.lines.length) return null;
+      for (var i = 0; i < r.lines.length; i++) if (r.lines[i].imei) return String(r.lines[i].imei);
+      return null;
+    })(),
     branch_id: r.branchId || staffBranchId || null,
     issued_by: (authUser && authUser.id) || null,
     issued_by_name: r.issuedByName || (authUser && (authUser.email || authUser.id)) || null,
@@ -1895,7 +1907,7 @@ async function nextReceiptNo() {
 /* ---------------- line items ---------------- */
 
 function emptyLine() {
-  return { name: "", qty: 1, price: 0 };
+  return { name: "", qty: 1, price: 0, serial: "", imei: "" };
 }
 
 function readLinesFromDom() {
@@ -1906,9 +1918,14 @@ function readLinesFromDom() {
     var name = (row.querySelector(".li-name") || {}).value || "";
     var qty = Number(String((row.querySelector(".li-qty") || {}).value || "1").replace(/[^0-9.\-]/g, "")) || 0;
     var price = Number(String((row.querySelector(".li-price") || {}).value || "0").replace(/[^0-9.\-]/g, "")) || 0;
+    var serial = String((row.querySelector(".li-serial") || {}).value || "").trim();
+    var imei = String((row.querySelector(".li-imei") || {}).value || "").trim();
     name = String(name).trim();
-    if (!name && !price) return;
-    out.push({ name: name, qty: qty, price: price, total: Math.round(qty * price * 100) / 100 });
+    if (!name && !price && !serial && !imei) return;
+    var rowObj = { name: name, qty: qty, price: price, total: Math.round(qty * price * 100) / 100 };
+    if (serial) rowObj.serial = serial;
+    if (imei) rowObj.imei = imei;
+    out.push(rowObj);
   });
   return out;
 }
@@ -1944,11 +1961,13 @@ function renderLineItems(lines) {
   host.innerHTML = lines.map(function (L, i) {
     var tot = (Number(L.qty) || 0) * (Number(L.price) || 0);
     return '<div class="line-row" data-i="' + i + '">' +
-      '<input class="li-name" placeholder="Item name" value="' + esc(L.name || "") + '">' +
+      '<input class="li-name" placeholder="Item name (e.g. iPhone 13, HP Laptop)" value="' + esc(L.name || "") + '">' +
       '<input class="li-qty" inputmode="decimal" placeholder="Qty" value="' + esc(L.qty != null ? L.qty : 1) + '">' +
       '<input class="li-price" inputmode="decimal" placeholder="Price" value="' + esc(L.price != null && L.price !== 0 ? L.price : "") + '">' +
       '<div class="line-total">' + (tot ? tot.toLocaleString() : "—") + '</div>' +
       '<button type="button" class="btn-x" title="Remove line" data-remove="' + i + '">×</button>' +
+      '<input class="li-serial" placeholder="Serial no. (optional)" value="' + esc(L.serial || "") + '" autocomplete="off">' +
+      '<input class="li-imei" placeholder="IMEI (phones, optional)" value="' + esc(L.imei || "") + '" inputmode="numeric" autocomplete="off">' +
     '</div>';
   }).join("");
 
@@ -2278,7 +2297,11 @@ function receiptHTML(r, opts) {
       '<th>Item</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Total</th></tr></thead><tbody>' +
       r.lines.map(function (L) {
         var tot = L.total != null ? L.total : (Number(L.qty) || 0) * (Number(L.price) || 0);
-        return '<tr><td>' + esc(L.name) + '</td><td class="num">' + esc(L.qty) +
+        var idBits = [];
+        if (L.serial) idBits.push("S/N: " + L.serial);
+        if (L.imei) idBits.push("IMEI: " + L.imei);
+        var sub = idBits.length ? '<div class="line-id">' + esc(idBits.join(" · ")) + '</div>' : "";
+        return '<tr><td>' + esc(L.name) + sub + '</td><td class="num">' + esc(L.qty) +
           '</td><td class="num">' + esc(money(L.price, cur)) + '</td><td class="num">' + esc(money(tot, cur)) + '</td></tr>';
       }).join("") + '</tbody></table>';
     if (r.description) push("Notes", r.description);
