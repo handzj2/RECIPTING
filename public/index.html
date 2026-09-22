@@ -93,6 +93,28 @@ a{color:var(--brand);text-decoration:none}
 .cta-band p{color:var(--muted);margin-bottom:18px;font-size:14.5px}
 
 .footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* Living landing */
+@keyframes hjTicker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes hjFadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes hjDot{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes hjPulse{0%,100%{box-shadow:0 0 0 0 rgba(13,157,199,.4)}70%{box-shadow:0 0 0 12px rgba(13,157,199,0)}}
+.live-banner{overflow:hidden;border:1px solid var(--line);background:var(--panel);margin:0 0 28px;border-radius:2px;position:relative}
+.live-banner .lb-label{position:absolute;left:0;top:0;bottom:0;z-index:2;background:var(--brand);color:#061018;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:0 14px;display:flex;align-items:center;gap:6px}
+.live-banner .lb-dot{width:7px;height:7px;border-radius:50%;background:#5fd6a4;animation:hjDot 1.5s ease-in-out infinite}
+.live-banner .lb-track{display:flex;width:max-content;animation:hjTicker 32s linear infinite;padding:11px 0 11px 72px}
+.live-banner .lb-item{white-space:nowrap;padding:0 32px;font-size:13px;color:var(--muted);border-right:1px solid var(--line)}
+.live-banner .lb-item strong{color:var(--ink)}
+.hero{animation:hjFadeUp .55s ease both}
+.demo{animation:hjFadeUp .55s ease both;animation-delay:.1s}
+.step,.price,.vcard,.sample{transition:transform .2s ease,border-color .2s ease}
+.step:hover,.price:hover{transform:translateY(-3px);border-color:var(--brand)}
+.btn.primary{animation:hjPulse 2.8s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){
+  .live-banner .lb-track,.live-banner .lb-dot,.btn.primary,.hero,.demo{animation:none!important}
+  .step:hover,.price:hover{transform:none}
+}
+
 </style>
 </head>
 <body>
@@ -120,7 +142,7 @@ a{color:var(--brand);text-decoration:none}
       <a class="btn primary" href="/login.html?mode=signup">Start free trial</a>
       <a class="btn" href="/verify?no=HJT-2026-00421">See verification</a>
     </div>
-    <p class="note">5-day free trial · No card required · Works without a printer</p>
+    <p class="note">5 free credits + 5-day trial · Packs from UGX 5,000 · Works without a printer</p>
   </header>
 
   <!-- Product demonstration -->

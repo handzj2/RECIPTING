@@ -728,6 +728,95 @@ tbody tr:last-child td{border-bottom:0}
   .rcpt-toolbar-group label.fmt{grid-column:1/-1}
 }
 
+
+/* ========== Living UI — controlled motion (respects reduced-motion) ========== */
+@keyframes hjFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes hjPulseSoft {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(13,157,199,.35); }
+  50% { box-shadow: 0 0 0 8px rgba(13,157,199,0); }
+}
+@keyframes hjShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes hjTicker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes hjDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .45; transform: scale(.85); }
+}
+.hj-enter {
+  animation: hjFadeUp .45s ease both;
+}
+.hj-enter-delay-1 { animation-delay: .06s; }
+.hj-enter-delay-2 { animation-delay: .12s; }
+.hj-enter-delay-3 { animation-delay: .18s; }
+.btn.primary:not(:disabled) {
+  transition: transform .15s ease, box-shadow .2s ease, background .15s ease;
+}
+.btn.primary:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(13,157,199,.35);
+}
+.btn.primary:not(:disabled):active { transform: translateY(0); }
+.live-strip {
+  margin-top: 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: linear-gradient(90deg, var(--panel) 0%, var(--panel-2) 50%, var(--panel) 100%);
+  position: relative;
+}
+.live-strip .live-label {
+  position: absolute; left: 0; top: 0; bottom: 0; z-index: 2;
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 12px; background: var(--brand); color: #eaf6fb;
+  font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+}
+.live-strip .live-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: #5fd6a4;
+  animation: hjDot 1.4s ease-in-out infinite;
+}
+.live-strip .live-track {
+  display: flex; width: max-content;
+  animation: hjTicker 28s linear infinite;
+  padding: 10px 0 10px 88px;
+  gap: 0;
+}
+.live-strip .live-item {
+  white-space: nowrap; padding: 0 28px; font-size: 12.5px; color: var(--ink-soft);
+  border-right: 1px solid var(--line-soft);
+}
+.live-strip .live-item b { color: var(--ink); font-weight: 600; }
+.guide-tip {
+  margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--panel);
+  font-size: 13px; color: var(--ink-soft); line-height: 1.45;
+  display: flex; gap: 10px; align-items: flex-start;
+  animation: hjFadeUp .5s ease both;
+  transition: opacity .35s ease, transform .35s ease;
+}
+.guide-tip .guide-ico {
+  flex: none; width: 28px; height: 28px; border-radius: 8px;
+  background: var(--accent-soft); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+}
+.guide-tip strong { color: var(--ink); }
+.card, .lines-wrap, .issue-form, .stat-card {
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hj-enter, .guide-tip { animation: none !important; }
+  .live-strip .live-track, .live-strip .live-dot { animation: none !important; }
+  .btn.primary:not(:disabled):hover { transform: none; }
+}
+
 </style>
   <script src="/config.js"></script>
 
@@ -756,6 +845,28 @@ tbody tr:last-child td{border-bottom:0}
   </div>
 
   <div id="dbNotice" class="noprint" style="margin-top:14px"></div>
+  <div class="live-strip noprint" id="liveStrip" aria-hidden="false">
+    <div class="live-label"><span class="live-dot" aria-hidden="true"></span> Live</div>
+    <div class="live-track" id="liveTrack">
+      <span class="live-item"><b>Issue</b> → permanent receipt number</span>
+      <span class="live-item"><b>WhatsApp</b> → image + verify link</span>
+      <span class="live-item"><b>QR verify</b> → VALID online</span>
+      <span class="live-item"><b>Packs</b> from UGX 5,000 · no monthly lock-in</span>
+      <span class="live-item"><b>Serial / IMEI</b> for phones &amp; laptops</span>
+      <span class="live-item"><b>Credits</b> only when you issue — views free</span>
+      <!-- duplicate for seamless loop -->
+      <span class="live-item"><b>Issue</b> → permanent receipt number</span>
+      <span class="live-item"><b>WhatsApp</b> → image + verify link</span>
+      <span class="live-item"><b>QR verify</b> → VALID online</span>
+      <span class="live-item"><b>Packs</b> from UGX 5,000 · no monthly lock-in</span>
+      <span class="live-item"><b>Serial / IMEI</b> for phones &amp; laptops</span>
+      <span class="live-item"><b>Credits</b> only when you issue — views free</span>
+    </div>
+  </div>
+  <div class="guide-tip noprint" id="guideTip" role="status">
+    <div class="guide-ico">1</div>
+    <div id="guideTipText"><strong>Start here:</strong> add a customer and at least one line item, then tap <b>Issue Receipt</b>.</div>
+  </div>
 
   <!-- ===== mobile bottom navigation — Home / Receipts / + / More ===== -->
   <nav class="bottom-nav noprint" id="bottomNav" aria-label="Primary">
@@ -4727,8 +4838,47 @@ async function guardAndStart() {
   peekNextNumber();
 }
 
+
+/* ---- guided tips (rotating, non-blocking) ---- */
+var GUIDE_TIPS = [
+  { n: "1", t: "<strong>Start here:</strong> add a customer and at least one line item, then tap <b>Issue Receipt</b>." },
+  { n: "2", t: "<strong>Phones &amp; laptops:</strong> optional <b>Serial</b> / <b>IMEI</b> on each line — one device per line." },
+  { n: "3", t: "<strong>WhatsApp:</strong> after issue, enter the client number — chat opens directly (not Contacts)." },
+  { n: "4", t: "<strong>Credits:</strong> one credit per issued receipt. Viewing, sharing, and QR verify are free." },
+  { n: "5", t: "<strong>Verify:</strong> customer scans the QR or opens the link to see <b>VALID</b> online." },
+  { n: "6", t: "<strong>Low on credits?</strong> Buy a pack from UGX 5,000 or activate a monthly plan — Contact support with your MoMo ref." }
+];
+var _guideIdx = 0;
+var _guideTimer = null;
+function renderGuideTip(i) {
+  var tip = GUIDE_TIPS[i % GUIDE_TIPS.length];
+  var el = $("guideTip");
+  var textEl = $("guideTipText");
+  var ico = el && el.querySelector(".guide-ico");
+  if (!el || !textEl) return;
+  el.style.opacity = "0";
+  el.style.transform = "translateY(4px)";
+  setTimeout(function () {
+    if (ico) ico.textContent = tip.n;
+    textEl.innerHTML = tip.t;
+    el.style.opacity = "1";
+    el.style.transform = "translateY(0)";
+  }, 280);
+}
+function startGuideTips() {
+  if (_guideTimer) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  _guideTimer = setInterval(function () {
+    _guideIdx = (_guideIdx + 1) % GUIDE_TIPS.length;
+    renderGuideTip(_guideIdx);
+  }, 7000);
+}
+
+
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
 else boot();
+/* Guided tips after UI is up */
+setTimeout(function () { try { startGuideTips(); } catch (e) {} }, 1600);
 
 </script>
 <!-- WhatsApp number sheet (mobile-first) -->
