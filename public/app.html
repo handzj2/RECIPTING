@@ -4,10 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HandzJ Digital Receipt</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#14120f">
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#f3f0e9; --panel:#fffcf7; --panel-2:#f7f3eb; --ink:#1c1917; --ink-soft:#57534e;
@@ -35,7 +40,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1120px;margin:0 auto;padding:20px 20px 72px}
 h1,h2,h3{margin:0}
 button{font:inherit;cursor:pointer}
@@ -44,8 +49,8 @@ input,select,textarea{font:inherit;color:inherit}
 /* ---------- app chrome — document system, not SaaS dashboard ---------- */
 .topbar{display:flex;align-items:center;gap:16px;background:var(--brand);color:var(--on-brand);
   border-radius:0;padding:14px 20px;border-bottom:2px solid #9a3412;flex-wrap:wrap}
-.topbar img{width:42px;height:42px;border-radius:4px;flex:none;object-fit:cover;border:1px solid rgba(255,255,255,.15)}
-.topbar .t1{font-family:"Barlow Condensed",Inter,sans-serif;font-size:22px;font-weight:700;letter-spacing:.08em;line-height:1.1;text-transform:uppercase}
+.topbar img{width:48px;height:48px;border-radius:6px;flex:none;object-fit:cover;border:1px solid rgba(255,255,255,.12);background:#0c0b0a}
+.topbar .t1{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:20px;font-weight:600;letter-spacing:.04em;line-height:1.1;text-transform:uppercase}
 .topbar .t2{font-size:11.5px;color:#a8a29e;letter-spacing:.04em;text-transform:uppercase}
 .topbar .grow{flex:1 1 160px}
 .tabs{display:flex;gap:0;background:transparent;padding:0;border-radius:0;border-bottom:0}
@@ -92,7 +97,7 @@ input,select,textarea{font:inherit;color:inherit}
 
 /* ---------- register (operational centre) ---------- */
 .register-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.register-head h1{font-family:"Barlow Condensed",Inter,sans-serif;font-size:20px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.register-head h1{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:20px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 .tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .tools input,.tools select{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:9px 12px;font-size:13.5px}
 .tools input{flex:1 1 240px}
@@ -115,12 +120,12 @@ tbody tr:last-child td{border-bottom:0}
 /* ---------- issue desk ---------- */
 .issue-desk{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:24px;margin-top:24px;align-items:start}
 @media (max-width:960px){.issue-desk{grid-template-columns:1fr}}
-.issue-form .section-label{font-family:"Barlow Condensed",Inter,sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);margin:22px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.issue-form .section-label{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);margin:22px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
 .issue-form .section-label:first-child{margin-top:0}
 .preview-panel{position:sticky;top:16px}
 .preview-panel .panel-h{justify-content:space-between}
 .preview-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
-.receipt-no-display{font-family:"Barlow Condensed",Inter,sans-serif;font-size:18px;font-weight:700;letter-spacing:.06em;color:var(--brand)}
+.receipt-no-display{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:18px;font-weight:700;letter-spacing:.06em;color:var(--brand)}
 
 
 /* ---------- receipt document ---------- */
@@ -131,18 +136,18 @@ tbody tr:last-child td{border-bottom:0}
 .wm{position:absolute;inset:0;z-index:0;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden}
 .wm img{width:460px;max-width:80%;opacity:.055;filter:grayscale(1)}
 .wm .wmtext{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-24deg);text-align:center;
-  font-family:"Barlow Condensed",Inter,sans-serif;letter-spacing:.18em;color:#14120f;opacity:.06;white-space:nowrap}
+  font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;letter-spacing:.18em;color:#14120f;opacity:.06;white-space:nowrap}
 .wm .wmtext .a{font-size:46px;font-weight:700}
 .wm .wmtext .b{font-size:22px;font-weight:600}
 .wm .wmtext .c{font-size:18px;font-weight:600;letter-spacing:.24em}
 .rhead{display:flex;gap:18px;align-items:center;border-bottom:3px solid #14120f;padding-bottom:16px}
 .rhead img.logo{width:96px;height:96px;object-fit:cover;border-radius:8px;flex:none}
 .rhead .co{flex:1;min-width:0}
-.rhead .co .name{font-family:"Barlow Condensed",Inter,sans-serif;font-size:34px;font-weight:700;letter-spacing:.05em;line-height:1.05;color:#14120f}
+.rhead .co .name{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:34px;font-weight:700;letter-spacing:.05em;line-height:1.05;color:#14120f}
 .rhead .co .tag{font-size:12.5px;color:#2d4260;font-style:italic;margin-top:3px}
 .rhead .co .contact{font-size:11.5px;color:#4a586e;margin-top:7px;line-height:1.6}
 .rtitle{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:16px 0 14px;flex-wrap:wrap}
-.rtitle .lbl{font-family:"Barlow Condensed",Inter,sans-serif;font-size:23px;font-weight:700;letter-spacing:.16em;color:#14120f}
+.rtitle .lbl{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:23px;font-weight:700;letter-spacing:.16em;color:#14120f}
 .rtitle .meta{text-align:right;font-size:12.5px;color:#2d4260;line-height:1.7}
 .rtitle .meta b{font-size:15px;color:#14120f;letter-spacing:.04em}
 .block{border:1px solid #d7dee8;border-radius:8px;overflow:hidden;margin-bottom:14px;background:rgba(255,255,255,.72)}
@@ -154,7 +159,7 @@ tbody tr:last-child td{border-bottom:0}
 .amountbar{display:flex;justify-content:space-between;align-items:center;gap:16px;background:#14120f;color:var(--on-brand);
   border-radius:8px;padding:14px 18px;margin-bottom:6px;flex-wrap:wrap}
 .amountbar .l{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#a8a29e}
-.amountbar .v{font-family:"Barlow Condensed",Inter,sans-serif;font-size:32px;font-weight:700;letter-spacing:.03em}
+.amountbar .v{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:32px;font-weight:700;letter-spacing:.03em}
 .words{font-size:12.5px;color:#2d4260;margin:0 0 14px;padding:0 2px}
 .words b{color:#14120f}
 .rfoot{display:flex;gap:18px;align-items:flex-start;justify-content:space-between;border-top:1px solid #d7dee8;padding-top:14px;margin-top:6px;flex-wrap:wrap}
@@ -165,7 +170,7 @@ tbody tr:last-child td{border-bottom:0}
 .qrbox .qr img,.qrbox .qr canvas{width:100%!important;height:100%!important;display:block}
 .qrbox .cap{font-size:9.5px;color:#4a586e;margin-top:5px;line-height:1.45;word-break:break-all}
 .stamp{position:absolute;top:150px;right:44px;z-index:2;transform:rotate(-16deg);border:4px double;border-radius:8px;
-  padding:5px 16px;font-family:"Barlow Condensed",Inter,sans-serif;font-size:31px;font-weight:700;letter-spacing:.14em;opacity:.78}
+  padding:5px 16px;font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:31px;font-weight:700;letter-spacing:.14em;opacity:.78}
 .stamp.valid{color:#0f7b52;border-color:#0f7b52}
 .stamp.void{color:#a32020;border-color:#a32020}
 .stamp.draft{color:#7a8699;border-color:#7a8699}
@@ -194,7 +199,7 @@ tbody tr:last-child td{border-bottom:0}
 
 /* ---------- verification view ---------- */
 .verify{max-width:620px;margin:22px auto}
-.verify .vbig{display:flex;align-items:center;gap:12px;font-family:"Barlow Condensed",Inter,sans-serif;font-size:27px;font-weight:700;letter-spacing:.08em}
+.verify .vbig{display:flex;align-items:center;gap:12px;font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:27px;font-weight:700;letter-spacing:.08em}
 .dot{width:13px;height:13px;border-radius:50%;flex:none}
 .dot.ok{background:var(--ok)} .dot.bad{background:var(--bad)} .dot.unk{background:#8c97a8}
 
@@ -445,7 +450,7 @@ tbody tr:last-child td{border-bottom:0}
 .ops-dash{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:0 0 16px}
 .ops-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .ops-card .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
-.ops-card .v{font-family:"Barlow Condensed",Inter,sans-serif;font-size:26px;font-weight:700;margin-top:4px;letter-spacing:.02em}
+.ops-card .v{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:26px;font-weight:700;margin-top:4px;letter-spacing:.02em}
 .ops-card .s{font-size:12px;color:var(--ink-soft);margin-top:2px}
 .ops-branch{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;align-items:center}
 .ops-branch select{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);font:inherit;min-width:160px}
@@ -453,7 +458,7 @@ tbody tr:last-child td{border-bottom:0}
 .issued-banner.voided{background:#fbe7e7;border-color:#f0c0c0}
 .issued-banner h3{margin:0 0 6px;font-size:16px}
 
-.issued-banner .rcpt-no{font-family:"Barlow Condensed",Inter,sans-serif;font-size:28px;font-weight:700;letter-spacing:.04em;margin:8px 0 4px;word-break:break-all}
+.issued-banner .rcpt-no{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:28px;font-weight:700;letter-spacing:.04em;margin:8px 0 4px;word-break:break-all}
 .issued-banner .rcpt-hint{font-size:12.5px;color:var(--ink-soft);margin:0 0 10px}
 .issued-actions .btn.primary{order:-1}
 .issued-note{font-size:12.5px;color:var(--ink-soft);margin-top:10px;line-height:1.4}
@@ -586,7 +591,7 @@ tbody tr:last-child td{border-bottom:0}
     padding:12px 14px;
   }
   .log-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-  .log-card .lc-no{font-weight:700;font-size:14.5px;font-family:"Barlow Condensed",Inter,sans-serif;letter-spacing:.02em}
+  .log-card .lc-no{font-weight:700;font-size:14.5px;font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;letter-spacing:.02em}
   .log-card .lc-cust{font-size:13px;color:var(--ink-soft);margin-top:2px}
   .log-card .lc-amt{font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
   .log-card .lc-meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11.5px;color:var(--ink-soft)}
