@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Owner dashboard — HandzJ Receipts</title>
+<title>Platform Admin Dashboard — HandzJ Receipts</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -164,7 +164,7 @@ tr.selected{background:var(--accent-soft)}
   <div class="topbar">
     <img src="/logo.jpg" alt="">
     <div class="grow">
-      <div class="t1">OWNER DASHBOARD</div>
+      <div class="t1">PLATFORM ADMIN</div>
       <div class="t2">Businesses · Packs · Subscriptions · Credits</div>
     </div>
     <button class="btn ghost" id="btnRefresh" type="button">Refresh</button>
@@ -428,7 +428,7 @@ function goTab(name) {
   if (adm.error || !adm.data) {
     document.querySelector(".stats").style.display = "none";
     document.querySelectorAll(".panel-tab,.tabs").forEach(function (el) { el.style.display = "none"; });
-    msg("This dashboard is for the platform owner only. <a href='/app.html'>Go to your receipts →</a>", "warn");
+    msg("This dashboard is for Platform Admin use only. <a href='/app.html'>Go to your receipts →</a>", "warn");
     return;
   }
   try { lastSeen = localStorage.getItem(lastSeenKey); } catch (e) {}
@@ -796,7 +796,7 @@ $("btnActivatePack").addEventListener("click", async function () {
   try {
     var res = await sb.rpc("admin_activate_pack_for_business", {
       p_business_id: biz, p_pack_code: code, p_payment_ref: ref,
-      p_notes: "Admin dashboard", p_expires_months: 24
+      p_notes: "Platform Admin", p_expires_months: 24
     });
     if (res.error) throw res.error;
     msg("Pack <b>" + esc(code) + "</b> activated for <b>" + esc(bname) + "</b>.", "good");
@@ -820,7 +820,7 @@ $("btnActivateSub").addEventListener("click", async function () {
     var res = await sb.rpc("admin_record_subscription_payment", {
       p_business_id: biz, p_plan_code: plan, p_payment_ref: ref,
       p_price_ugx: null, p_months: null, p_payment_method: "mobile_money",
-      p_notes: "Admin dashboard"
+      p_notes: "Platform Admin"
     });
     if (res.error) throw res.error;
     msg("Subscription <b>" + esc(plan) + "</b> activated for <b>" + esc(bname) + "</b>.", "good");

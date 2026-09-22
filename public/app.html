@@ -1129,7 +1129,7 @@ var staffRole = "owner";              /* owner | manager | cashier */
 var staffBranchId = null;
 var branches = [];
 var staffList = [];
-var viewBranchId = null; /* null = All shops (owner/manager UX only) */
+var viewBranchId = null; /* null = All shops (tenant-admin/manager UX only) */
 
 var CURRENCY = {
   UGX: { unit: "Uganda Shillings", sub: "Cents", dp: 0 },
@@ -1140,13 +1140,7 @@ var CURRENCY = {
 };
 
 var $ = function (id) { return document.getElementById(id); };
-/* [FIX 2026-09-20] Reason: a legacy `window.claude` shared-db handle (`db`) let this
-   app silently allocate and store receipts outside Supabase — a second, offline
-   "authoritative" receipt engine, which violates the online-only issuance rule.
-   Fix: the `db` handle and every code path that wrote to it have been removed.
-   Risk: LOW — that path was already best-effort (try/catch, `window.claude` rarely
-   present outside the Claude artifact runtime); no cloud behaviour changes. */
-var canWriteShared = true, current = null, kind = "software", cache = [];
+var current = null, kind = "software", cache = [];
 var access = { canEdit: true, checked: false }; /* default open until checked, then locked down if not editor */
 
 /* ---------------- helpers ---------------- */
@@ -1433,7 +1427,7 @@ function fillBranchSelect() {
     field.style.display = "none";
     return;
   }
-  /* Owners/managers pick shop; cashiers with one branch see it fixed */
+  /* Tenant Admins/managers pick shop; cashiers with one branch see it fixed */
   field.style.display = "";
   var cur = staffBranchId || (sel.value || "");
   sel.innerHTML = branches.map(function (b) {
@@ -1676,7 +1670,7 @@ async function initSupabase() {
     } catch (e) {}
   }
 
-  /* Platform owner? Reveal the dashboard link. Tenants never see it, and the
+  /* Platform Admin? Reveal the dashboard link. Tenants never see it, and the
      dashboard itself re-checks server-side, so hiding it is only cosmetic. */
   try {
     var adm = await sb.rpc("is_platform_admin");
@@ -1894,12 +1888,7 @@ function storageNoticeHTML() {
 
 async function exportBackup() {
   var data = JSON.stringify(cache, null, 2);
-  var dl = null;
-  try { dl = (window.claude && claude.use) ? await claude.use("downloads") : null; } catch (e) { dl = null; }
   var fname = "handzj-receipts-backup-" + todayISO() + ".json";
-  if (dl) {
-    try { await dl.save({ filename: fname, data: data }); return; } catch (e) {}
-  }
   var a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([data], { type: "application/json" }));
   a.download = fname; a.click();
@@ -2751,7 +2740,7 @@ function categoryOptionsHtml(selected) {
 
 
 function staffSettingsHTML() {
-  var roleLabel = { owner: "Owner", manager: "Manager", cashier: "Cashier" }[staffRole] || staffRole;
+  var roleLabel = { owner: "Tenant Admin", manager: "Manager", cashier: "Cashier" }[staffRole] || staffRole;
   var html = '<div class="card" style="margin-top:18px"><div class="card-h"><h2>Team & branches</h2>' +
     '<span class="hint">Your role: <b>' + esc(roleLabel) + '</b></span></div><div class="card-b">';
 
@@ -2786,7 +2775,7 @@ function staffSettingsHTML() {
       '<div class="field"><label>Display name</label><input id="st_name" placeholder="Optional name on receipts"></div>' +
       '<button type="button" class="btn primary" id="btnInviteStaff">Invite staff</button>';
   } else {
-    html += '<p class="hint">Only the <b>owner</b> can invite staff or add branches. Ask them to invite your email after you sign up.</p>';
+    html += '<p class="hint">Only the <b>Tenant Admin</b> can invite staff or add branches. Ask them to invite your email after you sign up.</p>';
   }
 
   if (staffList.length) {
@@ -3164,7 +3153,7 @@ async function saveLayoutJson() {
 
 async function saveBusinessProfile() {
   if (!sb || !biz) return;
-  if (!canEditSettings()) { say("Only the owner or a manager can change business settings.", "warn"); return; }
+  if (!canEditSettings()) { say("Only the Tenant Admin or a manager can change business settings.", "warn"); return; }
   var btn = $("btnSaveBiz");
   var cat = ($("s_category") && $("s_category").value) || "retail";
   var layout = Object.assign({}, biz.receipt_layout || {});
@@ -3407,7 +3396,7 @@ function openReceiptByNo(no) {
 /* ---------------- verification ---------------- */
 
 async function lookup(no, vid) {
-  /* Owner viewing their own receipt: it's already in the loaded log. */
+  /* Tenant Admin viewing their own receipt: it's already in the loaded log. */
   var hit = cache.filter(function (r) { return r.receiptNo === no; })[0];
   if (hit && (!vid || hit.verifyId === vid)) return hit;
 
@@ -3710,14 +3699,6 @@ async function downloadReceipt(r, silent) {
     return false;
   }
 
-  /* 2) Optional Claude downloads API if present */
-  try {
-    var dl = (window.claude && claude.use) ? await claude.use("downloads") : null;
-    if (dl) {
-      try { await dl.save({ filename: fname, data: blob }); } catch (e) {}
-    }
-  } catch (e) {}
-
   if (!silent) say("PDF downloaded: <b>" + esc(fname) + "</b>", "good");
   return true;
 }
@@ -3932,7 +3913,7 @@ function voidBar(show) {
 
 async function confirmVoid() {
   if (!current) return;
-  if (!canVoid()) { say("Only the owner or a manager can void receipts.", "warn"); return; }
+  if (!canVoid()) { say("Only the Tenant Admin or a manager can void receipts.", "warn"); return; }
   var reason = $("voidReason").value.trim();
   if (!reason) { say("A reason is required to void a receipt.", "warn"); return; }
   try {
