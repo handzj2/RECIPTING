@@ -15,7 +15,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f3f0e9; --panel:#fffcf7; --panel-2:#f7f3eb; --ink:#1c1917; --ink-soft:#57534e;
+  --bg:#f3f0e9; --panel:#fffcf7; --panel-2:#f7f3eb; --ink:#0c0a09; --ink-soft:#3f3a36;
   --line:#e0d9ce; --line-soft:#ebe6dc; --brand:#14120f; --brand-2:#292524; --accent:#9a3412;
   --accent-soft:#fef3e8; --ok:#166534; --ok-soft:#e8f5e9; --bad:#9f1239; --bad-soft:#fce8ec;
   --shadow:0 1px 2px rgba(28,25,23,.06),0 3px 10px rgba(28,25,23,.04);
@@ -24,7 +24,7 @@
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#121110; --panel:#1c1917; --panel-2:#171412; --ink:#f5f0e8; --ink-soft:#a8a29e;
+    --bg:#121110; --panel:#1c1917; --panel-2:#171412; --ink:#faf8f5; --ink-soft:#d6d0c8;
     --line:#3f3a34; --line-soft:#2a2622; --brand:#0c0b0a; --brand-2:#1c1917; --accent:#ea580c;
     --accent-soft:#3b2010; --ok:#4ade80; --ok-soft:#14532d; --bad:#fb7185; --bad-soft:#4c0519;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
@@ -32,7 +32,7 @@
   }
 }
 :root[data-theme="dark"]{
-  --bg:#121110; --panel:#1c1917; --panel-2:#171412; --ink:#f5f0e8; --ink-soft:#a8a29e;
+  --bg:#121110; --panel:#1c1917; --panel-2:#171412; --ink:#faf8f5; --ink-soft:#d6d0c8;
   --line:#3f3a34; --line-soft:#2a2622; --brand:#0c0b0a; --brand-2:#1c1917; --accent:#ea580c;
   --accent-soft:#3b2010; --ok:#4ade80; --ok-soft:#14532d; --bad:#fb7185; --bad-soft:#4c0519;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
@@ -40,7 +40,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14.5px;line-height:1.55;font-weight:450;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 .wrap{max-width:1120px;margin:0 auto;padding:20px 20px 72px}
 h1,h2,h3{margin:0}
 button{font:inherit;cursor:pointer}
@@ -63,25 +63,26 @@ input,select,textarea{font:inherit;color:inherit}
 @media (max-width:900px){.grid{grid-template-columns:1fr}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
 .panel-h{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--panel-2);border-radius:var(--radius) var(--radius) 0 0}
-.panel-h h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);font-weight:700}
+.panel-h h2{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);font-weight:700}
 .panel-b{padding:20px}
 /* legacy card aliases for gradual migration */
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
 .card-h{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--panel-2);border-radius:var(--radius) var(--radius) 0 0}
-.card-h h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);font-weight:700}
+.card-h h2{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);font-weight:700}
 .card-b{padding:20px}
 .field{margin-bottom:16px}
-.field label{display:block;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
-.field input,.field select,.field textarea{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;outline:none;transition:border-color .15s ease,box-shadow .15s ease}
+.field label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink);margin-bottom:6px;opacity:.88}
+.field input,.field select,.field textarea{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;outline:none;transition:border-color .15s ease,box-shadow .15s ease;color:var(--ink);font-weight:500}
+.field input::placeholder,.field textarea::placeholder{color:var(--ink-soft);opacity:.75;font-weight:400}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .field textarea{min-height:64px;resize:vertical}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media (max-width:520px){.two{grid-template-columns:1fr}}
-.hint{font-size:12px;color:var(--ink-soft);margin-top:5px;line-height:1.4}
+.hint{font-size:12.5px;color:var(--ink-soft);margin-top:5px;line-height:1.45;font-weight:500}
 .hint.ok{color:var(--ok)}
 .hint.warn{color:#b45309}
 .seg{display:flex;gap:0;background:var(--panel);border:1px solid var(--line);padding:0;border-radius:var(--radius);overflow:hidden}
-.seg button{flex:1;border:0;background:transparent;color:var(--ink-soft);padding:10px;border-radius:0;font-weight:600;font-size:13px;border-right:1px solid var(--line)}
+.seg button{flex:1;border:0;background:transparent;color:var(--ink);padding:10px;border-radius:0;font-weight:600;font-size:13px;border-right:1px solid var(--line);opacity:.72}
 .seg button:last-child{border-right:0}
 .seg button[aria-pressed="true"]{background:var(--brand);color:var(--on-brand)}
 .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:10px 16px;border-radius:var(--radius);font-weight:600;font-size:13.5px;transition:border-color .15s ease,background .15s ease}
@@ -103,7 +104,7 @@ input,select,textarea{font:inherit;color:inherit}
 .tools input{flex:1 1 240px}
 .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);box-shadow:var(--shadow)}
 table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:700px}
-th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);padding:12px 14px;border-bottom:1px solid var(--line);background:var(--panel-2);font-weight:700}
+th{text-align:left;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink);padding:12px 14px;border-bottom:1px solid var(--line);background:var(--panel-2);font-weight:700;opacity:.9}
 td{padding:13px 14px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
 tbody tr{cursor:pointer}
 tbody tr:hover td{background:var(--panel-2)}
@@ -124,7 +125,7 @@ tbody tr:last-child td{border-bottom:0}
 .issue-form .section-label:first-child{margin-top:0}
 .preview-panel{position:sticky;top:16px}
 .preview-panel .panel-h{justify-content:space-between}
-.preview-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.preview-label{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);opacity:.88;font-weight:600}
 .receipt-no-display{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:18px;font-weight:700;letter-spacing:.06em;color:var(--brand)}
 
 
@@ -360,7 +361,7 @@ tbody tr:last-child td{border-bottom:0}
 .wa-sheet .field label{
   display:block;font-size:0.75rem;font-weight:700;
   letter-spacing:.06em;text-transform:uppercase;
-  color:var(--ink-soft,#4a586e);margin-bottom:6px;
+  color:var(--ink);margin-bottom:6px;font-weight:700;
 }
 .wa-sheet input[type="tel"]{
   width:100%;box-sizing:border-box;
@@ -449,7 +450,7 @@ tbody tr:last-child td{border-bottom:0}
 /* Phase 2 — operational dashboard + post-issue */
 .ops-dash{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:0 0 16px}
 .ops-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-.ops-card .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.ops-card .k{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);font-weight:700;opacity:.9}
 .ops-card .v{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:26px;font-weight:700;margin-top:4px;letter-spacing:.02em}
 .ops-card .s{font-size:12px;color:var(--ink-soft);margin-top:2px}
 .ops-branch{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;align-items:center}
@@ -806,7 +807,7 @@ tbody tr:last-child td{border-bottom:0}
 .guide-tip {
   margin-top: 16px; padding: 14px 16px; border-radius: var(--radius);
   border: 1px solid var(--line); background: var(--panel);
-  font-size: 13.5px; color: var(--ink-soft); line-height: 1.5;
+  font-size: 13.5px; color: var(--ink); line-height: 1.5; opacity: .9;
   display: flex; gap: 12px; align-items: flex-start;
   animation: hjFadeUp .5s ease both;
   transition: opacity .35s ease, transform .35s ease;

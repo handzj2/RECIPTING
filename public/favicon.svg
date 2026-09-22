@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="HandzJ Tech">
+  <!-- Simplified geometric HJ mark for UI chrome — not a trace of the photo logo -->
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#94a3b8"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+  </defs>
+  <!-- Outer gear teeth (12) -->
+  <path fill="url(#g)" d="M32 2l3.2 6.2 6.8-1.4 1.4 6.8 6.2-3.2 3.2 6.2-3.2 6.2 6.2 3.2-3.2 6.2 3.2 6.2-6.2 3.2 3.2 6.2-6.2-3.2-1.4 6.8-6.8-1.4L32 62l-3.2-6.2-6.8 1.4-1.4-6.8-6.2 3.2-3.2-6.2 3.2-6.2-6.2-3.2 3.2-6.2-3.2-6.2 6.2-3.2-3.2-6.2 6.2 3.2 1.4-6.8 6.8 1.4L32 2z"/>
+  <!-- Inner ring -->
+  <circle cx="32" cy="32" r="18" fill="#0c0b0a" stroke="#64748b" stroke-width="1.5"/>
+  <!-- HJ monogram -->
+  <path fill="none" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"
+        d="M22 24v16M22 32h8M30 24v16M36 24h6c3.3 0 6 2.7 6 6s-2.7 6-6 6h-6v4"/>
+</svg>

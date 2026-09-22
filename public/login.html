@@ -15,14 +15,14 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f3f0e9; --panel:#fffcf7; --panel-2:#f7f3eb; --ink:#1c1917; --ink-soft:#57534e;
+  --bg:#f3f0e9; --panel:#fffcf7; --panel-2:#f7f3eb; --ink:#0c0a09; --ink-soft:#3f3a36;
   --line:#e0d9ce; --line-soft:#ebe6dc; --brand:#14120f; --brand-2:#292524; --accent:#9a3412;
   --accent-soft:#fef3e8; --ok:#166534; --ok-soft:#e8f5e9; --bad:#9f1239; --bad-soft:#fce8ec;
   --shadow:0 1px 2px rgba(28,25,23,.06),0 8px 24px rgba(28,25,23,.07);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#121110; --panel:#1c1917; --panel-2:#171412; --ink:#f5f0e8; --ink-soft:#a8a29e;
+    --bg:#121110; --panel:#1c1917; --panel-2:#171412; --ink:#faf8f5; --ink-soft:#d6d0c8;
     --line:#3f3a34; --line-soft:#2a2622; --accent:#ea580c; --accent-soft:#3b2010;
     --ok:#4ade80; --ok-soft:#14532d; --bad:#fb7185; --bad-soft:#4c0519;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
@@ -32,31 +32,32 @@
 html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5}
 .wrap{max-width:420px;margin:0 auto;padding:36px 18px 56px}
-.brandbar{display:flex;align-items:center;gap:16px;background:var(--brand);  color:#faf7f2;border-radius:10px;padding:18px 20px;box-shadow:var(--shadow)}.brandbar img{width:56px;height:56px;border-radius:8px;object-fit:cover;flex:none;  border:1px solid rgba(255,255,255,.12);background:#0c0b0a}.brandbar .t1{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:22px;font-weight:600;letter-spacing:.04em;line-height:1.15}.brandbar .t2{font-size:12px;color:#a8a29e;letter-spacing:.02em;margin-top:3px}
+.brandbar{display:flex;align-items:center;gap:16px;background:var(--brand);  color:#faf7f2;border-radius:10px;padding:18px 20px;box-shadow:var(--shadow)}.brandbar img{width:56px;height:56px;border-radius:8px;object-fit:cover;flex:none;  border:1px solid rgba(255,255,255,.12);background:#0c0b0a}.brandbar .t1{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:22px;font-weight:600;letter-spacing:.04em;line-height:1.15}.brandbar .t2{font-size:12.5px;color:#d6d0c8;letter-spacing:.02em;margin-top:3px;font-weight:500}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);margin-top:16px}
 .card-b{padding:24px}
 .seg{display:flex;gap:6px;background:var(--panel-2);border:1px solid var(--line);padding:4px;border-radius:10px;margin-bottom:20px}
-.seg button{flex:1;background:transparent;border:0;color:var(--ink-soft);padding:9px 10px;border-radius:7px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit}
+.seg button{flex:1;background:transparent;border:0;color:var(--ink);padding:9px 10px;border-radius:7px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;opacity:.7}
 .seg button[aria-selected="true"]{background:var(--brand);color:#faf7f2}
 h1{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:19px;margin:0 0 4px}
-.sub{font-size:13.5px;color:var(--ink-soft);margin:0 0 20px}
+.sub{font-size:14px;color:var(--ink-soft);margin:0 0 20px;font-weight:500}
 .field{margin-bottom:16px}
-.field label{display:block;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px}
-.field input{width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;outline:none;font:inherit;color:inherit}
+.field label{display:block;font-size:12.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--ink);margin-bottom:6px}
+.field input{width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;outline:none;font:inherit;color:var(--ink);font-weight:500}
+.field input::placeholder{color:var(--ink-soft);opacity:.8}
 .field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media (max-width:480px){.two{grid-template-columns:1fr}}
 .btn{background:var(--panel-2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px 16px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit}
 .btn.primary{background:var(--brand);border-color:var(--brand);color:#faf7f2;width:100%}
 .btn:disabled{opacity:.6;cursor:not-allowed}
-.hint{font-size:12.5px;color:var(--ink-soft);margin:.25rem 0 0}
+.hint{font-size:13px;color:var(--ink-soft);margin:.25rem 0 0;font-weight:500}
 .hint.ok{color:var(--ok)}
 .hint.warn{color:#b45309}
 .msg{border-radius:10px;padding:11px 13px;font-size:13.5px;margin-bottom:16px;display:none;border:1px solid transparent}
 .msg.warn{display:block;background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
 .msg.good{display:block;background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
 .trialnote{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13.5px;margin-bottom:18px;line-height:1.45}
-.foot{text-align:center;margin-top:18px;font-size:13px;color:var(--ink-soft)}
+.foot{text-align:center;margin-top:18px;font-size:13.5px;color:var(--ink-soft);font-weight:500}
 .foot a{color:var(--accent)}
 .linky{background:none;border:0;color:var(--accent);font:inherit;cursor:pointer;padding:0;text-decoration:underline}
 .pw-rules{list-style:none;padding:0;margin:.5rem 0 0;font-size:.9em}
@@ -71,7 +72,7 @@ h1{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:19px;mar
 .steps .step.done{border-color:var(--ok);color:var(--ok)}
 .field-ok{font-size:12px;color:var(--ok);margin-top:4px;min-height:16px}
 .field-bad{font-size:12px;color:var(--bad);margin-top:4px;min-height:16px}
-.guide{background:var(--accent-soft, #fef3e8);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13.5px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5}
+.guide{background:var(--accent-soft, #fef3e8);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13.5px;color:var(--ink);margin-bottom:16px;line-height:1.5;font-weight:500}
 .wiz-nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 @media (max-width:520px){
   .two{grid-template-columns:1fr}
