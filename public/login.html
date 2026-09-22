@@ -126,7 +126,7 @@ h1{font-size:19px;margin:0 0 4px}
       <div id="pane-up" style="display:none">
         <h1>Start your free trial</h1>
         <p class="sub">We will guide you in 3 short steps. 5 days free — no card needed.</p>
-        <div class="trialnote"><b>5 days free.</b> Receipts you issue stay yours. Subscribe later to keep issuing.</div>
+        <div class="trialnote"><b>5 days free + 5 receipt credits.</b> Receipts you issue stay yours. Buy a pack or subscribe later to keep issuing.</div>
 
         <div class="steps" id="up-steps">
           <div class="step on" data-step="1">1 · Business</div>
@@ -492,6 +492,13 @@ $("btnSignUp").addEventListener("click", async function () {
       p_prefix: null
     });
     if (rpc.error) throw rpc.error;
+    /* Defense in depth: server signup_business already grants FREE_5; retry if needed */
+    try {
+      var bizRow = Array.isArray(rpc.data) ? rpc.data[0] : rpc.data;
+      if (bizRow && bizRow.id) {
+        await sb.rpc("grant_free_starter_credits", { p_business_id: bizRow.id });
+      }
+    } catch (creditErr) { /* non-fatal — trial still works */ }
     try { localStorage.removeItem("handzj_pending_business"); } catch (e) {}
     location.replace(nextUrl());
   } catch (e) {

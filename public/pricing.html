@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pricing | HandzJ Digital Receipts</title>
-<meta name="description" content="HandzJ Digital Receipts pricing: 5-day free trial, UGX 50,000 per month or UGX 500,000 per year. Pay via Mobile Money.">
+<meta name="description" content="HandzJ Digital Receipts: receipt packs from UGX 5,000 or subscription UGX 50,000/month. 5 free receipts on signup. Pay via Mobile Money.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://recipting.vercel.app/pricing">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
 body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
 a{color:var(--brand);text-decoration:none}
 a:hover{text-decoration:underline}
-.wrap{max-width:800px;margin:0 auto;padding:24px 18px 64px}
+.wrap{max-width:880px;margin:0 auto;padding:24px 18px 64px}
 .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:8px 0 28px;border-bottom:1px solid var(--line);margin-bottom:28px}
 .nav .brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none}
 .nav .brand:hover{text-decoration:none}
@@ -36,15 +36,29 @@ li{margin-bottom:6px}
 .panel strong{color:var(--ink)}
 .note{font-size:13.5px;color:var(--muted);border-left:3px solid var(--brand);padding-left:12px;margin:16px 0}
 .warn{border-left-color:#c9a227}
-.flow{font-family:ui-monospace,monospace;font-size:13px;line-height:1.7;color:var(--ink);background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin:14px 0;white-space:pre-wrap}
 .footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between}
 .footer a{color:var(--muted)}
 .footer a:hover{color:var(--brand)}
 .legal-nav{display:flex;flex-wrap:wrap;gap:10px 16px;margin-top:8px}
 .price-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
 @media(max-width:600px){.price-row{grid-template-columns:1fr}}
-.price-card{background:var(--panel);border:1px solid var(--line);padding:16px}
+.price-card{background:var(--panel);border:1px solid var(--line);padding:16px;position:relative}
 .price-card .amt{font-size:22px;font-weight:700;color:var(--ink);margin:6px 0}
+.price-card.featured{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:rgba(13,157,199,.2);color:var(--brand);margin-bottom:6px}
+.badge.ok{background:rgba(95,214,164,.15);color:var(--ok)}
+.pack-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin:14px 0}
+.pack-card{background:var(--panel);border:1px solid var(--line);padding:14px 12px;text-align:center}
+.pack-card.entry{border-color:var(--brand)}
+.pack-card .pc{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.pack-card .pn{font-size:28px;font-weight:700;color:var(--ink);line-height:1.1;margin:6px 0 2px}
+.pack-card .pp{font-size:15px;font-weight:600;color:var(--brand)}
+.pack-card .pe{font-size:12px;color:var(--muted);margin-top:4px}
+table.pack-table{width:100%;border-collapse:collapse;font-size:13.5px;margin:12px 0}
+table.pack-table th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line)}
+table.pack-table td{padding:10px;border-bottom:1px solid var(--line);color:var(--muted)}
+table.pack-table td strong{color:var(--ink)}
+table.pack-table tr:last-child td{border-bottom:0}
 </style>
 </head>
 <body>
@@ -61,36 +75,127 @@ li{margin-bottom:6px}
     <a class="btn primary" href="/login.html?mode=signup">Start free</a>
   </div>
 </nav>
+
 <h1>Pricing</h1>
-<p class="lead">Simple plans. Manual Mobile Money activation. No automatic card gateway in the current release.</p>
+<p class="lead">Only pay for the receipts you actually need — or subscribe for continuous issuance. Manual Mobile Money activation. No automatic card gateway in the current release.</p>
+
+<!-- Free entry -->
 <div class="price-row">
-  <div class="price-card">
-    <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Trial</div>
-    <div class="amt">5 days free</div>
-    <p>Create an account and issue receipts during the trial. When the trial ends, existing receipts remain available to view, verify, print, and void. Issuing <strong style="color:var(--ink)">new</strong> receipts requires a subscription.</p>
+  <div class="price-card featured">
+    <span class="badge ok">Start here</span>
+    <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Free on signup</div>
+    <div class="amt">5 free receipts</div>
+    <p>Every new business gets <strong style="color:var(--ink)">5 digital receipt credits</strong> plus a <strong style="color:var(--ink)">5-day trial</strong>. No Mobile Money required to try.</p>
   </div>
   <div class="price-card">
-    <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Business</div>
-    <div class="amt">UGX 50,000 <span style="font-size:14px;font-weight:500;color:var(--muted)">/ month</span></div>
-    <p>or <strong style="color:var(--ink)">UGX 500,000 / year</strong></p>
+    <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">How credits work</div>
+    <div class="amt" style="font-size:18px">1 credit = 1 issued receipt</div>
     <ul>
-      <li>Cloud receipt register</li>
-      <li>Receipt image for WhatsApp</li>
-      <li>Online QR verification</li>
-      <li>PDF and print</li>
+      <li>View, download, share, QR verify, void — <strong style="color:var(--ink)">0 credits</strong></li>
+      <li>Credits do not expire every 30 days</li>
+      <li>Active subscription = unlimited issuance (no credit use)</li>
     </ul>
   </div>
 </div>
-<h2>How to subscribe</h2>
+
+<h2>Receipt packs — no monthly commitment</h2>
+<p>Buy a pack, use credits when your business needs them. Ideal for shops that issue receipts irregularly.</p>
+
+<div class="pack-grid">
+  <div class="pack-card entry">
+    <div class="pc">Entry</div>
+    <div class="pn">10</div>
+    <div class="pp">UGX 5,000</div>
+    <div class="pe">500 / receipt</div>
+  </div>
+  <div class="pack-card">
+    <div class="pc">Starter</div>
+    <div class="pn">20</div>
+    <div class="pp">UGX 10,000</div>
+    <div class="pe">500 / receipt</div>
+  </div>
+  <div class="pack-card">
+    <div class="pc">Grow</div>
+    <div class="pn">50</div>
+    <div class="pp">UGX 20,000</div>
+    <div class="pe">400 / receipt</div>
+  </div>
+  <div class="pack-card">
+    <div class="pc">Business</div>
+    <div class="pn">100</div>
+    <div class="pp">UGX 35,000</div>
+    <div class="pe">350 / receipt</div>
+  </div>
+  <div class="pack-card">
+    <div class="pc">Pro</div>
+    <div class="pn">250</div>
+    <div class="pp">UGX 75,000</div>
+    <div class="pe">300 / receipt</div>
+  </div>
+  <div class="pack-card">
+    <div class="pc">Scale</div>
+    <div class="pn">500</div>
+    <div class="pp">UGX 125,000</div>
+    <div class="pe">250 / receipt</div>
+  </div>
+  <div class="pack-card">
+    <div class="pc">Enterprise</div>
+    <div class="pn">1,000</div>
+    <div class="pp">UGX 200,000</div>
+    <div class="pe">200 / receipt</div>
+  </div>
+</div>
+
+<table class="pack-table" aria-label="Receipt pack prices">
+  <thead>
+    <tr><th>Pack</th><th>Credits</th><th>Price</th><th>Effective / receipt</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Entry</strong></td><td>10</td><td><strong>UGX 5,000</strong></td><td>500</td></tr>
+    <tr><td><strong>Starter</strong></td><td>20</td><td>UGX 10,000</td><td>500</td></tr>
+    <tr><td><strong>Grow</strong></td><td>50</td><td>UGX 20,000</td><td>400</td></tr>
+    <tr><td><strong>Business</strong></td><td>100</td><td>UGX 35,000</td><td>350</td></tr>
+    <tr><td><strong>Pro</strong></td><td>250</td><td>UGX 75,000</td><td>300</td></tr>
+    <tr><td><strong>Scale</strong></td><td>500</td><td>UGX 125,000</td><td>250</td></tr>
+    <tr><td><strong>Enterprise</strong></td><td>1,000</td><td>UGX 200,000</td><td>200</td></tr>
+  </tbody>
+</table>
+
+<h2>Subscription — continuous issuers</h2>
+<div class="price-row">
+  <div class="price-card">
+    <span class="badge">Best for daily use</span>
+    <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Business monthly</div>
+    <div class="amt">UGX 50,000 <span style="font-size:14px;font-weight:500;color:var(--muted)">/ month</span></div>
+    <ul>
+      <li>Unlimited* receipt issuance while active</li>
+      <li>Does not consume pack credits</li>
+      <li>Cloud register, QR verify, WhatsApp image, PDF</li>
+    </ul>
+  </div>
+  <div class="price-card">
+    <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Business annual</div>
+    <div class="amt">UGX 500,000 <span style="font-size:14px;font-weight:500;color:var(--muted)">/ year</span></div>
+    <p>Save 2 months vs paying monthly. Same features as monthly.</p>
+  </div>
+</div>
+<p class="note">*Fair-use applies. Contact us for very high volume. When a subscription is active, pack credits are not consumed.</p>
+
+<h2>How to buy (packs or subscription)</h2>
 <ol>
-<li>Choose monthly (UGX 50,000) or annual (UGX 500,000).</li>
-<li>Pay via MTN or Airtel Money.</li>
-<li>Send the payment reference and your login email to support (see <a href="/contact">Contact</a>).</li>
-<li>We activate your plan in the admin dashboard — usually the same day. Your data stays in place.</li>
+  <li>Choose a <strong style="color:var(--ink)">receipt pack</strong> or a <strong style="color:var(--ink)">monthly / annual</strong> plan.</li>
+  <li>Pay via <strong style="color:var(--ink)">MTN</strong> or <strong style="color:var(--ink)">Airtel Money</strong>.</li>
+  <li>Send the <strong style="color:var(--ink)">payment reference</strong> and your <strong style="color:var(--ink)">login email</strong> to support (see <a href="/contact">Contact</a>).</li>
+  <li>We activate credits or your subscription in the admin dashboard — usually the same day. Existing receipts stay in place.</li>
 </ol>
-<p class="note">There is no receipt-count quota in the current system. Limits are based on trial time and subscription status.</p>
-<p><a class="btn primary" href="/login.html?mode=signup">Start 5-day trial</a>
-<a class="btn" href="mailto:handzj2@gmail.com?subject=HandzJ%20Business%20Plan%20—%20Mobile%20Money">Email to subscribe</a></p>
+
+<p class="note warn">Activation is manual in this release. Always include your payment reference so we can match your Mobile Money transfer.</p>
+
+<p>
+  <a class="btn primary" href="/login.html?mode=signup">Start free — 5 receipts + 5-day trial</a>
+  <a class="btn" href="mailto:handzj2@gmail.com?subject=HandzJ%20Receipt%20Pack%20or%20Subscription%20—%20Mobile%20Money">Email to buy a pack / subscribe</a>
+</p>
+
 <footer class="footer">
   <div>
     <div>© HandzJ Tech Solutions · Digital Receipts</div>

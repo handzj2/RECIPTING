@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Owner dashboard — Digital Receipts</title>
+<title>Owner dashboard — HandzJ Receipts</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,53 +28,78 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5}
-.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 64px}
-button{font:inherit;cursor:pointer}
-input,select{font:inherit;color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:18px 16px 64px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
 .topbar{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,var(--brand) 0%,var(--brand-2) 100%);
   color:#eaf6fb;border-radius:14px;padding:14px 18px;box-shadow:var(--shadow);flex-wrap:wrap}
-.topbar img{width:50px;height:50px;border-radius:10px;object-fit:cover;flex:none}
-.topbar .t1{font-family:"Barlow Condensed",Inter,sans-serif;font-size:25px;font-weight:700;letter-spacing:.06em;line-height:1.1}
-.topbar .t2{font-size:12px;color:#9fd8ea;letter-spacing:.03em}
-.topbar .grow{flex:1 1 200px}
+.topbar img{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:none}
+.topbar .t1{font-family:"Barlow Condensed",Inter,sans-serif;font-size:22px;font-weight:700;letter-spacing:.06em;line-height:1.1}
+.topbar .t2{font-size:12px;color:#9fd8ea}
+.topbar .grow{flex:1 1 160px}
 .btn{background:var(--panel-2);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 13px;font-weight:600;font-size:13px}
 .btn.ghost{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#eaf6fb}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#04222c}
+.btn.danger{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
 .btn.tiny{padding:5px 9px;font-size:12px;border-radius:7px}
-.btn:disabled{opacity:.55;cursor:not-allowed}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:18px}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px 16px;box-shadow:var(--shadow)}
-.stat .n{font-family:"Barlow Condensed",Inter,sans-serif;font-size:32px;font-weight:700;line-height:1.05}
-.stat .l{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin-top:2px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 0;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.tabs button{flex:1 1 auto;min-width:100px;border:0;background:transparent;padding:10px 14px;border-radius:9px;font-weight:600;font-size:13px;color:var(--ink-soft)}
+.tabs button[aria-selected="true"]{background:var(--accent);color:#04222c}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
+.stat .n{font-family:"Barlow Condensed",Inter,sans-serif;font-size:28px;font-weight:700;line-height:1.05}
+.stat .l{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin-top:2px}
 .stat.hot .n{color:var(--bad)}
 .stat.good .n{color:var(--ok)}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin-top:18px}
-.card-h{padding:13px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.card-h h2{font-size:13.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;margin:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin-top:14px}
+.card-h{padding:12px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.card-h h2{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;margin:0}
 .card-b{padding:14px 16px}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.filters input,.filters select{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px;outline:none}
-.filters input{flex:1 1 240px}
+.filters input,.filters select,.field input,.field select{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px;outline:none;width:100%}
+.filters input{flex:1 1 200px}
+.filters select{flex:0 1 160px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.field-row{grid-template-columns:1fr}}
 .tablewrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:840px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
 th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
   padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:11px 10px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
 tr:last-child td{border-bottom:0}
-.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
-.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.05em;white-space:nowrap}
+tr.selected{background:var(--accent-soft)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em;white-space:nowrap}
 .pill.sub{background:var(--ok-soft);color:var(--ok)}
 .pill.trial{background:var(--accent-soft);color:var(--accent)}
 .pill.ended{background:var(--bad-soft);color:var(--bad)}
 .pill.soon{background:var(--warn-soft);color:var(--warn)}
-.pill.new{background:var(--accent);color:#04222c;margin-left:6px}
-.acts{display:flex;gap:5px;flex-wrap:wrap}
+.pill.new{background:var(--accent);color:#04222c;margin-left:4px}
 .hint{font-size:12.5px;color:var(--ink-soft)}
-.msg{border-radius:10px;padding:11px 13px;font-size:13.5px;margin-top:14px;display:none;border:1px solid transparent}
+.msg{border-radius:10px;padding:11px 13px;font-size:13.5px;margin-top:12px;display:none;border:1px solid transparent}
 .msg.warn{display:block;background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
 .msg.good{display:block;background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
-.empty{padding:30px;text-align:center;color:var(--ink-soft);font-size:13.5px}
+.empty{padding:28px;text-align:center;color:var(--ink-soft);font-size:13.5px}
 .sub-name{font-weight:600}
+.panel-tab{display:none}
+.panel-tab.active{display:block}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.drawer-bg{position:fixed;inset:0;background:rgba(10,16,28,.45);z-index:40;display:none}
+.drawer-bg.open{display:block}
+.drawer{position:fixed;top:0;right:0;width:min(400px,100%);height:100%;background:var(--panel);z-index:50;
+  box-shadow:var(--shadow);transform:translateX(100%);transition:transform .2s ease;overflow-y:auto;padding:18px}
+.drawer.open{transform:translateX(0)}
+.drawer h3{margin:0 0 4px;font-size:18px}
+.drawer .section{margin-top:18px;padding-top:14px;border-top:1px solid var(--line-soft)}
+.drawer .section h4{margin:0 0 10px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.activate-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:720px){.activate-grid{grid-template-columns:1fr}}
+.activate-box{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px}
+.activate-box h3{margin:0 0 12px;font-size:15px}
 </style>
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -86,7 +111,7 @@ tr:last-child td{border-bottom:0}
     <img src="/logo.jpg" alt="">
     <div class="grow">
       <div class="t1">OWNER DASHBOARD</div>
-      <div class="t2">Every business using your receipt system</div>
+      <div class="t2">Businesses · Packs · Subscriptions · Credits</div>
     </div>
     <button class="btn ghost" id="btnRefresh" type="button">Refresh</button>
     <a class="btn ghost" href="/app.html">My receipts</a>
@@ -95,122 +120,200 @@ tr:last-child td{border-bottom:0}
 
   <div id="msg" class="msg"></div>
 
+  <div class="tabs" role="tablist">
+    <button type="button" data-tab="businesses" aria-selected="true">1. Businesses</button>
+    <button type="button" data-tab="activate" aria-selected="false">2. Activate payment</button>
+    <button type="button" data-tab="packs" aria-selected="false">3. Pack prices</button>
+    <button type="button" data-tab="sales" aria-selected="false">4. Sales history</button>
+  </div>
+
   <div class="stats" id="stats"></div>
 
-  <div class="card">
-    <div class="card-h">
-      <h2>Subscribers</h2>
-      <span class="hint" id="count"></span>
-    </div>
-    <div class="card-b">
-      <div class="filters">
-        <input id="q" placeholder="Search business name, email or phone…">
-        <select id="fState">
-          <option value="">All states</option>
-          <option value="SUBSCRIBED">Subscribed</option>
-          <option value="TRIAL">On trial</option>
-          <option value="TRIAL_ENDED">Trial ended</option>
-          <option value="SUB_EXPIRED">Subscription lapsed</option>
-          <option value="CANCELLED">Cancelled</option>
-          <option value="SUSPENDED">Suspended</option>
-          <option value="FLAGGED">Flagged</option>
-          <option value="UNDER_REVIEW">Under review</option>
-        </select>
-        <select id="fSort">
-          <option value="new">Newest signups first</option>
-          <option value="ending">Trial ending soonest</option>
-          <option value="usage">Most receipts issued</option>
-          <option value="name">Business name</option>
-        </select>
+  <!-- ========== TAB: BUSINESSES ========== -->
+  <div class="panel-tab active" id="tab-businesses">
+    <div class="card">
+      <div class="card-h">
+        <h2>Businesses</h2>
+        <span class="hint" id="count"></span>
       </div>
-      <div class="tablewrap">
-        <table>
-          <thead><tr>
-            <th>Business</th><th>Contact</th><th>Signed up</th>
-            <th>State</th><th>KYC</th><th>Receipts</th><th>Last activity</th><th>Actions</th>
-          </tr></thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </div>
-      <div id="empty" class="empty">Loading…</div>
-    </div>
-  </div>
-
-  <!-- Receipt pack pricing (admin-controlled) -->
-  <div class="card" id="packCatalogCard">
-    <div class="card-h">
-      <h2>Receipt pack pricing</h2>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn tiny primary" type="button" id="btnNewPack">+ New pack</button>
-        <button class="btn tiny" type="button" id="btnRefreshPacks">Refresh packs</button>
-      </div>
-    </div>
-    <div class="card-b">
-      <p class="hint" style="margin-top:0">Change prices, credits or visibility. Paid activations require a Mobile Money reference.</p>
-      <div class="tablewrap">
-        <table>
-          <thead><tr>
-            <th>Code</th><th>Name</th><th>Credits</th><th>Price (UGX)</th><th>Per receipt</th><th>Active</th><th>Sort</th><th>Actions</th>
-          </tr></thead>
-          <tbody id="packCatalogRows"></tbody>
-        </table>
-      </div>
-      <div id="packCatalogEmpty" class="empty" style="display:none">No packs in catalog (run SQL 014–015).</div>
-    </div>
-  </div>
-
-  <!-- Pack sales monitor -->
-  <div class="card" id="packMonitorCard">
-    <div class="card-h">
-      <h2>Pack sales &amp; credits</h2>
-      <span class="hint" id="packPurchaseCount"></span>
-    </div>
-    <div class="card-b">
-      <div class="stats" id="packStats" style="margin-top:0;margin-bottom:14px"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end">
-        <div>
-          <label class="hint" style="display:block;margin-bottom:4px">Business UUID</label>
-          <input id="actBizId" placeholder="Business UUID" style="min-width:220px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px">
-        </div>
-        <div>
-          <label class="hint" style="display:block;margin-bottom:4px">Pack</label>
-          <select id="actPackCode" style="background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px">
-            <option value="">Select pack…</option>
+      <div class="card-b">
+        <div class="filters">
+          <input id="q" placeholder="Search name, email or phone…">
+          <select id="fState">
+            <option value="">All states</option>
+            <option value="SUBSCRIBED">Subscribed</option>
+            <option value="TRIAL">On trial</option>
+            <option value="TRIAL_ENDED">Trial ended</option>
+            <option value="SUB_EXPIRED">Subscription lapsed</option>
+            <option value="CANCELLED">Cancelled</option>
+            <option value="SUSPENDED">Suspended</option>
+          </select>
+          <select id="fSort">
+            <option value="new">Newest first</option>
+            <option value="ending">Trial ending soon</option>
+            <option value="usage">Most receipts</option>
+            <option value="name">Name A–Z</option>
           </select>
         </div>
-        <div>
-          <label class="hint" style="display:block;margin-bottom:4px">MoMo payment ref</label>
-          <input id="actPayRef" placeholder="Required for paid packs" style="min-width:140px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px">
+        <div class="tablewrap">
+          <table>
+            <thead><tr>
+              <th>Business</th><th>Contact</th><th>State</th><th>Receipts</th><th>Signed up</th><th></th>
+            </tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
         </div>
-        <button class="btn tiny primary" type="button" id="btnActivatePack">Activate pack</button>
-        <button class="btn tiny" type="button" id="btnGrantCredits">Grant free credits…</button>
-        <button class="btn tiny primary" type="button" id="btnActivateSub">Activate subscription…</button>
+        <div id="empty" class="empty">Loading…</div>
+        <p class="hint" style="margin-top:12px;margin-bottom:0">Click <b>Manage</b> for KYC, trial, suspend, rename. Use tab <b>2. Activate payment</b> after Mobile Money.</p>
       </div>
-      <div class="tablewrap">
-        <table>
-          <thead><tr>
-            <th>When</th><th>Business</th><th>Pack</th><th>Credits</th><th>Price</th><th>Payment</th><th>Status</th><th>Balance left</th>
-          </tr></thead>
-          <tbody id="packPurchaseRows"></tbody>
-        </table>
-      </div>
-      <div id="packPurchaseEmpty" class="empty" style="display:none">No pack purchases yet.</div>
     </div>
   </div>
 
-  <p class="hint" style="margin-top:14px">
-    Activating a business takes effect on their next page refresh — no data is re-entered and nothing they
-    already issued is touched. Extending a trial works the same way. Paid packs and subscriptions require a payment reference.
-  </p>
+  <!-- ========== TAB: ACTIVATE ========== -->
+  <div class="panel-tab" id="tab-activate">
+    <div class="card">
+      <div class="card-h"><h2>Activate after Mobile Money</h2></div>
+      <div class="card-b">
+        <p class="hint" style="margin-top:0">Pick the business by <b>name</b>, enter the MoMo reference, then activate a pack or subscription. No UUID needed.</p>
+        <div class="field">
+          <label for="actBiz">Business</label>
+          <select id="actBiz"><option value="">Select business…</option></select>
+        </div>
+        <div class="field">
+          <label for="actPayRef">MoMo payment reference <span style="color:var(--bad)">*</span></label>
+          <input id="actPayRef" placeholder="e.g. MTN transaction ID from the SMS">
+        </div>
+        <div class="activate-grid">
+          <div class="activate-box">
+            <h3>Receipt pack</h3>
+            <div class="field">
+              <label for="actPackCode">Pack</label>
+              <select id="actPackCode"><option value="">Select pack…</option></select>
+            </div>
+            <button class="btn primary" type="button" id="btnActivatePack">Activate pack credits</button>
+            <p class="hint" style="margin:10px 0 0">Credits appear on their account immediately.</p>
+          </div>
+          <div class="activate-box">
+            <h3>Subscription</h3>
+            <div class="field">
+              <label for="actSubPlan">Plan</label>
+              <select id="actSubPlan">
+                <option value="MONTHLY">Monthly — UGX 50,000</option>
+                <option value="ANNUAL">Annual — UGX 500,000</option>
+              </select>
+            </div>
+            <button class="btn primary" type="button" id="btnActivateSub">Activate subscription</button>
+            <p class="hint" style="margin:10px 0 0">Unlimited issuance until period ends.</p>
+          </div>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label>Or grant free / promo credits (no payment)</label>
+          <div class="form-actions">
+            <input id="grantCount" type="number" min="1" value="5" style="width:90px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px">
+            <input id="grantNote" placeholder="Note (required)" style="flex:1;min-width:140px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px">
+            <button class="btn" type="button" id="btnGrantCredits">Grant credits</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: PACK PRICES ========== -->
+  <div class="panel-tab" id="tab-packs">
+    <div class="card">
+      <div class="card-h">
+        <h2>Receipt pack catalog</h2>
+        <div class="acts">
+          <button class="btn tiny primary" type="button" id="btnNewPack">+ New pack</button>
+          <button class="btn tiny" type="button" id="btnRefreshPacks">Refresh</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <p class="hint" style="margin-top:0">Edit prices or disable packs. Changes apply to new activations only — past purchases keep their snapshot price.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr>
+              <th>Code</th><th>Name</th><th>Credits</th><th>Price</th><th>/ receipt</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody id="packCatalogRows"></tbody>
+          </table>
+        </div>
+        <div id="packCatalogEmpty" class="empty" style="display:none">No packs — run SQL 014–015.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: SALES ========== -->
+  <div class="panel-tab" id="tab-sales">
+    <div class="card">
+      <div class="card-h">
+        <h2>Pack sales &amp; credits</h2>
+        <span class="hint" id="packPurchaseCount"></span>
+      </div>
+      <div class="card-b">
+        <div class="stats" id="packStats" style="margin-top:0;margin-bottom:14px"></div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr>
+              <th>When</th><th>Business</th><th>Pack</th><th>Credits</th><th>Price</th><th>Payment</th><th>Status</th><th>Balance</th>
+            </tr></thead>
+            <tbody id="packPurchaseRows"></tbody>
+          </table>
+        </div>
+        <div id="packPurchaseEmpty" class="empty" style="display:none">No pack purchases yet.</div>
+      </div>
+    </div>
+  </div>
+
 </div>
+
+<!-- Manage drawer -->
+<div class="drawer-bg" id="drawerBg"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <button class="btn tiny" type="button" id="drawerClose" style="float:right">Close</button>
+  <h3 id="drawerTitle">Business</h3>
+  <p class="hint mono" id="drawerId"></p>
+  <p class="hint" id="drawerMeta"></p>
+
+  <div class="section">
+    <h4>Billing (quick)</h4>
+    <p class="hint" style="margin-top:0">For paid packs/subs with a MoMo ref, use tab <b>2. Activate payment</b>.</p>
+    <div class="acts">
+      <button class="btn tiny primary" data-act="trial5" type="button">+5 days trial</button>
+      <button class="btn tiny" data-act="cancel" type="button">Cancel subscription</button>
+    </div>
+  </div>
+  <div class="section">
+    <h4>KYC &amp; account</h4>
+    <div class="acts">
+      <button class="btn tiny" data-act="kyc_ok" type="button">KYC approve</button>
+      <button class="btn tiny" data-act="kyc_no" type="button">KYC reject</button>
+      <button class="btn tiny danger" data-act="suspend" type="button">Suspend</button>
+      <button class="btn tiny" data-act="reinstate" type="button">Reinstate</button>
+    </div>
+  </div>
+  <div class="section">
+    <h4>Identity</h4>
+    <div class="acts">
+      <button class="btn tiny" data-act="rename" type="button">Edit name</button>
+      <button class="btn tiny" data-act="prefix" type="button">Edit prefix</button>
+      <button class="btn tiny" data-act="logo_grant" type="button">Allow 1 logo change</button>
+      <button class="btn tiny" data-act="logo_clear" type="button">Clear logo</button>
+    </div>
+  </div>
+  <div class="section">
+    <h4>Activate this business</h4>
+    <button class="btn primary" type="button" id="drawerToActivate">Open Activate tab →</button>
+  </div>
+</aside>
 
 <script>
 "use strict";
 
 var $ = function (id) { return document.getElementById(id); };
 var cfg = window.HANDZJ_CONFIG || {};
-var sb = null, list = [], lastSeenKey = "handzj_admin_last_seen";
-var lastSeen = null;
+var sb = null, list = [], packCatalog = [], selectedId = null;
+var lastSeenKey = "handzj_admin_last_seen", lastSeen = null;
 
 function esc(s) {
   return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -238,12 +341,23 @@ function ago(v) {
   var d = Math.floor(mins / 1440);
   return d === 1 ? "yesterday" : d + " days ago";
 }
-function money(n, code) {
-  var v = Number(n) || 0;
-  return (code || "UGX") + " " + v.toLocaleString("en-US", { maximumFractionDigits: 0 });
+
+/* ---- tabs ---- */
+document.querySelectorAll(".tabs button").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    document.querySelectorAll(".tabs button").forEach(function (b) { b.setAttribute("aria-selected", "false"); });
+    btn.setAttribute("aria-selected", "true");
+    document.querySelectorAll(".panel-tab").forEach(function (p) { p.classList.remove("active"); });
+    var tab = $("tab-" + btn.dataset.tab);
+    if (tab) tab.classList.add("active");
+  });
+});
+function goTab(name) {
+  var btn = document.querySelector('.tabs button[data-tab="' + name + '"]');
+  if (btn) btn.click();
 }
 
-/* ---------------- boot ---------------- */
+/* ---- boot ---- */
 (async function boot() {
   if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY || !window.supabase) {
     msg("Not connected to Supabase — check <code>config.js</code>.", "warn");
@@ -251,29 +365,28 @@ function money(n, code) {
     return;
   }
   sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
-
   var sess = await sb.auth.getSession();
   if (!(sess && sess.data && sess.data.session)) {
     location.replace("/login.html?next=" + encodeURIComponent("/admin.html"));
     return;
   }
-
   var adm = await sb.rpc("is_platform_admin");
   if (adm.error || !adm.data) {
     document.querySelector(".stats").style.display = "none";
-    document.querySelector(".card").style.display = "none";
-    msg("This dashboard is for the platform owner only. Your account isn't on the admin list. " +
-        "<a href='/app.html'>Go to your receipts →</a>", "warn");
+    document.querySelectorAll(".panel-tab,.tabs").forEach(function (el) { el.style.display = "none"; });
+    msg("This dashboard is for the platform owner only. <a href='/app.html'>Go to your receipts →</a>", "warn");
     return;
   }
-
   try { lastSeen = localStorage.getItem(lastSeenKey); } catch (e) {}
-  await load();
-  await loadPacks();
+  await loadAll();
   try { localStorage.setItem(lastSeenKey, new Date().toISOString()); } catch (e) {}
 })();
 
-/* ---------------- data ---------------- */
+async function loadAll() {
+  await load();
+  await loadPacks();
+}
+
 async function load() {
   $("empty").textContent = "Loading…";
   $("empty").style.display = "";
@@ -284,9 +397,10 @@ async function load() {
     list = res[0].data || [];
     renderStats(Array.isArray(res[1].data) ? res[1].data[0] : res[1].data);
     render();
+    fillBizSelect();
     msg("");
   } catch (e) {
-    msg("Could not load the dashboard: " + esc(e && e.message ? e.message : e), "warn");
+    msg("Could not load: " + esc(e && e.message ? e.message : e), "warn");
     $("empty").textContent = "Could not load.";
   }
 }
@@ -294,38 +408,34 @@ async function load() {
 function renderStats(s) {
   if (!s) { $("stats").innerHTML = ""; return; }
   var cards = [
-    { n: s.businesses_total, l: "Businesses", cls: "" },
-    { n: s.subscribed,       l: "Subscribed", cls: "good" },
-    { n: s.on_trial,         l: "On trial", cls: "" },
-    { n: s.trials_ending_3d, l: "Trials ending ≤3d", cls: "hot" },
-    { n: s.trial_ended,      l: "Trial ended", cls: "hot" },
-    { n: s.signups_7d,       l: "New this week", cls: "" },
-    { n: s.receipts_total,   l: "Receipts issued", cls: "" },
-    { n: s.receipts_30d,     l: "Receipts (30d)", cls: "" }
+    { n: s.businesses_total, l: "Businesses" },
+    { n: s.subscribed, l: "Subscribed", cls: "good" },
+    { n: s.on_trial, l: "On trial" },
+    { n: s.trials_ending_3d, l: "Trials ≤3d", cls: "hot" },
+    { n: s.trial_ended, l: "Trial ended", cls: "hot" },
+    { n: s.signups_7d, l: "New this week" },
+    { n: s.receipts_total, l: "Receipts" },
+    { n: s.receipts_30d, l: "Receipts 30d" }
   ];
   $("stats").innerHTML = cards.map(function (c) {
-    return '<div class="stat ' + c.cls + '"><div class="n">' + esc(c.n == null ? "—" : c.n) +
+    return '<div class="stat ' + (c.cls || "") + '"><div class="n">' + esc(c.n == null ? "—" : c.n) +
            '</div><div class="l">' + esc(c.l) + '</div></div>';
   }).join("");
 }
 
 function statePill(b) {
   var d = b.days_left;
-  if (b.state === "SUBSCRIBED") {
-    return '<span class="pill sub">SUBSCRIBED' + (d != null ? " · " + d + "d" : "") + '</span>';
-  }
-  if (b.state === "TRIAL") {
-    return '<span class="pill ' + (d != null && d <= 2 ? "soon" : "trial") + '">TRIAL · ' + (d == null ? "?" : d) + 'd left</span>';
-  }
+  if (b.state === "SUBSCRIBED")
+    return '<span class="pill sub">SUB' + (d != null ? " · " + d + "d" : "") + '</span>';
+  if (b.state === "TRIAL")
+    return '<span class="pill ' + (d != null && d <= 2 ? "soon" : "trial") + '">TRIAL · ' + (d == null ? "?" : d) + 'd</span>';
   if (b.state === "TRIAL_ENDED") return '<span class="pill ended">TRIAL ENDED</span>';
   if (b.state === "SUB_EXPIRED") return '<span class="pill ended">LAPSED</span>';
   return '<span class="pill ended">' + esc(b.state) + '</span>';
 }
 
 function filtered() {
-  var q = $("q").value.trim().toLowerCase(),
-      st = $("fState").value,
-      sort = $("fSort").value;
+  var q = $("q").value.trim().toLowerCase(), st = $("fState").value, sort = $("fSort").value;
   var out = list.filter(function (b) {
     if (st && b.state !== st) return false;
     if (!q) return true;
@@ -345,111 +455,113 @@ function filtered() {
 
 function render() {
   var rows = filtered();
-  $("count").textContent = rows.length + " of " + list.length + " business" + (list.length === 1 ? "" : "es");
+  $("count").textContent = rows.length + " of " + list.length;
   $("empty").style.display = rows.length ? "none" : "";
-  if (!rows.length) $("empty").textContent = "No businesses match that filter.";
-
+  if (!rows.length) $("empty").textContent = "No businesses match.";
   $("rows").innerHTML = rows.map(function (b) {
     var isNew = lastSeen && b.signed_up_at && String(b.signed_up_at) > String(lastSeen);
-    var theme = (b.receipt_layout && b.receipt_layout.theme) ? b.receipt_layout.theme : "classic";
-    return '<tr>' +
-      '<td><div class="sub-name">' + esc(b.name) + (isNew ? '<span class="pill new">NEW</span>' : '') +
-        ' <span class="pill" style="background:#e8eef6;color:#2d4260;text-transform:none;font-weight:500">' + esc(theme) + '</span></div>' +
+    return '<tr data-id="' + esc(b.id) + '">' +
+      '<td><div class="sub-name">' + esc(b.name) + (isNew ? '<span class="pill new">NEW</span>' : '') + '</div>' +
         '<div class="hint mono">' + esc(b.prefix || "—") + '</div></td>' +
       '<td><div>' + esc(b.owner_email || "—") + '</div>' +
         '<div class="hint">' + esc(b.phone || b.whatsapp || "—") + '</div></td>' +
+      '<td>' + statePill(b) + '<div class="hint">' + esc(b.kyc_status || "") + '</div></td>' +
+      '<td>' + esc(b.receipts_count || 0) + '</td>' +
       '<td>' + esc(fmtDate(b.signed_up_at)) + '<div class="hint">' + esc(ago(b.signed_up_at)) + '</div></td>' +
-      '<td>' + statePill(b) + '</td>' +
-      '<td><span class="hint">' + esc(b.kyc_status || "—") + '</span></td>' +
-      '<td>' + esc(b.receipts_count || 0) +
-        '<div class="hint">' + esc(money(b.total_billed, b.currency)) + '</div></td>' +
-      '<td>' + esc(ago(b.last_receipt_at)) + '</td>' +
-      '<td><div class="acts">' +
-        '<button class="btn tiny primary" data-act="sub1" data-id="' + esc(b.id) + '">+1 month</button>' +
-        '<button class="btn tiny primary" data-act="sub12" data-id="' + esc(b.id) + '">+1 year</button>' +
-        '<button class="btn tiny" data-act="trial5" data-id="' + esc(b.id) + '">+5d trial</button>' +
-        '<button class="btn tiny" data-act="cancel" data-id="' + esc(b.id) + '">Cancel</button>' +
-        '<button class="btn tiny" data-act="kyc_ok" data-id="' + esc(b.id) + '">KYC approve</button>' +
-        '<button class="btn tiny" data-act="kyc_no" data-id="' + esc(b.id) + '">KYC reject</button>' +
-        '<button class="btn tiny" data-act="suspend" data-id="' + esc(b.id) + '">Suspend</button>' +
-        '<button class="btn tiny" data-act="reinstate" data-id="' + esc(b.id) + '">Reinstate</button>' +
-        '<button class="btn tiny" data-act="rename" data-id="' + esc(b.id) + '">Edit name</button>' +
-        '<button class="btn tiny" data-act="prefix" data-id="' + esc(b.id) + '">Edit prefix</button>' +
-        '<button class="btn tiny" data-act="logo_grant" data-id="' + esc(b.id) + '">Allow 1 logo change</button>' +
-        '<button class="btn tiny" data-act="logo_clear" data-id="' + esc(b.id) + '">Clear logo</button>' +
-      '</div></td>' +
+      '<td><button class="btn tiny primary" type="button" data-manage="' + esc(b.id) + '">Manage</button></td>' +
     '</tr>';
   }).join("");
 }
 
-/* ---------------- actions ---------------- */
-$("rows").addEventListener("click", async function (e) {
+function fillBizSelect() {
+  var sel = $("actBiz");
+  if (!sel) return;
+  var cur = sel.value;
+  var sorted = list.slice().sort(function (a, b) { return String(a.name).localeCompare(String(b.name)); });
+  sel.innerHTML = '<option value="">Select business…</option>' +
+    sorted.map(function (b) {
+      return '<option value="' + esc(b.id) + '">' + esc(b.name) +
+        (b.owner_email ? " — " + esc(b.owner_email) : "") + '</option>';
+    }).join("");
+  if (cur) sel.value = cur;
+}
+
+/* ---- manage drawer ---- */
+function openDrawer(id) {
+  selectedId = id;
+  var b = list.filter(function (x) { return x.id === id; })[0];
+  if (!b) return;
+  $("drawerTitle").textContent = b.name || "Business";
+  $("drawerId").textContent = b.id;
+  $("drawerMeta").innerHTML = statePill(b) + " · " + esc(b.owner_email || "—") +
+    " · " + esc(b.receipts_count || 0) + " receipts";
+  $("drawer").classList.add("open");
+  $("drawerBg").classList.add("open");
+  $("drawer").setAttribute("aria-hidden", "false");
+  document.querySelectorAll("#rows tr").forEach(function (tr) {
+    tr.classList.toggle("selected", tr.dataset.id === id);
+  });
+}
+function closeDrawer() {
+  $("drawer").classList.remove("open");
+  $("drawerBg").classList.remove("open");
+  $("drawer").setAttribute("aria-hidden", "true");
+}
+$("drawerClose").addEventListener("click", closeDrawer);
+$("drawerBg").addEventListener("click", closeDrawer);
+$("drawerToActivate").addEventListener("click", function () {
+  if (selectedId) $("actBiz").value = selectedId;
+  closeDrawer();
+  goTab("activate");
+});
+
+$("rows").addEventListener("click", function (e) {
+  var btn = e.target.closest("[data-manage]");
+  if (btn) openDrawer(btn.dataset.manage);
+});
+
+/* ---- business actions (drawer) ---- */
+$("drawer").addEventListener("click", async function (e) {
   var btn = e.target.closest("button[data-act]");
-  if (!btn) return;
-  var id = btn.dataset.id, act = btn.dataset.act;
+  if (!btn || !selectedId) return;
+  var id = selectedId, act = btn.dataset.act;
   var b = list.filter(function (x) { return x.id === id; })[0];
   var label = b ? b.name : "this business";
-
   btn.disabled = true;
-  var prevLabel = btn.textContent;
-  btn.textContent = "…";
   try {
     var res;
-    if (act === "sub1")       res = await sb.rpc("admin_set_subscription", { p_business: id, p_months: 1 });
-    else if (act === "sub12") res = await sb.rpc("admin_set_subscription", { p_business: id, p_months: 12 });
-    else if (act === "trial5")res = await sb.rpc("admin_extend_trial", { p_business: id, p_days: 5 });
+    if (act === "trial5") res = await sb.rpc("admin_extend_trial", { p_business: id, p_days: 5 });
     else if (act === "cancel") res = await sb.rpc("admin_cancel_subscription", { p_business: id });
     else if (act === "kyc_ok") res = await sb.rpc("admin_review_kyc", { p_business: id, p_decision: "approved", p_reason: null });
     else if (act === "kyc_no") {
       var reason = prompt("Rejection reason (required):");
-      if (!reason || reason.trim().length < 3) { btn.disabled = false; btn.textContent = prevLabel; return; }
+      if (!reason || reason.trim().length < 3) { btn.disabled = false; return; }
       res = await sb.rpc("admin_review_kyc", { p_business: id, p_decision: "rejected", p_reason: reason.trim() });
-    }
-    else if (act === "suspend") {
+    } else if (act === "suspend") {
       var sreason = prompt("Suspend reason:");
       res = await sb.rpc("admin_set_account_status", { p_business: id, p_status: "suspended", p_reason: (sreason || "Suspended by admin").trim() });
-    }
-    else if (act === "reinstate") res = await sb.rpc("admin_set_account_status", { p_business: id, p_status: "active", p_reason: null });
+    } else if (act === "reinstate") res = await sb.rpc("admin_set_account_status", { p_business: id, p_status: "active", p_reason: null });
     else if (act === "rename") {
       var nn = prompt("New business name:", b && b.name ? b.name : "");
-      if (!nn || nn.trim().length < 2) { btn.disabled = false; btn.textContent = prevLabel; return; }
+      if (!nn || nn.trim().length < 2) { btn.disabled = false; return; }
       res = await sb.rpc("admin_update_business_identity", { p_business: id, p_name: nn.trim(), p_prefix: null });
-    }
-    else if (act === "prefix") {
+    } else if (act === "prefix") {
       var pp = prompt("New receipt prefix (letters, max 4):", b && b.prefix ? b.prefix : "");
-      if (!pp || !pp.trim()) { btn.disabled = false; btn.textContent = prevLabel; return; }
+      if (!pp || !pp.trim()) { btn.disabled = false; return; }
       res = await sb.rpc("admin_update_business_identity", { p_business: id, p_name: null, p_prefix: pp.trim() });
-    }
-    else if (act === "logo_grant") {
-      res = await sb.rpc("admin_set_logo", { p_business: id, p_logo_url: null, p_grant_one_change: true });
-    }
+    } else if (act === "logo_grant") res = await sb.rpc("admin_set_logo", { p_business: id, p_logo_url: null, p_grant_one_change: true });
     else if (act === "logo_clear") {
-      if (!confirm("Clear logo for " + (b && b.name ? b.name : "this business") + "?")) {
-        btn.disabled = false; btn.textContent = prevLabel; return;
-      }
+      if (!confirm("Clear logo for " + label + "?")) { btn.disabled = false; return; }
       res = await sb.rpc("admin_set_logo", { p_business: id, p_logo_url: "", p_grant_one_change: false });
-    }
-    else res = { error: { message: "Unknown action" } };
+    } else res = { error: { message: "Unknown action" } };
     if (res.error) throw res.error;
-
-    var verb = act === "cancel" ? "cancelled"
-      : act === "trial5" ? "given 5 more trial days"
-      : act === "kyc_ok" ? "KYC approved"
-      : act === "kyc_no" ? "KYC rejected"
-      : act === "suspend" ? "suspended"
-      : act === "reinstate" ? "reinstated"
-      : act === "rename" ? "name updated"
-      : act === "prefix" ? "prefix updated"
-      : act === "logo_grant" ? "allowed one logo change"
-      : act === "logo_clear" ? "logo cleared"
-      : "activated";
-    msg("<b>" + esc(label) + "</b> " + verb + ". They'll see it on their next refresh.", "good");
+    msg("<b>" + esc(label) + "</b> updated.", "good");
     await load();
+    openDrawer(id);
   } catch (err) {
     msg("Action failed: " + esc(err && err.message ? err.message : err), "warn");
-    btn.disabled = false;
-    btn.textContent = prevLabel;
   }
+  btn.disabled = false;
 });
 
 ["q", "fState", "fSort"].forEach(function (id) {
@@ -457,18 +569,13 @@ $("rows").addEventListener("click", async function (e) {
   $(id).addEventListener("change", render);
 });
 
-$("btnRefresh").addEventListener("click", async function () {
-  await load();
-  await loadPacks();
-});
+$("btnRefresh").addEventListener("click", loadAll);
 $("btnSignOut").addEventListener("click", async function () {
   try { await sb.auth.signOut(); } catch (e) {}
   location.replace("/login.html");
 });
 
-/* ---- Pack catalog + sales monitor ---- */
-var packCatalog = [];
-
+/* ---- packs ---- */
 async function loadPacks() {
   try {
     var res = await Promise.all([
@@ -483,13 +590,12 @@ async function loadPacks() {
     if (!res[1].error) renderPackStats(Array.isArray(res[1].data) ? res[1].data[0] : res[1].data);
     if (!res[2].error) renderPackPurchases(res[2].data || []);
   } catch (e) {
-    console.warn("Packs load (run SQL 014–019 if missing):", e);
+    console.warn("Packs:", e);
   }
 }
 
 function renderPackCatalog() {
   var tb = $("packCatalogRows"), empty = $("packCatalogEmpty");
-  if (!tb) return;
   if (!packCatalog.length) {
     tb.innerHTML = "";
     if (empty) empty.style.display = "";
@@ -497,20 +603,18 @@ function renderPackCatalog() {
   }
   if (empty) empty.style.display = "none";
   tb.innerHTML = packCatalog.map(function (p) {
-    var per = p.credits > 0 ? Math.round(p.price_ugx / p.credits) : 0;
-    return "<tr data-id=\"" + esc(p.id) + "\">" +
+    var per = p.credits > 0 && p.price_ugx > 0 ? Math.round(p.price_ugx / p.credits) : "—";
+    return "<tr>" +
       "<td class=\"mono\">" + esc(p.code) + "</td>" +
       "<td>" + esc(p.name) + "</td>" +
       "<td>" + esc(p.credits) + "</td>" +
       "<td>" + esc((p.price_ugx || 0).toLocaleString()) + "</td>" +
-      "<td class=\"hint\">" + (p.price_ugx > 0 ? per.toLocaleString() : "—") + "</td>" +
+      "<td class=\"hint\">" + esc(per) + "</td>" +
       "<td>" + (p.is_active ? "<span class=\"pill sub\">ON</span>" : "<span class=\"pill ended\">OFF</span>") + "</td>" +
-      "<td>" + esc(p.sort_order) + "</td>" +
       "<td><div class=\"acts\">" +
         "<button class=\"btn tiny\" data-pack-act=\"edit\" data-id=\"" + esc(p.id) + "\">Edit</button>" +
         "<button class=\"btn tiny\" data-pack-act=\"toggle\" data-id=\"" + esc(p.id) + "\">" +
-          (p.is_active ? "Disable" : "Enable") + "</button>" +
-      "</div></td></tr>";
+          (p.is_active ? "Disable" : "Enable") + "</button></div></td></tr>";
   }).join("");
 }
 
@@ -529,8 +633,8 @@ function renderPackStats(s) {
   if (!s || !$("packStats")) return;
   var cards = [
     { n: s.packs_sold_total, l: "Packs sold" },
-    { n: s.packs_sold_30d, l: "Packs (30d)" },
-    { n: s.revenue_ugx_total, l: "Pack revenue UGX", money: true },
+    { n: s.packs_sold_30d, l: "Packs 30d" },
+    { n: s.revenue_ugx_total, l: "Revenue UGX", money: true },
     { n: s.revenue_ugx_30d, l: "Revenue 30d", money: true },
     { n: s.credits_granted_total, l: "Credits granted" },
     { n: s.credits_consumed_total, l: "Credits used" },
@@ -546,7 +650,6 @@ function renderPackStats(s) {
 function renderPackPurchases(rows) {
   var tb = $("packPurchaseRows"), empty = $("packPurchaseEmpty");
   if ($("packPurchaseCount")) $("packPurchaseCount").textContent = (rows.length || 0) + " recent";
-  if (!tb) return;
   if (!rows.length) {
     tb.innerHTML = "";
     if (empty) empty.style.display = "";
@@ -557,13 +660,11 @@ function renderPackPurchases(rows) {
     return "<tr>" +
       "<td>" + esc(fmtDate(r.activated_at || r.created_at)) +
         "<div class=\"hint\">" + esc(ago(r.activated_at || r.created_at)) + "</div></td>" +
-      "<td><div class=\"sub-name\">" + esc(r.business_name) + "</div>" +
-        "<div class=\"hint mono\">" + esc(String(r.business_id).slice(0, 8)) + "…</div></td>" +
+      "<td><div class=\"sub-name\">" + esc(r.business_name) + "</div></td>" +
       "<td class=\"mono\">" + esc(r.pack_code) + "</td>" +
       "<td>" + esc(r.credits_granted) + "</td>" +
       "<td>" + esc((r.price_ugx || 0).toLocaleString()) + "</td>" +
-      "<td><div class=\"hint\">" + esc(r.payment_method || "—") + "</div>" +
-        "<div class=\"mono\">" + esc(r.payment_ref || "—") + "</div></td>" +
+      "<td class=\"mono\">" + esc(r.payment_ref || "—") + "</td>" +
       "<td><span class=\"pill " + (r.status === "active" ? "sub" : "ended") + "\">" + esc(r.status) + "</span></td>" +
       "<td>" + esc(r.credits_remaining) + "</td></tr>";
   }).join("");
@@ -587,14 +688,12 @@ document.addEventListener("click", async function (e) {
       if (name == null) { btn.disabled = false; return; }
       var credits = prompt("Credits:", String(pack.credits));
       if (credits == null) { btn.disabled = false; return; }
-      var price = prompt("Price in UGX:", String(pack.price_ugx));
+      var price = prompt("Price UGX:", String(pack.price_ugx));
       if (price == null) { btn.disabled = false; return; }
-      var sort = prompt("Sort order:", String(pack.sort_order));
-      if (sort == null) { btn.disabled = false; return; }
       var up = await sb.rpc("admin_upsert_pack", {
         p_id: id, p_code: pack.code, p_name: name.trim(),
         p_credits: parseInt(credits, 10), p_price_ugx: parseInt(price, 10),
-        p_is_active: pack.is_active, p_sort_order: parseInt(sort, 10), p_description: pack.description
+        p_is_active: pack.is_active, p_sort_order: pack.sort_order, p_description: pack.description
       });
       if (up.error) throw up.error;
       msg("<b>" + esc(name.trim()) + "</b> updated.", "good");
@@ -606,14 +705,14 @@ document.addEventListener("click", async function (e) {
   btn.disabled = false;
 });
 
-if ($("btnNewPack")) $("btnNewPack").addEventListener("click", async function () {
+$("btnNewPack").addEventListener("click", async function () {
   var code = prompt("Pack code (e.g. STARTER_15):");
   if (!code || !code.trim()) return;
   var name = prompt("Display name:");
   if (!name || !name.trim()) return;
-  var credits = prompt("Number of credits:");
+  var credits = prompt("Credits:");
   if (!credits) return;
-  var price = prompt("Price in UGX (0 for free):", "5000");
+  var price = prompt("Price UGX:", "5000");
   if (price == null) return;
   try {
     var res = await sb.rpc("admin_upsert_pack", {
@@ -622,77 +721,77 @@ if ($("btnNewPack")) $("btnNewPack").addEventListener("click", async function ()
       p_is_active: true, p_sort_order: 25, p_description: null
     });
     if (res.error) throw res.error;
-    msg("Pack <b>" + esc(name.trim()) + "</b> created.", "good");
+    msg("Pack created.", "good");
     await loadPacks();
   } catch (err) {
-    msg("Could not create pack: " + esc(err && err.message ? err.message : err), "warn");
+    msg("Create failed: " + esc(err && err.message ? err.message : err), "warn");
   }
 });
+$("btnRefreshPacks").addEventListener("click", loadPacks);
 
-if ($("btnRefreshPacks")) $("btnRefreshPacks").addEventListener("click", loadPacks);
-
-if ($("btnActivatePack")) $("btnActivatePack").addEventListener("click", async function () {
-  var biz = ($("actBizId").value || "").trim();
+/* ---- activate ---- */
+$("btnActivatePack").addEventListener("click", async function () {
+  var biz = ($("actBiz").value || "").trim();
   var code = ($("actPackCode").value || "").trim();
   var ref = ($("actPayRef").value || "").trim();
-  if (!biz || !code) { msg("Business UUID and pack are required.", "warn"); return; }
-  if (!ref || ref.length < 3) { msg("Payment reference is required for paid packs.", "warn"); return; }
-  if (!confirm("Activate " + code + " for " + biz.slice(0, 8) + "… with ref " + ref + "?")) return;
+  if (!biz) { msg("Select a business from the list.", "warn"); return; }
+  if (!code) { msg("Select a pack.", "warn"); return; }
+  if (!ref || ref.length < 3) { msg("MoMo payment reference is required.", "warn"); return; }
+  var bname = (list.filter(function (x) { return x.id === biz; })[0] || {}).name || biz;
+  if (!confirm("Activate " + code + " for “" + bname + "”?\nRef: " + ref)) return;
   try {
     var res = await sb.rpc("admin_activate_pack_for_business", {
       p_business_id: biz, p_pack_code: code, p_payment_ref: ref,
-      p_notes: "Activated from admin dashboard", p_expires_months: 24
+      p_notes: "Admin dashboard", p_expires_months: 24
     });
     if (res.error) throw res.error;
-    msg("Pack <b>" + esc(code) + "</b> activated. Credits are live.", "good");
+    msg("Pack <b>" + esc(code) + "</b> activated for <b>" + esc(bname) + "</b>.", "good");
     $("actPayRef").value = "";
     await loadPacks();
+    goTab("sales");
   } catch (err) {
     msg("Activation failed: " + esc(err && err.message ? err.message : err), "warn");
   }
 });
 
-if ($("btnGrantCredits")) $("btnGrantCredits").addEventListener("click", async function () {
-  var biz = ($("actBizId").value || "").trim();
-  if (!biz) { msg("Enter a Business UUID first.", "warn"); return; }
-  var n = prompt("How many free credits to grant?");
-  if (!n || parseInt(n, 10) < 1) return;
-  var note = prompt("Note (required):", "Promo / goodwill grant");
-  if (!note || note.trim().length < 3) { msg("Note required for grants.", "warn"); return; }
+$("btnActivateSub").addEventListener("click", async function () {
+  var biz = ($("actBiz").value || "").trim();
+  var plan = ($("actSubPlan").value || "MONTHLY").trim();
+  var ref = ($("actPayRef").value || "").trim();
+  if (!biz) { msg("Select a business from the list.", "warn"); return; }
+  if (!ref || ref.length < 3) { msg("MoMo payment reference is required.", "warn"); return; }
+  var bname = (list.filter(function (x) { return x.id === biz; })[0] || {}).name || biz;
+  if (!confirm("Activate " + plan + " for “" + bname + "”?\nRef: " + ref)) return;
   try {
-    var res = await sb.rpc("admin_grant_credits", {
-      p_business_id: biz, p_credits: parseInt(n, 10), p_note: note.trim()
+    var res = await sb.rpc("admin_record_subscription_payment", {
+      p_business_id: biz, p_plan_code: plan, p_payment_ref: ref,
+      p_price_ugx: null, p_months: null, p_payment_method: "mobile_money",
+      p_notes: "Admin dashboard"
     });
     if (res.error) throw res.error;
-    msg("Granted <b>" + esc(n) + "</b> credits.", "good");
-    await loadPacks();
+    msg("Subscription <b>" + esc(plan) + "</b> activated for <b>" + esc(bname) + "</b>.", "good");
+    $("actPayRef").value = "";
+    await load();
   } catch (err) {
-    msg("Grant failed: " + esc(err && err.message ? err.message : err), "warn");
+    msg("Subscription failed: " + esc(err && err.message ? err.message : err), "warn");
   }
 });
 
-if ($("btnActivateSub")) $("btnActivateSub").addEventListener("click", async function () {
-  var biz = ($("actBizId").value || "").trim();
-  if (!biz) { msg("Enter a Business UUID first.", "warn"); return; }
-  var plan = prompt("Plan code: MONTHLY or ANNUAL", "MONTHLY");
-  if (!plan) return;
-  var ref = prompt("MoMo payment reference (required):");
-  if (!ref || ref.trim().length < 3) { msg("Payment reference required.", "warn"); return; }
+$("btnGrantCredits").addEventListener("click", async function () {
+  var biz = ($("actBiz").value || "").trim();
+  var n = parseInt(($("grantCount").value || "0"), 10);
+  var note = ($("grantNote").value || "").trim();
+  if (!biz) { msg("Select a business.", "warn"); return; }
+  if (n < 1) { msg("Enter credit count.", "warn"); return; }
+  if (note.length < 3) { msg("Note is required for free grants.", "warn"); return; }
   try {
-    var res = await sb.rpc("admin_record_subscription_payment", {
-      p_business_id: biz,
-      p_plan_code: plan.trim().toUpperCase(),
-      p_payment_ref: ref.trim(),
-      p_price_ugx: null,
-      p_months: null,
-      p_payment_method: "mobile_money",
-      p_notes: "Activated from admin dashboard"
-    });
+    var res = await sb.rpc("admin_grant_credits", { p_business_id: biz, p_credits: n, p_note: note });
     if (res.error) throw res.error;
-    msg("Subscription <b>" + esc(plan) + "</b> activated for business.", "good");
-    await load();
+    msg("Granted <b>" + n + "</b> credits.", "good");
+    $("grantNote").value = "";
+    await loadPacks();
   } catch (err) {
-    msg("Subscription activation failed: " + esc(err && err.message ? err.message : err), "warn");
+    msg("Grant failed: " + esc(err && err.message ? err.message : err), "warn");
   }
 });
 </script>

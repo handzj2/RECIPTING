@@ -318,9 +318,11 @@ create trigger trg_receipts_require_issuance_right
   execute function public.receipts_require_issuance_right();
 
 -- ---------------------------------------------------------------------------
--- 6. Ensure my_credit_summary still works (from 014)
+-- 6. Extend my_credit_summary (014 had fewer OUT columns — must DROP first)
 -- ---------------------------------------------------------------------------
-create or replace function public.my_credit_summary()
+drop function if exists public.my_credit_summary();
+
+create function public.my_credit_summary()
 returns table (
   credits_remaining        int,
   total_purchased          int,
