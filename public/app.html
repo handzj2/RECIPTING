@@ -674,6 +674,7 @@ tbody tr:last-child td{border-bottom:0}
 .lines-wrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px;background:var(--panel-2)}
 .lines-head,.line-row{display:grid;grid-template-columns:1.6fr .55fr .7fr .7fr 36px;gap:6px;align-items:center;padding:8px}
 .line-row .li-serial,.line-row .li-imei{grid-column:1 / -1;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;font-size:13px}
+.line-row .li-serial.invalid,.line-row .li-imei.invalid,.line-row.invalid .li-serial,.line-row.invalid .li-imei{border-color:var(--bad);background:var(--bad-soft)}
 .lines-head{background:var(--panel);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--line)}
 .line-row{border-bottom:1px solid var(--line-soft)}
 .line-row:last-child{border-bottom:0}
@@ -1966,8 +1967,8 @@ function renderLineItems(lines) {
       '<input class="li-price" inputmode="decimal" placeholder="Price" value="' + esc(L.price != null && L.price !== 0 ? L.price : "") + '">' +
       '<div class="line-total">' + (tot ? tot.toLocaleString() : "—") + '</div>' +
       '<button type="button" class="btn-x" title="Remove line" data-remove="' + i + '">×</button>' +
-      '<input class="li-serial" placeholder="Serial no. (optional)" value="' + esc(L.serial || "") + '" autocomplete="off">' +
-      '<input class="li-imei" placeholder="IMEI (phones, optional)" value="' + esc(L.imei || "") + '" inputmode="numeric" autocomplete="off">' +
+      '<input class="li-serial" placeholder="Serial no. optional — 4–64 chars" value="' + esc(L.serial || "") + '" autocomplete="off">' +
+      '<input class="li-imei" placeholder="IMEI optional — 15 digits" value="' + esc(L.imei || "") + '" inputmode="numeric" autocomplete="off">' +
     '</div>';
   }).join("");
 
@@ -1982,6 +1983,26 @@ function renderLineItems(lines) {
         if (el) el.textContent = (q * pr) ? (q * pr).toLocaleString() : "—";
       }
       syncAmountFromLines();
+    });
+  });
+  Array.prototype.forEach.call(host.querySelectorAll(".li-serial, .li-imei"), function (inp) {
+    inp.addEventListener("blur", function () {
+      var v = inp.value;
+      var ok = inp.classList.contains("li-imei") ? isImeiOk(v) : isSerialOk(v);
+      if (!String(v || "").trim()) {
+        inp.classList.remove("invalid");
+        inp.removeAttribute("aria-invalid");
+        return;
+      }
+      if (ok) {
+        inp.classList.remove("invalid");
+        inp.removeAttribute("aria-invalid");
+        if (inp.classList.contains("li-imei")) inp.value = normalizeImei(v);
+        else inp.value = normalizeSerial(v);
+      } else {
+        inp.classList.add("invalid");
+        inp.setAttribute("aria-invalid", "true");
+      }
     });
   });
   Array.prototype.forEach.call(host.querySelectorAll("[data-remove]"), function (btn) {
@@ -2130,6 +2151,52 @@ function showValSummary(errs) {
   try { sum.scrollIntoView({ behavior: "smooth", block: "nearest" }); } catch (e) {}
 }
 
+
+/* ---- serial / IMEI validation (optional device fields) ---- */
+function normalizeSerial(s) {
+  return String(s == null ? "" : s).trim().replace(/\s+/g, " ").toUpperCase();
+}
+function normalizeImei(s) {
+  return String(s == null ? "" : s).replace(/[\s\-]/g, "");
+}
+/** Serial: optional; if present 4–64 chars, alphanumeric + common separators */
+function isSerialOk(s) {
+  if (s == null || String(s).trim() === "") return true;
+  var n = normalizeSerial(s);
+  if (n.length < 4 || n.length > 64) return false;
+  // Allow letters, digits, and - / . _
+  if (!/^[A-Z0-9][A-Z0-9\-./_]{2,62}[A-Z0-9]$/i.test(n) && !/^[A-Z0-9\-./_]{4,64}$/i.test(n)) return false;
+  // Reject pure punctuation or all same character
+  if (/^(.)\1+$/.test(n.replace(/[\-./_]/g, ""))) return false;
+  return true;
+}
+/** IMEI: optional; if present must be 15 digits and pass Luhn check (GSMA) */
+function isImeiOk(s) {
+  if (s == null || String(s).trim() === "") return true;
+  var d = normalizeImei(s);
+  if (!/^\d{15}$/.test(d)) return false;
+  // Luhn checksum
+  var sum = 0;
+  for (var i = 0; i < 15; i++) {
+    var n = parseInt(d.charAt(i), 10);
+    if (i % 2 === 1) {
+      n *= 2;
+      if (n > 9) n -= 9;
+    }
+    sum += n;
+  }
+  return sum % 10 === 0;
+}
+function markLineInputInvalid(row, selector) {
+  if (!row) return;
+  row.classList.add("invalid");
+  var inp = row.querySelector(selector);
+  if (inp) {
+    inp.classList.add("invalid");
+    try { inp.setAttribute("aria-invalid", "true"); } catch (e) {}
+  }
+}
+
 function validate(d) {
   clearFieldErrors();
   var errs = [];
@@ -2184,6 +2251,32 @@ function validate(d) {
       if (Number(L.price) > 1e12) {
         errs.push("price on line " + (i + 1) + " is too large");
         if (row) markInvalid(row, null);
+      }
+      /* optional device identifiers */
+      if (L.serial) {
+        L.serial = normalizeSerial(L.serial);
+        if (!isSerialOk(L.serial)) {
+          errs.push("serial number on line " + (i + 1) + " is invalid (4–64 characters, letters/digits)");
+          if (row) markLineInputInvalid(row, ".li-serial");
+        }
+      }
+      if (L.imei) {
+        L.imei = normalizeImei(L.imei);
+        if (!isImeiOk(L.imei)) {
+          errs.push("IMEI on line " + (i + 1) + " must be 15 digits with a valid check digit");
+          if (row) markLineInputInvalid(row, ".li-imei");
+        } else {
+          L.imei = normalizeImei(L.imei); // store digits only
+        }
+      }
+      /* qty > 1 with a single unique IMEI is usually a mistake */
+      if (L.imei && Number(L.qty) > 1) {
+        errs.push("line " + (i + 1) + ": IMEI is for one device — set quantity to 1 or clear IMEI");
+        if (row) markLineInputInvalid(row, ".li-imei");
+      }
+      if (L.serial && Number(L.qty) > 1) {
+        errs.push("line " + (i + 1) + ": one serial number — set quantity to 1 or clear serial (use separate lines per device)");
+        if (row) markLineInputInvalid(row, ".li-serial");
       }
     });
   }
@@ -3898,9 +3991,13 @@ function shortShareCaption(r) {
 var _waReceipt = null;
 var _waMessage = null;
 
-function phonePreviewText(raw) {
+function phonePreviewText(raw, opts) {
+  opts = opts || {};
   if (!raw || !String(raw).trim()) {
-    return { cls: "", text: "Uganda numbers: 07… or +256… · Other countries: include country code" };
+    if (opts.required) {
+      return { cls: "bad", text: "Number required — enter the client’s WhatsApp number (e.g. 07XX XXX XXX)" };
+    }
+    return { cls: "", text: "Number required · Uganda: 07… or +256… · Other: include country code" };
   }
   var pn = parsePhone(raw, "UG");
   if (pn && pn.isValid && pn.isValid()) {
@@ -3909,20 +4006,77 @@ function phonePreviewText(raw) {
     return { cls: "ok", text: "Valid · WhatsApp will open for " + intl + (nat ? " (" + nat + ")" : "") };
   }
   if (phoneLibAvailable()) {
-    return { cls: "bad", text: "Not a valid phone number — try 07XXXXXXXX or +2567XXXXXXXX" };
+    return { cls: "bad", text: "Invalid number — try 07XXXXXXXX or +2567XXXXXXXX" };
   }
   var n = normalizePhone(raw);
-  if (!n || n.length < 11) return { cls: "bad", text: "Number looks short" };
+  if (!n || n.length < 9) return { cls: "bad", text: "Number is missing digits — include country code if outside Uganda" };
+  if (n.length < 11) return { cls: "bad", text: "Number looks short — check for missing digits" };
   return { cls: "ok", text: "Will open WhatsApp for +" + n };
 }
 
-function updateWaPreview() {
+/** Highlight WhatsApp phone field for missing / invalid numbers. */
+function showWaPhoneError(kind, detail) {
+  var input = $("waPhone");
+  var prev = $("waPreview");
+  var field = input && input.closest ? input.closest(".field") : null;
+  var btn = $("waOpen");
+  var messages = {
+    missing: "Enter the client’s WhatsApp number before opening chat.",
+    invalid: "That number is not valid. Use 07… or +256… (or full international).",
+    short: "Number is incomplete — add the missing digits.",
+    normalize: "Could not read that number. Check for missing digits or country code."
+  };
+  var msg = detail || messages[kind] || messages.invalid;
+  if (prev) {
+    prev.className = "wa-preview bad";
+    prev.textContent = msg;
+  }
+  if (field) field.classList.add("invalid");
+  if (input) {
+    input.classList.add("invalid");
+    input.setAttribute("aria-invalid", "true");
+    try { input.focus(); } catch (e) {}
+  }
+  if (btn) btn.disabled = true;
+  say(msg, "warn");
+  return false;
+}
+
+function clearWaPhoneError() {
+  var input = $("waPhone");
+  var field = input && input.closest ? input.closest(".field") : null;
+  if (field) field.classList.remove("invalid");
+  if (input) {
+    input.classList.remove("invalid");
+    input.removeAttribute("aria-invalid");
+  }
+  syncWaOpenButton();
+}
+
+function syncWaOpenButton() {
+  var input = $("waPhone");
+  var btn = $("waOpen");
+  if (!btn) return;
+  var raw = input ? String(input.value || "").trim() : "";
+  btn.disabled = !raw;
+}
+
+function updateWaPreview(opts) {
   var input = $("waPhone");
   var prev = $("waPreview");
   if (!input || !prev) return;
-  var p = phonePreviewText(input.value);
+  var p = phonePreviewText(input.value, opts);
   prev.className = "wa-preview" + (p.cls ? " " + p.cls : "");
   prev.textContent = p.text;
+  if (p.cls === "bad") {
+    input.setAttribute("aria-invalid", "true");
+  } else {
+    input.removeAttribute("aria-invalid");
+    var field = input.closest(".field");
+    if (field && String(input.value || "").trim()) field.classList.remove("invalid");
+    input.classList.remove("invalid");
+  }
+  syncWaOpenButton();
 }
 
 function closeWaSheet(e) {
@@ -4020,6 +4174,9 @@ function openWhatsAppShare(receipt, message) {
   ov.style.display = "flex";
   document.body.style.overflow = "hidden";
   wireWaSheet(); /* ensure Cancel is bound even if boot missed it */
+  clearWaPhoneError();
+  updateWaPreview();
+  syncWaOpenButton();
   setTimeout(function () {
     try {
       input.focus();
@@ -4029,89 +4186,79 @@ function openWhatsAppShare(receipt, message) {
 }
 
 /**
- * Capability-aware WhatsApp flow (directive):
- *   1. Always render the canonical receipt → PNG
- *   2. If browser can share files → native share sheet (user picks WhatsApp → image attached)
- *   3. Else → download the PNG + open WhatsApp chat + clear instruction to attach the image
- * Never pretends wa.me can attach a local image. Never claims "sent successfully".
+ * WhatsApp flow — number from the form opens THAT chat (wa.me), not the Contacts picker.
+ *
+ * 1. Validate / normalise the number the merchant typed
+ * 2. Build receipt PNG and download it (so they can attach in WhatsApp)
+ * 3. Open https://wa.me/{digits}?text=… for that number (opens WhatsApp chat directly)
+ *
+ * Web Share API is NOT used here: on phones it often opens Contacts / a generic
+ * share sheet instead of the number the user entered. Native share remains on
+ * the separate "Share" button if the device supports it.
  */
 async function confirmWaSend() {
   var input = $("waPhone");
   var raw = input ? String(input.value || "").trim() : "";
   if (!raw) {
-    var prev = $("waPreview");
-    if (prev) { prev.className = "wa-preview bad"; prev.textContent = "Enter the client’s WhatsApp number"; }
-    if (input) input.focus();
-    return;
+    return showWaPhoneError("missing");
   }
   if (!isPhoneRequiredOk(raw)) {
-    updateWaPreview();
-    if (input) {
-      input.focus();
-      var field = input.closest(".field");
-      if (field) field.classList.add("invalid");
+    updateWaPreview({ required: true });
+    var digits = String(raw).replace(/\D/g, "");
+    if (digits.length > 0 && digits.length < 9) {
+      return showWaPhoneError("short");
     }
-    return;
+    return showWaPhoneError("invalid");
   }
   var r = _waReceipt;
   if (!r) {
-    say("No receipt selected.", "warn");
+    say("No receipt selected — issue a receipt first, then send on WhatsApp.", "warn");
     return;
   }
-  closeWaSheet();
 
-  say("Generating receipt image…", "info");
-  var blob = null;
-  try {
-    blob = await buildReceiptImageBlob(r);
-  } catch (genErr) {
-    console.error(genErr);
-    say("Could not generate receipt image. The receipt is still issued — try Download Image or PDF.", "warn");
-    return;
+  var to = normalizePhone(raw);
+  if (!to || to.length < 9) {
+    return showWaPhoneError("normalize");
   }
+  if (!/^[0-9]{9,15}$/.test(to)) {
+    return showWaPhoneError("invalid", "Number format not supported for WhatsApp. Use digits only (07… or +256…).");
+  }
+
+  closeWaSheet();
 
   var fname = imageFilename(r);
   var caption = shortShareCaption(r);
-
-  /* Path A — browser/device can share files (mobile Chrome/Safari, some desktop) */
-  if (navigator.share && navigator.canShare) {
-    try {
-      var file = new File([blob], fname, { type: "image/png" });
-      var shareData = { files: [file], title: "Receipt " + r.receiptNo, text: caption };
-      if (navigator.canShare(shareData)) {
-        await navigator.share(shareData);
-        say("Share sheet opened. Choose <b>WhatsApp</b> to send the receipt image.", "good");
-        return;
-      }
-    } catch (shareErr) {
-      if (shareErr && shareErr.name === "AbortError") {
-        say("Share cancelled.", "");
-        return;
-      }
-      console.warn("Native file share failed:", shareErr);
-    }
-  }
-
-  /* Path B — unsupported: download PNG + open WhatsApp chat + instruct user */
-  try {
-    triggerBrowserDownload(blob, fname);
-  } catch (dlErr) {
-    console.warn("Download failed:", dlErr);
-  }
-
   var openMsg =
-    "Please attach the receipt image you just downloaded (" + fname + ").\n\n" +
-    caption;
+    "Receipt from " + (CO.name || "our shop") + "\n\n" +
+    caption + "\n\n" +
+    "(If an image downloaded, attach it in this chat.)";
+
+  /* Prefer direct chat link — never contacts / share-sheet for this button */
   var url = whatsappLink(raw, openMsg);
+  if (!url || url.indexOf("wa.me/?") === 0) {
+    /* safety: force number into path */
+    url = "https://wa.me/" + to + "?text=" + encodeURIComponent(openMsg);
+  }
+
+  /* Best-effort image download before leaving the page */
+  say("Opening WhatsApp for <b>+" + esc(to) + "</b>…", "info");
+  try {
+    var blob = await buildReceiptImageBlob(r);
+    try { triggerBrowserDownload(blob, fname); } catch (dlErr) { console.warn(dlErr); }
+  } catch (genErr) {
+    console.warn("Receipt image skipped:", genErr);
+  }
+
   say(
-    "Receipt image downloaded as <b>" + esc(fname) + "</b>. " +
-    "WhatsApp is opening — attach that image to the chat.",
+    "WhatsApp chat opening for <b>+" + esc(to) + "</b>. " +
+    "Attach the receipt image if it downloaded.",
     "good"
   );
-  /* Small delay so the download starts before navigation on some mobile browsers */
+
   setTimeout(function () {
+    /* location.href opens the WhatsApp app on mobile with that chat */
     window.location.href = url;
-  }, 400);
+  }, 350);
 }
 
 function wireWaSheet() {
@@ -4149,11 +4296,23 @@ function wireWaSheet() {
   var phone = $("waPhone");
   if (phone && !phone.dataset.waInput) {
     phone.dataset.waInput = "1";
-    phone.addEventListener("input", updateWaPreview);
+    phone.addEventListener("input", function () {
+      clearWaPhoneError();
+      updateWaPreview();
+    });
+    phone.addEventListener("blur", function () {
+      var raw = String(phone.value || "").trim();
+      if (!raw) return; /* missing only enforced on Open / Enter */
+      updateWaPreview({ required: true });
+    });
     phone.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") { e.preventDefault(); confirmWaSend(); }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmWaSend();
+      }
     });
   }
+  syncWaOpenButton();
 }
 
 /**
@@ -4580,12 +4739,13 @@ else boot();
     <p class="wa-sub">Enter the client’s number. You do not need to save the contact — WhatsApp opens with the receipt message ready.</p>
     <div class="wa-chips" id="waChips" hidden></div>
     <div class="field">
-      <label for="waPhone">Client number</label>
-      <input id="waPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="07XX XXX XXX" aria-describedby="waPreview">
-      <div class="wa-preview" id="waPreview">Uganda: 07… becomes 2567…</div>
+      <label for="waPhone">Client number <span style="color:var(--bad)">*</span></label>
+      <input id="waPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="07XX XXX XXX"
+        required aria-required="true" aria-describedby="waPreview" aria-invalid="false">
+      <div class="wa-preview" id="waPreview">Number required · Uganda: 07… becomes 2567…</div>
     </div>
     <div class="wa-actions">
-      <button type="button" class="btn primary" id="waOpen">Open WhatsApp</button>
+      <button type="button" class="btn primary" id="waOpen" disabled>Open WhatsApp</button>
       <button type="button" class="btn" id="waCancel" data-wa-close="1">Cancel</button>
     </div>
   </div>
