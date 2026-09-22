@@ -115,6 +115,19 @@ a{color:var(--brand);text-decoration:none}
   .step:hover,.price:hover{transform:none}
 }
 
+
+/* ScrollTrigger preparation — visible without JS */
+[data-animate]{will-change:transform,opacity}
+.gsap-ready [data-animate="hero"],
+.gsap-ready [data-animate="demo"],
+.gsap-ready [data-animate="section"],
+.gsap-ready [data-animate="step"],
+.gsap-ready [data-animate="card"],
+.gsap-ready [data-animate="cta"]{opacity:0}
+@media(prefers-reduced-motion:reduce){
+  .gsap-ready [data-animate]{opacity:1!important;transform:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -135,7 +148,7 @@ a{color:var(--brand);text-decoration:none}
     </div>
   </nav>
 
-  <header class="hero">
+  <header class="hero" data-animate="hero">
     <h1>Digital receipts<br>your customers can keep.</h1>
     <p class="lead">Create a professional receipt image. Share it on WhatsApp. Let customers verify it online — no printer required.</p>
     <div class="cta">
@@ -146,7 +159,7 @@ a{color:var(--brand);text-decoration:none}
   </header>
 
   <!-- Product demonstration -->
-  <div class="demo">
+  <div class="demo" data-animate="demo">
     <div class="sample">
       <div class="sample-h">Receipt</div>
       <div class="sample-b">
@@ -172,21 +185,21 @@ a{color:var(--brand);text-decoration:none}
     </div>
   </div>
 
-  <section class="section" id="how">
+  <section class="section" id="how" data-animate="section">
     <h2>How it works</h2>
     <p class="sub">Create → Send → Verify. One receipt record powers every view.</p>
     <div class="steps">
-      <div class="step">
+      <div class="step" data-animate="step">
         <div class="n">01</div>
         <h3>Create</h3>
         <p>Enter customer, items, amount and payment. A permanent receipt number is assigned and the official record is registered.</p>
       </div>
-      <div class="step">
+      <div class="step" data-animate="step">
         <div class="n">02</div>
         <h3>Send</h3>
         <p>Share a real receipt <b>image</b> on WhatsApp, download PNG/PDF, or email. No thermal printer required.</p>
       </div>
-      <div class="step">
+      <div class="step" data-animate="step">
         <div class="n">03</div>
         <h3>Verify</h3>
         <p>Customer scans the QR or opens the link and sees <b>VALID RECEIPT</b> — issued by you, with the recorded amount and date.</p>
@@ -194,11 +207,11 @@ a{color:var(--brand);text-decoration:none}
     </div>
   </section>
 
-  <section class="section" id="pricing">
+  <section class="section" id="pricing" data-animate="section">
     <h2>Plans</h2>
     <p class="sub">Start free. Upgrade when you need the cloud register and online verification.</p>
     <div class="pricing">
-      <div class="price">
+      <div class="price" data-animate="card">
         <div class="plan">Starter</div>
         <div class="amt">Free <span>/ local</span></div>
         <ul>
@@ -209,7 +222,7 @@ a{color:var(--brand);text-decoration:none}
         </ul>
         <a class="btn" href="/login.html?mode=signup">Start trial</a>
       </div>
-      <div class="price featured">
+      <div class="price featured" data-animate="card">
         <div class="plan">Business</div>
         <div class="amt">UGX 50,000 <span>/ mo</span></div>
         <ul>
@@ -220,7 +233,7 @@ a{color:var(--brand);text-decoration:none}
         </ul>
         <a class="btn primary" href="mailto:handzj2@gmail.com?subject=HandzJ%20Business%20Plan%20—%20Mobile%20Money">Subscribe (Mobile Money)</a>
       </div>
-      <div class="price">
+      <div class="price" data-animate="card">
         <div class="plan">Enterprise</div>
         <div class="amt">Custom</div>
         <ul>
@@ -234,7 +247,7 @@ a{color:var(--brand);text-decoration:none}
     </div>
   </section>
 
-  <section class="cta-band">
+  <section class="cta-band" data-animate="cta">
     <h2>Stop sending payment screenshots.</h2>
     <p>Issue a real digital receipt your customer can verify online.</p>
     <a class="btn primary" href="/login.html?mode=signup">Start your 5-day free trial</a>
@@ -255,5 +268,130 @@ a{color:var(--brand);text-decoration:none}
     <div>0781 909 507 · 0757 632 884 · handzj2@gmail.com</div>
   </footer>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script>
+(function () {
+  if (!window.gsap || !window.ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return;
+  }
+
+  document.documentElement.classList.add("gsap-ready");
+
+  /* Hero on load */
+  gsap.set('[data-animate="hero"]', { opacity: 1 });
+  gsap.from('[data-animate="hero"] > *', {
+    y: 28,
+    opacity: 0,
+    stagger: 0.1,
+    duration: 0.75,
+    ease: "power2.out",
+    clearProps: "all"
+  });
+
+  /* Demo: sample receipt + verification card */
+  gsap.set('[data-animate="demo"]', { opacity: 1 });
+  gsap.from('[data-animate="demo"] > *', {
+    scrollTrigger: {
+      trigger: '[data-animate="demo"]',
+      start: "top 88%",
+      toggleActions: "play none none none"
+    },
+    y: 40,
+    opacity: 0,
+    stagger: 0.16,
+    duration: 0.7,
+    ease: "power2.out",
+    clearProps: "transform"
+  });
+
+  /* Section titles */
+  gsap.utils.toArray('[data-animate="section"]').forEach(function (sec) {
+    gsap.set(sec, { opacity: 1 });
+    var heads = sec.querySelectorAll("h2, .sub");
+    if (!heads.length) return;
+    gsap.from(heads, {
+      scrollTrigger: {
+        trigger: sec,
+        start: "top 82%",
+        toggleActions: "play none none none"
+      },
+      y: 22,
+      opacity: 0,
+      stagger: 0.08,
+      duration: 0.65,
+      ease: "power2.out"
+    });
+  });
+
+  /* How-it-works steps */
+  var steps = gsap.utils.toArray('[data-animate="step"]');
+  if (steps.length) {
+    gsap.from(steps, {
+      scrollTrigger: {
+        trigger: "#how",
+        start: "top 78%",
+        toggleActions: "play none none none"
+      },
+      y: 36,
+      opacity: 0,
+      stagger: 0.14,
+      duration: 0.7,
+      ease: "power2.out",
+      clearProps: "transform"
+    });
+  }
+
+  /* Pricing cards */
+  gsap.from('[data-animate="card"]', {
+    scrollTrigger: {
+      trigger: "#pricing",
+      start: "top 78%",
+      toggleActions: "play none none none"
+    },
+    y: 32,
+    opacity: 0,
+    stagger: 0.12,
+    duration: 0.7,
+    ease: "power2.out",
+    clearProps: "transform"
+  });
+
+  /* Bottom CTA */
+  gsap.from('[data-animate="cta"]', {
+    scrollTrigger: {
+      trigger: '[data-animate="cta"]',
+      start: "top 88%",
+      toggleActions: "play none none none"
+    },
+    y: 28,
+    opacity: 0,
+    scale: 0.98,
+    duration: 0.7,
+    ease: "power2.out",
+    clearProps: "all"
+  });
+
+  /* Soft parallax on sample receipt (desktop-friendly scrub) */
+  var sample = document.querySelector(".sample");
+  if (sample && window.matchMedia("(min-width: 721px)").matches) {
+    gsap.to(sample, {
+      y: -20,
+      ease: "none",
+      scrollTrigger: {
+        trigger: '[data-animate="demo"]',
+        start: "top bottom",
+        end: "bottom top",
+        scrub: 1.2
+      }
+    });
+  }
+})();
+</script>
+
 </body>
 </html>
