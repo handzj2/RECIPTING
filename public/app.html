@@ -738,7 +738,7 @@ tbody tr:last-child td{border-bottom:0}
     <img id="topLogo" alt="">
     <div class="grow">
       <div class="t1" id="topName">HANDZJ DIGITAL RECEIPTS</div>
-      <div class="t2"><span id="topSub">Record · Issue · Verify</span> <span id="trialPill"></span></div>
+      <div class="t2"><span id="topSub">Record · Issue · Verify</span> <span id="trialPill"></span> <span id="creditsPill" style="display:none;margin-left:6px;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.06em"></span></div>
       <a href="https://handzjtech-solutions.vercel.app/" target="_blank" rel="noopener noreferrer"
         style="display:block;margin-top:2px;font-size:10.5px;letter-spacing:.03em;color:rgba(234,246,251,.45);text-decoration:none">A HandzJ Tech product</a>
     </div>
@@ -1000,6 +1000,16 @@ var CO = {
 var authUser = null;
 var biz = null;                       /* the businesses row */
 var trial = { active: true, expired: false, daysLeft: null, subscribed: false, checked: false };
+/* Usage-based credits (pack model). Null until loaded from server. */
+var credits = {
+  remaining: null,
+  purchased: 0,
+  consumed: 0,
+  mode: null,          /* subscription | trial | credits | blocked */
+  allowed: true,
+  message: "",
+  loaded: false
+};
 var RECEIPT_PREFIX = "HJT";
 var staffRole = "owner";              /* owner | manager | cashier */
 var staffBranchId = null;
@@ -1452,14 +1462,67 @@ function computeTrial() {
   var msLeft = ends ? ends.getTime() - Date.now() : -1;
   var daysLeft = ends ? Math.max(0, Math.ceil(msLeft / 86400000)) : 0;
 
+  /* Pack credits keep issuance open even after trial ends */
+  var hasCredits = credits.loaded && credits.remaining != null && credits.remaining > 0;
+
   trial = {
     subscribed: subscribed,
-    active: subscribed || msLeft > 0,
-    expired: !subscribed && msLeft <= 0,
+    active: subscribed || msLeft > 0 || hasCredits,
+    expired: !subscribed && msLeft <= 0 && !hasCredits,
     daysLeft: subscribed ? null : daysLeft,
     endsAt: ends,
     checked: true
   };
+}
+
+async function loadCredits() {
+  if (!sb || !cloudMode) return;
+  try {
+    var res = await sb.rpc("my_credit_summary");
+    if (res.error) {
+      /* Migration not applied yet — fail open for trial/subscription only */
+      credits.loaded = false;
+      return;
+    }
+    var row = Array.isArray(res.data) ? res.data[0] : res.data;
+    if (!row) { credits.loaded = false; return; }
+    credits.remaining = row.credits_remaining != null ? Number(row.credits_remaining) : 0;
+    credits.purchased = Number(row.total_purchased || 0);
+    credits.consumed = Number(row.total_consumed || 0);
+    credits.mode = row.issuance_mode || null;
+    credits.allowed = row.issuance_allowed !== false;
+    credits.message = row.issuance_message || "";
+    credits.loaded = true;
+    computeTrial();
+    applyTrialLock();
+    paintTrialPill();
+    paintCreditsBadge();
+  } catch (e) {
+    credits.loaded = false;
+  }
+}
+
+function paintCreditsBadge() {
+  var el = $("creditsPill");
+  if (!el) return;
+  if (!credits.loaded) { el.textContent = ""; el.style.display = "none"; return; }
+  if (credits.mode === "subscription") {
+    el.textContent = "UNLIMITED";
+    el.style.display = "";
+    el.style.background = "rgba(95,214,164,.2)";
+    el.style.color = "#5fd6a4";
+    return;
+  }
+  if (credits.mode === "trial") {
+    el.textContent = "";
+    el.style.display = "none";
+    return;
+  }
+  var n = credits.remaining != null ? credits.remaining : 0;
+  el.textContent = n + " CREDIT" + (n === 1 ? "" : "S");
+  el.style.display = "";
+  el.style.background = n > 0 ? "rgba(13,157,199,.25)" : "rgba(255,138,138,.2)";
+  el.style.color = n > 0 ? "#7ec8e3" : "#ff8a8a";
 }
 
 /* ---- cloud init ---------------------------------------------------------- */
@@ -1476,6 +1539,8 @@ async function initSupabase() {
   applyBusiness(await ensureBusinessForUser());
   await loadStaffContext();
   await loadKycState();
+  cloudMode = true;
+  await loadCredits();
   if (accountBlocked()) {
     try {
       var banner = document.getElementById("trial-banner");
@@ -1494,7 +1559,6 @@ async function initSupabase() {
     if (!adm.error && adm.data) $("lnkAdmin").style.display = "";
   } catch (e) {}
 
-  cloudMode = true;
   return true;
 }
 
@@ -1543,13 +1607,23 @@ function cloudNoticeHTML() {
   if (trial.subscribed) {
     return "Signed in as <b>" + who + "</b> — subscription active. Receipts are private to your business.";
   }
+  if (credits.loaded && credits.remaining > 0 && trial.expired) {
+    return "Signed in as <b>" + who + "</b> — <b>" + credits.remaining +
+      " receipt credit" + (credits.remaining === 1 ? "" : "s") + "</b> remaining. " +
+      "View, verify and share never use a credit. " +
+      "<a href=\"/pricing\" target=\"_blank\" rel=\"noopener\">Buy more packs</a>.";
+  }
   if (trial.expired) {
-    return "<b>Your 5-day free trial has ended.</b> Your receipts are safe and you can still view, " +
-      "verify, print and void them — but issuing new receipts needs a subscription. " +
-      "<a href=\"#\" id=\"lnkSubscribe\">See subscription options</a>.";
+    return "<b>No receipt credits remaining.</b> Your receipts are safe and you can still view, " +
+      "verify, print and void them — but issuing new receipts needs a pack or subscription. " +
+      "<a href=\"/pricing\" target=\"_blank\" rel=\"noopener\">See packs &amp; pricing</a>.";
   }
   var d = trial.daysLeft;
-  return "Free trial: <b>" + d + " day" + (d === 1 ? "" : "s") + " left</b> for <b>" + who + "</b>. " +
+  var creditHint = (credits.loaded && credits.remaining != null)
+    ? " · <b>" + credits.remaining + " credit" + (credits.remaining === 1 ? "" : "s") + "</b>"
+    : "";
+  return "Free trial: <b>" + d + " day" + (d === 1 ? "" : "s") + " left</b>" + creditHint +
+    " for <b>" + who + "</b>. " +
     "<a href=\"#\" id=\"lnkSubscribe\">Subscribe</a> any time to keep issuing receipts.";
 }
 
@@ -2397,17 +2471,36 @@ function planCard(name, price, per, features) {
     '</ul></div></div>';
 }
 
-/* Disable issuing everywhere once the trial is over. The database refuses the
-   insert too — this just makes the refusal visible before the click. */
+/* Disable issuing when trial ended AND no credits, or account blocked.
+   Database also refuses the insert — this makes the refusal visible before click. */
 function applyTrialLock() {
-  var locked = (trial.checked && trial.expired) || accountBlocked();
+  var noCredits = credits.loaded && !credits.allowed
+    && credits.mode !== "subscription" && credits.mode !== "trial";
+  var locked = (trial.checked && trial.expired && noCredits) || accountBlocked()
+    || (credits.loaded && credits.allowed === false && !trial.subscribed
+        && !(trial.daysLeft > 0));
+  /* Recompute with credit awareness */
+  if (credits.loaded && credits.remaining > 0 && !trial.subscribed) {
+    locked = accountBlocked();
+  }
+  if (trial.subscribed) locked = accountBlocked();
+
   var issueBtn = $("btnIssue");
   if (issueBtn) {
-    issueBtn.disabled = locked;
-    issueBtn.title = locked ? "Subscribe to issue new receipts" : "";
-    issueBtn.textContent = locked ? "Trial ended — subscribe to issue" : "Issue Receipt";
+    issueBtn.disabled = !!locked;
+    if (accountBlocked()) {
+      issueBtn.title = "Account suspended";
+      issueBtn.textContent = "Account suspended";
+    } else if (locked) {
+      issueBtn.title = "Buy a receipt pack or subscribe to issue new receipts";
+      issueBtn.textContent = "No credits — buy a pack";
+    } else {
+      issueBtn.title = "";
+      issueBtn.textContent = "Issue Receipt";
+    }
   }
   paintTrialPill();
+  paintCreditsBadge();
 }
 
 /* ---------------- business settings ---------------- */
@@ -3432,8 +3525,9 @@ var _issuingLock = false;
 async function issue() {
   if (_issuingLock) return;
 
-  if (trial.checked && trial.expired) {
-    say("Your free trial has ended. Subscribe to issue new receipts — your existing records are untouched.", "warn");
+  var canUseCredits = credits.loaded && credits.remaining > 0;
+  if (trial.checked && trial.expired && !canUseCredits && !trial.subscribed) {
+    say("No receipt credits remaining. Buy a pack or subscribe — your existing records are untouched.", "warn");
     showTab("settings");
     return;
   }
@@ -3469,6 +3563,7 @@ async function issue() {
     showIssuedBanner(r, true);
     syncDeliveryButtons();
     say("✓ Receipt <b>" + esc(no) + "</b> issued and recorded. Delivery (PDF, print, WhatsApp) is optional.", "good");
+    try { await loadCredits(); } catch (ce) { /* non-fatal */ }
     peekNextNumber();
     /* Auto-refresh register after issue */
     try {
@@ -3493,7 +3588,16 @@ async function issue() {
        Risk: LOW — classification is message-pattern based (best-effort); worst case
        is a slightly generic wording, never a false "issued" claim. */
     var em = (e && e.message) ? e.message : "unknown error";
-    if (/TRIAL_EXPIRED/i.test(em) || /row-level security/i.test(em)) {
+    if (/NO_CREDITS/i.test(em)) {
+      credits.remaining = 0;
+      credits.allowed = false;
+      credits.mode = "blocked";
+      computeTrial();
+      notice(cloudNoticeHTML(), "warn");
+      applyTrialLock();
+      say("No receipt credits left. Buy a pack or subscribe to keep issuing. Existing receipts stay available.", "warn");
+      showTab("settings");
+    } else if (/TRIAL_EXPIRED/i.test(em) || /row-level security/i.test(em)) {
       trial.expired = true; trial.active = false;
       notice(cloudNoticeHTML(), "warn");
       applyTrialLock();
@@ -3508,9 +3612,7 @@ async function issue() {
     }
   } finally {
     _issuingLock = false;
-    btn.disabled = false;
     applyTrialLock();
-    if (!(trial.checked && trial.expired)) btn.textContent = "Issue Receipt";
   }
 }
 
@@ -3520,6 +3622,9 @@ function humanErr(em) {
   if (/JWT|session|not authenticated/i.test(em)) return "session expired — sign in again";
   if (/permission|policy|42501/i.test(em)) return "not authorized";
   if (/IMMUTABLE/i.test(em)) return "receipt cannot be changed";
+  if (/NO_CREDITS/i.test(em)) return "no receipt credits remaining — buy a pack or subscribe";
+  if (/TRIAL_EXPIRED/i.test(em)) return "trial ended — buy a pack or subscribe";
+  if (/ACCOUNT_BLOCKED/i.test(em)) return "account suspended";
   return em.length > 120 ? em.slice(0, 120) + "…" : em;
 }
 

@@ -136,9 +136,71 @@ tr:last-child td{border-bottom:0}
     </div>
   </div>
 
+  <!-- Receipt pack pricing (admin-controlled) -->
+  <div class="card" id="packCatalogCard">
+    <div class="card-h">
+      <h2>Receipt pack pricing</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn tiny primary" type="button" id="btnNewPack">+ New pack</button>
+        <button class="btn tiny" type="button" id="btnRefreshPacks">Refresh packs</button>
+      </div>
+    </div>
+    <div class="card-b">
+      <p class="hint" style="margin-top:0">Change prices, credits or visibility. Paid activations require a Mobile Money reference.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr>
+            <th>Code</th><th>Name</th><th>Credits</th><th>Price (UGX)</th><th>Per receipt</th><th>Active</th><th>Sort</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="packCatalogRows"></tbody>
+        </table>
+      </div>
+      <div id="packCatalogEmpty" class="empty" style="display:none">No packs in catalog (run SQL 014–015).</div>
+    </div>
+  </div>
+
+  <!-- Pack sales monitor -->
+  <div class="card" id="packMonitorCard">
+    <div class="card-h">
+      <h2>Pack sales &amp; credits</h2>
+      <span class="hint" id="packPurchaseCount"></span>
+    </div>
+    <div class="card-b">
+      <div class="stats" id="packStats" style="margin-top:0;margin-bottom:14px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end">
+        <div>
+          <label class="hint" style="display:block;margin-bottom:4px">Business UUID</label>
+          <input id="actBizId" placeholder="Business UUID" style="min-width:220px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px">
+        </div>
+        <div>
+          <label class="hint" style="display:block;margin-bottom:4px">Pack</label>
+          <select id="actPackCode" style="background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px">
+            <option value="">Select pack…</option>
+          </select>
+        </div>
+        <div>
+          <label class="hint" style="display:block;margin-bottom:4px">MoMo payment ref</label>
+          <input id="actPayRef" placeholder="Required for paid packs" style="min-width:140px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px">
+        </div>
+        <button class="btn tiny primary" type="button" id="btnActivatePack">Activate pack</button>
+        <button class="btn tiny" type="button" id="btnGrantCredits">Grant free credits…</button>
+        <button class="btn tiny primary" type="button" id="btnActivateSub">Activate subscription…</button>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr>
+            <th>When</th><th>Business</th><th>Pack</th><th>Credits</th><th>Price</th><th>Payment</th><th>Status</th><th>Balance left</th>
+          </tr></thead>
+          <tbody id="packPurchaseRows"></tbody>
+        </table>
+      </div>
+      <div id="packPurchaseEmpty" class="empty" style="display:none">No pack purchases yet.</div>
+    </div>
+  </div>
+
   <p class="hint" style="margin-top:14px">
     Activating a business takes effect on their next page refresh — no data is re-entered and nothing they
-    already issued is touched. Extending a trial works the same way.
+    already issued is touched. Extending a trial works the same way. Paid packs and subscriptions require a payment reference.
   </p>
 </div>
 
@@ -207,6 +269,7 @@ function money(n, code) {
 
   try { lastSeen = localStorage.getItem(lastSeenKey); } catch (e) {}
   await load();
+  await loadPacks();
   try { localStorage.setItem(lastSeenKey, new Date().toISOString()); } catch (e) {}
 })();
 
@@ -394,10 +457,243 @@ $("rows").addEventListener("click", async function (e) {
   $(id).addEventListener("change", render);
 });
 
-$("btnRefresh").addEventListener("click", load);
+$("btnRefresh").addEventListener("click", async function () {
+  await load();
+  await loadPacks();
+});
 $("btnSignOut").addEventListener("click", async function () {
   try { await sb.auth.signOut(); } catch (e) {}
   location.replace("/login.html");
+});
+
+/* ---- Pack catalog + sales monitor ---- */
+var packCatalog = [];
+
+async function loadPacks() {
+  try {
+    var res = await Promise.all([
+      sb.rpc("admin_list_pack_catalog"),
+      sb.rpc("admin_pack_stats"),
+      sb.rpc("admin_list_pack_purchases", { p_limit: 80 })
+    ]);
+    if (res[0].error) throw res[0].error;
+    packCatalog = res[0].data || [];
+    renderPackCatalog();
+    fillPackSelect();
+    if (!res[1].error) renderPackStats(Array.isArray(res[1].data) ? res[1].data[0] : res[1].data);
+    if (!res[2].error) renderPackPurchases(res[2].data || []);
+  } catch (e) {
+    console.warn("Packs load (run SQL 014–019 if missing):", e);
+  }
+}
+
+function renderPackCatalog() {
+  var tb = $("packCatalogRows"), empty = $("packCatalogEmpty");
+  if (!tb) return;
+  if (!packCatalog.length) {
+    tb.innerHTML = "";
+    if (empty) empty.style.display = "";
+    return;
+  }
+  if (empty) empty.style.display = "none";
+  tb.innerHTML = packCatalog.map(function (p) {
+    var per = p.credits > 0 ? Math.round(p.price_ugx / p.credits) : 0;
+    return "<tr data-id=\"" + esc(p.id) + "\">" +
+      "<td class=\"mono\">" + esc(p.code) + "</td>" +
+      "<td>" + esc(p.name) + "</td>" +
+      "<td>" + esc(p.credits) + "</td>" +
+      "<td>" + esc((p.price_ugx || 0).toLocaleString()) + "</td>" +
+      "<td class=\"hint\">" + (p.price_ugx > 0 ? per.toLocaleString() : "—") + "</td>" +
+      "<td>" + (p.is_active ? "<span class=\"pill sub\">ON</span>" : "<span class=\"pill ended\">OFF</span>") + "</td>" +
+      "<td>" + esc(p.sort_order) + "</td>" +
+      "<td><div class=\"acts\">" +
+        "<button class=\"btn tiny\" data-pack-act=\"edit\" data-id=\"" + esc(p.id) + "\">Edit</button>" +
+        "<button class=\"btn tiny\" data-pack-act=\"toggle\" data-id=\"" + esc(p.id) + "\">" +
+          (p.is_active ? "Disable" : "Enable") + "</button>" +
+      "</div></td></tr>";
+  }).join("");
+}
+
+function fillPackSelect() {
+  var sel = $("actPackCode");
+  if (!sel) return;
+  var opts = packCatalog.filter(function (p) { return p.is_active && p.price_ugx > 0; });
+  sel.innerHTML = "<option value=\"\">Select pack…</option>" +
+    opts.map(function (p) {
+      return "<option value=\"" + esc(p.code) + "\">" + esc(p.name) +
+        " — UGX " + (p.price_ugx || 0).toLocaleString() + "</option>";
+    }).join("");
+}
+
+function renderPackStats(s) {
+  if (!s || !$("packStats")) return;
+  var cards = [
+    { n: s.packs_sold_total, l: "Packs sold" },
+    { n: s.packs_sold_30d, l: "Packs (30d)" },
+    { n: s.revenue_ugx_total, l: "Pack revenue UGX", money: true },
+    { n: s.revenue_ugx_30d, l: "Revenue 30d", money: true },
+    { n: s.credits_granted_total, l: "Credits granted" },
+    { n: s.credits_consumed_total, l: "Credits used" },
+    { n: s.credits_remaining_total, l: "Credits held" },
+    { n: s.active_pack_customers, l: "Pack customers" }
+  ];
+  $("packStats").innerHTML = cards.map(function (c) {
+    var val = c.n == null ? "—" : (c.money ? Number(c.n).toLocaleString() : c.n);
+    return "<div class=\"stat\"><div class=\"n\">" + esc(val) + "</div><div class=\"l\">" + esc(c.l) + "</div></div>";
+  }).join("");
+}
+
+function renderPackPurchases(rows) {
+  var tb = $("packPurchaseRows"), empty = $("packPurchaseEmpty");
+  if ($("packPurchaseCount")) $("packPurchaseCount").textContent = (rows.length || 0) + " recent";
+  if (!tb) return;
+  if (!rows.length) {
+    tb.innerHTML = "";
+    if (empty) empty.style.display = "";
+    return;
+  }
+  if (empty) empty.style.display = "none";
+  tb.innerHTML = rows.map(function (r) {
+    return "<tr>" +
+      "<td>" + esc(fmtDate(r.activated_at || r.created_at)) +
+        "<div class=\"hint\">" + esc(ago(r.activated_at || r.created_at)) + "</div></td>" +
+      "<td><div class=\"sub-name\">" + esc(r.business_name) + "</div>" +
+        "<div class=\"hint mono\">" + esc(String(r.business_id).slice(0, 8)) + "…</div></td>" +
+      "<td class=\"mono\">" + esc(r.pack_code) + "</td>" +
+      "<td>" + esc(r.credits_granted) + "</td>" +
+      "<td>" + esc((r.price_ugx || 0).toLocaleString()) + "</td>" +
+      "<td><div class=\"hint\">" + esc(r.payment_method || "—") + "</div>" +
+        "<div class=\"mono\">" + esc(r.payment_ref || "—") + "</div></td>" +
+      "<td><span class=\"pill " + (r.status === "active" ? "sub" : "ended") + "\">" + esc(r.status) + "</span></td>" +
+      "<td>" + esc(r.credits_remaining) + "</td></tr>";
+  }).join("");
+}
+
+document.addEventListener("click", async function (e) {
+  var btn = e.target.closest("button[data-pack-act]");
+  if (!btn) return;
+  var id = btn.dataset.id, act = btn.dataset.packAct;
+  var pack = packCatalog.filter(function (p) { return p.id === id; })[0];
+  if (!pack) return;
+  btn.disabled = true;
+  try {
+    if (act === "toggle") {
+      var res = await sb.rpc("admin_set_pack_active", { p_id: id, p_active: !pack.is_active });
+      if (res.error) throw res.error;
+      msg("<b>" + esc(pack.name) + "</b> " + (pack.is_active ? "disabled" : "enabled") + ".", "good");
+      await loadPacks();
+    } else if (act === "edit") {
+      var name = prompt("Display name:", pack.name);
+      if (name == null) { btn.disabled = false; return; }
+      var credits = prompt("Credits:", String(pack.credits));
+      if (credits == null) { btn.disabled = false; return; }
+      var price = prompt("Price in UGX:", String(pack.price_ugx));
+      if (price == null) { btn.disabled = false; return; }
+      var sort = prompt("Sort order:", String(pack.sort_order));
+      if (sort == null) { btn.disabled = false; return; }
+      var up = await sb.rpc("admin_upsert_pack", {
+        p_id: id, p_code: pack.code, p_name: name.trim(),
+        p_credits: parseInt(credits, 10), p_price_ugx: parseInt(price, 10),
+        p_is_active: pack.is_active, p_sort_order: parseInt(sort, 10), p_description: pack.description
+      });
+      if (up.error) throw up.error;
+      msg("<b>" + esc(name.trim()) + "</b> updated.", "good");
+      await loadPacks();
+    }
+  } catch (err) {
+    msg("Pack action failed: " + esc(err && err.message ? err.message : err), "warn");
+  }
+  btn.disabled = false;
+});
+
+if ($("btnNewPack")) $("btnNewPack").addEventListener("click", async function () {
+  var code = prompt("Pack code (e.g. STARTER_15):");
+  if (!code || !code.trim()) return;
+  var name = prompt("Display name:");
+  if (!name || !name.trim()) return;
+  var credits = prompt("Number of credits:");
+  if (!credits) return;
+  var price = prompt("Price in UGX (0 for free):", "5000");
+  if (price == null) return;
+  try {
+    var res = await sb.rpc("admin_upsert_pack", {
+      p_id: null, p_code: code.trim(), p_name: name.trim(),
+      p_credits: parseInt(credits, 10), p_price_ugx: parseInt(price, 10),
+      p_is_active: true, p_sort_order: 25, p_description: null
+    });
+    if (res.error) throw res.error;
+    msg("Pack <b>" + esc(name.trim()) + "</b> created.", "good");
+    await loadPacks();
+  } catch (err) {
+    msg("Could not create pack: " + esc(err && err.message ? err.message : err), "warn");
+  }
+});
+
+if ($("btnRefreshPacks")) $("btnRefreshPacks").addEventListener("click", loadPacks);
+
+if ($("btnActivatePack")) $("btnActivatePack").addEventListener("click", async function () {
+  var biz = ($("actBizId").value || "").trim();
+  var code = ($("actPackCode").value || "").trim();
+  var ref = ($("actPayRef").value || "").trim();
+  if (!biz || !code) { msg("Business UUID and pack are required.", "warn"); return; }
+  if (!ref || ref.length < 3) { msg("Payment reference is required for paid packs.", "warn"); return; }
+  if (!confirm("Activate " + code + " for " + biz.slice(0, 8) + "… with ref " + ref + "?")) return;
+  try {
+    var res = await sb.rpc("admin_activate_pack_for_business", {
+      p_business_id: biz, p_pack_code: code, p_payment_ref: ref,
+      p_notes: "Activated from admin dashboard", p_expires_months: 24
+    });
+    if (res.error) throw res.error;
+    msg("Pack <b>" + esc(code) + "</b> activated. Credits are live.", "good");
+    $("actPayRef").value = "";
+    await loadPacks();
+  } catch (err) {
+    msg("Activation failed: " + esc(err && err.message ? err.message : err), "warn");
+  }
+});
+
+if ($("btnGrantCredits")) $("btnGrantCredits").addEventListener("click", async function () {
+  var biz = ($("actBizId").value || "").trim();
+  if (!biz) { msg("Enter a Business UUID first.", "warn"); return; }
+  var n = prompt("How many free credits to grant?");
+  if (!n || parseInt(n, 10) < 1) return;
+  var note = prompt("Note (required):", "Promo / goodwill grant");
+  if (!note || note.trim().length < 3) { msg("Note required for grants.", "warn"); return; }
+  try {
+    var res = await sb.rpc("admin_grant_credits", {
+      p_business_id: biz, p_credits: parseInt(n, 10), p_note: note.trim()
+    });
+    if (res.error) throw res.error;
+    msg("Granted <b>" + esc(n) + "</b> credits.", "good");
+    await loadPacks();
+  } catch (err) {
+    msg("Grant failed: " + esc(err && err.message ? err.message : err), "warn");
+  }
+});
+
+if ($("btnActivateSub")) $("btnActivateSub").addEventListener("click", async function () {
+  var biz = ($("actBizId").value || "").trim();
+  if (!biz) { msg("Enter a Business UUID first.", "warn"); return; }
+  var plan = prompt("Plan code: MONTHLY or ANNUAL", "MONTHLY");
+  if (!plan) return;
+  var ref = prompt("MoMo payment reference (required):");
+  if (!ref || ref.trim().length < 3) { msg("Payment reference required.", "warn"); return; }
+  try {
+    var res = await sb.rpc("admin_record_subscription_payment", {
+      p_business_id: biz,
+      p_plan_code: plan.trim().toUpperCase(),
+      p_payment_ref: ref.trim(),
+      p_price_ugx: null,
+      p_months: null,
+      p_payment_method: "mobile_money",
+      p_notes: "Activated from admin dashboard"
+    });
+    if (res.error) throw res.error;
+    msg("Subscription <b>" + esc(plan) + "</b> activated for business.", "good");
+    await load();
+  } catch (err) {
+    msg("Subscription activation failed: " + esc(err && err.message ? err.message : err), "warn");
+  }
 });
 </script>
 </body>
