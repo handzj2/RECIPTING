@@ -1,3 +1,5 @@
+/* SECURITY: only SUPABASE_URL + SUPABASE_ANON_KEY belong here.
+   Never put SUPABASE_SERVICE_ROLE_KEY in this file or any public/ asset. */
 /* HandzJ Digital Receipts — cloud config
    Public values only. The anon key is safe to ship: the database is protected
    by Supabase Auth + row level security (see sql/002_auth_multitenant.sql).

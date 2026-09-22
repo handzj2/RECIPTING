@@ -1226,11 +1226,25 @@ function amountInWords(amount, code) {
   return s + " Only";
 }
 
+
+var _verifyLastAt = 0;
+function allowVerifyCall() {
+  var now = Date.now();
+  if (now - _verifyLastAt < 800) return false;
+  _verifyLastAt = now;
+  return true;
+}
+
 function randId(len) {
-  var b = new Uint8Array(len), i, s = "";
+  /* Cryptographically strong hex id. len = number of hex characters (default 32 = 16 bytes). */
+  var n = Math.max(8, len || 32);
+  var bytes = Math.ceil(n / 2);
+  var b = new Uint8Array(bytes), i, s = "", hex = "0123456789abcdef";
   (window.crypto || window.msCrypto).getRandomValues(b);
-  for (i = 0; i < b.length; i++) s += "0123456789ABCDEF"[b[i] % 16];
-  return s;
+  for (i = 0; i < b.length; i++) {
+    s += hex[(b[i] >> 4) & 15] + hex[b[i] & 15];
+  }
+  return s.slice(0, n);
 }
 function baseUrl() {
   var c = (window.HANDZJ_CONFIG || {});
@@ -3389,6 +3403,7 @@ async function lookup(no, vid) {
   if (sb || supabaseConfigured()) {
     try {
       if (!sb) sb = window.supabase.createClient(cfg().SUPABASE_URL, cfg().SUPABASE_ANON_KEY);
+      if (!allowVerifyCall()) { say("Please wait a moment before verifying again.", "warn"); return null; }
       var { data, error } = await sb.rpc("verify_receipt", { p_receipt_no: no, p_verify_id: vid || "" });
       if (error) throw error;
       var row = Array.isArray(data) ? data[0] : data;
@@ -3731,7 +3746,7 @@ async function issue() {
     var no = await nextReceiptNo();
     var r = Object.assign({}, d, {
       receiptNo: no,
-      verifyId: randId(16),
+      verifyId: randId(32),
       status: "VALID",
       createdAt: new Date().toISOString(),
       voidedAt: null,
