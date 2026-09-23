@@ -8,35 +8,38 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="theme-color" content="#14120f">
+<meta name="theme-color" content="#101820">
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f3f0e9; --panel:#fffcf7; --panel-2:#f7f3eb; --ink:#0c0a09; --ink-soft:#3f3a36;
-  --line:#e0d9ce; --line-soft:#ebe6dc; --brand:#14120f; --brand-2:#292524; --accent:#9a3412;
-  --accent-soft:#fef3e8; --ok:#166534; --ok-soft:#e8f5e9; --bad:#9f1239; --bad-soft:#fce8ec;
-  --shadow:0 1px 2px rgba(28,25,23,.06),0 3px 10px rgba(28,25,23,.04);
+  --bg:#f7f5ef; --panel:#ffffff; --panel-2:#f1eee5; --ink:#101820; --ink-soft:#4b5761;
+  --line:#e1dccf; --line-soft:#eae6db; --brand:#101820; --brand-2:#263238; --accent:#0d5c4a;
+  --accent-soft:#e4f1ec; --ok:#16836a; --ok-soft:#e4f1ec; --bad:#b3261e; --bad-soft:#f6e4e2;
+  --shadow:0 1px 2px rgba(16,24,32,.06),0 3px 10px rgba(16,24,32,.04);
   --radius:4px;
-  --on-brand:#faf7f2;
+  --on-brand:#f7f5ef;
+  --on-brand-soft:#a9b2b8;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#121110; --panel:#1c1917; --panel-2:#171412; --ink:#faf8f5; --ink-soft:#d6d0c8;
-    --line:#3f3a34; --line-soft:#2a2622; --brand:#0c0b0a; --brand-2:#1c1917; --accent:#ea580c;
-    --accent-soft:#3b2010; --ok:#4ade80; --ok-soft:#14532d; --bad:#fb7185; --bad-soft:#4c0519;
+    --bg:#101820; --panel:#1a232b; --panel-2:#151d24; --ink:#f7f5ef; --ink-soft:#a9b2b8;
+    --line:#33414a; --line-soft:#293138; --brand:#0c1319; --brand-2:#263238; --accent:#d99a2b;
+    --accent-soft:#3a2d12; --ok:#3fb897; --ok-soft:#103a30; --bad:#ff8a80; --bad-soft:#3a1614;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
     --on-brand:#f5f0e8;
+    --on-brand-soft:#8a95a0;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#121110; --panel:#1c1917; --panel-2:#171412; --ink:#faf8f5; --ink-soft:#d6d0c8;
-  --line:#3f3a34; --line-soft:#2a2622; --brand:#0c0b0a; --brand-2:#1c1917; --accent:#ea580c;
-  --accent-soft:#3b2010; --ok:#4ade80; --ok-soft:#14532d; --bad:#fb7185; --bad-soft:#4c0519;
+  --bg:#101820; --panel:#1a232b; --panel-2:#151d24; --ink:#f7f5ef; --ink-soft:#a9b2b8;
+  --line:#33414a; --line-soft:#293138; --brand:#0c1319; --brand-2:#263238; --accent:#d99a2b;
+  --accent-soft:#3a2d12; --ok:#3fb897; --ok-soft:#103a30; --bad:#ff8a80; --bad-soft:#3a1614;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
   --on-brand:#f5f0e8;
+  --on-brand-soft:#8a95a0;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -48,14 +51,14 @@ input,select,textarea{font:inherit;color:inherit}
 
 /* ---------- app chrome — document system, not SaaS dashboard ---------- */
 .topbar{display:flex;align-items:center;gap:16px;background:var(--brand);color:var(--on-brand);
-  border-radius:0;padding:14px 20px;border-bottom:2px solid #9a3412;flex-wrap:wrap}
+  border-radius:0;padding:14px 20px;border-bottom:2px solid var(--accent);flex-wrap:wrap}
 .topbar img{width:48px;height:48px;border-radius:6px;flex:none;object-fit:cover;border:1px solid rgba(255,255,255,.12);background:#0c0b0a}
 .topbar .t1{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:20px;font-weight:600;letter-spacing:.04em;line-height:1.1;text-transform:uppercase}
-.topbar .t2{font-size:11.5px;color:#a8a29e;letter-spacing:.04em;text-transform:uppercase}
+.topbar .t2{font-size:11.5px;color:var(--on-brand-soft);letter-spacing:.04em;text-transform:uppercase}
 .topbar .grow{flex:1 1 160px}
 .tabs{display:flex;gap:0;background:transparent;padding:0;border-radius:0;border-bottom:0}
-.tabs button{background:transparent;border:0;color:#a8a29e;padding:10px 16px;border-radius:0;font-weight:600;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;border-bottom:2px solid transparent}
-.tabs button[aria-selected="true"]{background:transparent;color:var(--on-brand);border-bottom-color:#c2410c}
+.tabs button{background:transparent;border:0;color:var(--on-brand-soft);padding:10px 16px;border-radius:0;font-weight:600;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{background:transparent;color:var(--on-brand);border-bottom-color:var(--accent)}
 .tabs button:hover{color:var(--on-brand)}
 
 /* ---------- layout ---------- */
@@ -286,7 +289,7 @@ tbody tr:last-child td{border-bottom:0}
 .field-msg{font-size:12.5px;margin-top:5px;min-height:0;line-height:1.35}
 .field-msg.err{color:var(--bad,#a32020)}
 .field-msg.ok{color:var(--ok,#0f7b52)}
-.val-summary{background:#fbe7e7;border:1px solid #f0c0c0;border-radius:10px;padding:10px 12px;margin:12px 0;font-size:13.5px;color:#7a1f1f;display:none}
+.val-summary{background:var(--bad-soft);border:1px solid var(--line);border-left:3px solid var(--bad);border-radius:var(--radius);padding:10px 12px;margin:12px 0;font-size:13.5px;color:var(--bad);display:none}
 .val-summary.show{display:block}
 .val-summary ul{margin:6px 0 0;padding-left:18px}
 
@@ -376,8 +379,8 @@ tbody tr:last-child td{border-bottom:0}
 }
 .wa-sheet input[type="tel"]:focus{
   outline:none;
-  border-color:var(--brand,#9a3412);
-  box-shadow:0 0 0 3px rgba(154,52,18,.2);
+  border-color:var(--brand,#101820);
+  box-shadow:0 0 0 3px rgba(13,92,74,.2);
 }
 .wa-sheet .field.invalid input[type="tel"]{
   border-color:var(--bad,#a32020);
@@ -408,9 +411,9 @@ tbody tr:last-child td{border-bottom:0}
   touch-action:manipulation;
 }
 .wa-actions .btn.primary{
-  background:var(--brand,#9a3412);
+  background:var(--brand,#101820);
   color:var(--on-brand);
-  border-color:var(--brand,#9a3412);
+  border-color:var(--brand,#101820);
 }
 .wa-actions .btn:active{transform:scale(0.98);opacity:.92}
 .wa-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
@@ -455,10 +458,6 @@ tbody tr:last-child td{border-bottom:0}
 .ops-card .s{font-size:12px;color:var(--ink-soft);margin-top:2px}
 .ops-branch{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;align-items:center}
 .ops-branch select{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);font:inherit;min-width:160px}
-.issued-banner{background:#e8f6ef;border:1px solid #b7e0c8;border-radius:12px;padding:14px 16px;margin-bottom:14px}
-.issued-banner.voided{background:#fbe7e7;border-color:#f0c0c0}
-.issued-banner h3{margin:0 0 6px;font-size:16px}
-
 .issued-banner .rcpt-no{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:28px;font-weight:700;letter-spacing:.04em;margin:8px 0 4px;word-break:break-all}
 .issued-banner .rcpt-hint{font-size:12.5px;color:var(--ink-soft);margin:0 0 10px}
 .issued-actions .btn.primary{order:-1}
@@ -622,7 +621,7 @@ tbody tr:last-child td{border-bottom:0}
   .bottom-nav .bn-create .bn-ico{
     width:42px;height:42px;border-radius:50%;background:var(--accent);
     display:flex;align-items:center;justify-content:center;margin-top:-16px;
-    box-shadow:0 2px 8px rgba(154,52,18,.4);color:#fff;
+    box-shadow:0 2px 8px rgba(13,92,74,.4);color:#fff;
   }
   .bottom-nav .bn-create[aria-selected="true"] .bn-ico{background:var(--brand)}
 }
@@ -681,7 +680,7 @@ tbody tr:last-child td{border-bottom:0}
 
 
 /* line items editor */
-.lines-wrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px;background:var(--panel-2)}
+.lines-wrap{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;background:var(--panel-2)}
 .lines-head,.line-row{display:grid;grid-template-columns:1.6fr .55fr .7fr .7fr 36px;gap:6px;align-items:center;padding:8px}
 .line-row .li-serial,.line-row .li-imei{grid-column:1 / -1;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;font-size:13px}
 .line-row .li-serial.invalid,.line-row .li-imei.invalid,.line-row.invalid .li-serial,.line-row.invalid .li-imei{border-color:var(--bad);background:var(--bad-soft)}
@@ -721,9 +720,9 @@ tbody tr:last-child td{border-bottom:0}
 .rcpt-toolbar .btn-mail{background:#1a56a8;border-color:#1a56a8;color:#fff}
 .rcpt-toolbar label.fmt{display:flex;align-items:center;gap:6px;margin:0;font-size:12px;color:var(--ink-soft);font-weight:600}
 .rcpt-toolbar select{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);font:inherit;font-size:12.5px;min-height:40px}
-.rcpt-toolbar .btn-danger-ghost{background:transparent;border-color:#e8bcbc;color:var(--bad)}
-.issued-banner{margin-bottom:12px;padding:16px 18px;border-radius:10px;border:1px solid #c8e6d4;background:#f0faf4}
-.issued-banner.voided{border-color:#f0c4c4;background:#fdf4f4}
+.rcpt-toolbar .btn-danger-ghost{background:transparent;border-color:var(--line);color:var(--bad)}
+.issued-banner{margin-bottom:12px;padding:16px 18px;border-radius:var(--radius);border:1px solid var(--line);border-top:2px solid var(--ok);background:var(--ok-soft)}
+.issued-banner.voided{border-top-color:var(--bad);background:var(--bad-soft)}
 .issued-banner h3{margin:0 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ok);font-weight:700}
 .issued-banner.voided h3{color:var(--bad)}
 .issued-banner .rcpt-no{font-size:22px;font-weight:700;margin:0 0 6px}
@@ -745,8 +744,8 @@ tbody tr:last-child td{border-bottom:0}
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes hjPulseSoft {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(154,52,18,.35); }
-  50% { box-shadow: 0 0 0 8px rgba(154,52,18,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(13,92,74,.35); }
+  50% { box-shadow: 0 0 0 8px rgba(13,92,74,0); }
 }
 @keyframes hjShimmer {
   0% { background-position: -200% 0; }
@@ -771,7 +770,7 @@ tbody tr:last-child td{border-bottom:0}
 }
 .btn.primary:not(:disabled):hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(154,52,18,.28);
+  box-shadow: 0 4px 14px rgba(13,92,74,.28);
 }
 .btn.primary:not(:disabled):active { transform: translateY(0); }
 .live-strip {
@@ -918,14 +917,14 @@ tbody tr:last-child td{border-bottom:0}
       </div>
       <div class="panel-b">
         <div class="section-label">Customer</div>
-        <div class="field"><label>Name / company <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_customer" placeholder="Walk-in or customer name" autocomplete="name"></div>
+        <div class="field"><label for="f_customer">Name / company <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_customer" placeholder="Walk-in or customer name" autocomplete="name"></div>
         <div class="two">
-          <div class="field"><label>Phone <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0700 000 000"></div>
-          <div class="field"><label>Email <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custEmail" type="email" inputmode="email" autocomplete="email" placeholder="name@company.com"></div>
+          <div class="field"><label for="f_custPhone">Phone <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0700 000 000"></div>
+          <div class="field"><label for="f_custEmail">Email <span style="text-transform:none;font-weight:400">(optional)</span></label><input id="f_custEmail" type="email" inputmode="email" autocomplete="email" placeholder="name@company.com"></div>
         </div>
 
         <div class="field" id="branchField" style="display:none">
-          <label>Shop / branch</label>
+          <label for="f_branch">Shop / branch</label>
           <select id="f_branch"></select>
           <div class="hint" style="margin-top:4px">Receipts are stored under this shop. Security is enforced in the database.</div>
         </div>
@@ -956,32 +955,32 @@ tbody tr:last-child td{border-bottom:0}
         <input type="hidden" id="f_package" value="">
         <input type="hidden" id="f_period" value="">
         <input type="hidden" id="f_projref" value="">
-        <div class="field" id="w_ref" style="display:none"><label id="lbl_ref">Reference</label><input id="f_projref_vis" placeholder="Invoice / job / order ref"></div>
-        <div class="field"><label>Extra notes <span style="text-transform:none;font-weight:400">(optional)</span></label><textarea id="f_desc" placeholder="Any extra note for this receipt"></textarea></div>
+        <div class="field" id="w_ref" style="display:none"><label id="lbl_ref" for="f_projref_vis">Reference</label><input id="f_projref_vis" placeholder="Invoice / job / order ref"></div>
+        <div class="field"><label for="f_desc">Extra notes <span style="text-transform:none;font-weight:400">(optional)</span></label><textarea id="f_desc" placeholder="Any extra note for this receipt"></textarea></div>
         <div class="two">
-          <div class="field"><label>Amount (auto from lines)</label><input id="f_amount" inputmode="decimal" placeholder="0" readonly style="opacity:.9"></div>
-          <div class="field"><label>Currency</label>
+          <div class="field"><label for="f_amount">Amount (auto from lines)</label><input id="f_amount" inputmode="decimal" placeholder="0" readonly style="opacity:.9"></div>
+          <div class="field"><label for="f_currency">Currency</label>
             <select id="f_currency"><option>UGX</option><option>USD</option><option>KES</option><option>EUR</option><option>GBP</option></select>
           </div>
         </div>
         <div class="field"><div class="hint" id="wordsPreview">Amount in words appears here.</div></div>
         <div class="two">
-          <div class="field"><label>Payment method</label>
+          <div class="field"><label for="f_method">Payment method</label>
             <select id="f_method">
               <option>Mobile Money</option><option>Bank Transfer</option><option>Cash</option>
               <option>Card</option><option>Cheque</option><option>Other</option>
             </select>
           </div>
-          <div class="field"><label>Reference / txn ID</label>
+          <div class="field"><label for="f_txn">Reference / txn ID</label>
             <input id="f_txn" placeholder="Auto-generated on Issue" readonly style="opacity:.9;background:var(--panel-2)">
             <div class="hint" style="margin-top:4px">Filled automatically when you click Issue Receipt.</div>
           </div>
         </div>
         <div class="two">
-          <div class="field"><label>Date</label><input id="f_date" type="date"></div>
-          <div class="field"><label>Received by <span style="color:var(--bad)">*</span></label><input id="f_by" placeholder="Full name" autocomplete="name"></div>
+          <div class="field"><label for="f_date">Date</label><input id="f_date" type="date"></div>
+          <div class="field"><label for="f_by">Received by <span style="color:var(--bad)">*</span></label><input id="f_by" placeholder="Full name" autocomplete="name"></div>
         </div>
-        <div class="field"><label>Notes <span style="text-transform:none;font-weight:400">(optional)</span></label><textarea id="f_notes" placeholder="Visible on the receipt"></textarea></div>
+        <div class="field"><label for="f_notes">Notes <span style="text-transform:none;font-weight:400">(optional)</span></label><textarea id="f_notes" placeholder="Visible on the receipt"></textarea></div>
 
         <div class="val-summary" id="valSummary" role="alert"></div>
         <div class="row-actions" style="margin-top:18px">
@@ -1018,13 +1017,13 @@ tbody tr:last-child td{border-bottom:0}
     </div>
     <div id="opsDash" class="ops-dash"></div>
     <div class="ops-branch" id="opsBranchBar">
-      <label class="hint" style="margin:0;font-weight:600">Shop scope</label>
+      <label class="hint" style="margin:0;font-weight:600" for="fBranchScope">Shop scope</label>
       <select id="fBranchScope" title="Filter by shop — security still enforced by the database"></select>
     </div>
     <div class="tools">
-      <input id="q" placeholder="Search no., customer, phone, amount…">
-      <select id="fStatus"><option value="">All statuses</option><option value="VALID">VALID</option><option value="VOIDED">VOIDED</option></select>
-      <input id="fFrom" type="date" title="From date"><input id="fTo" type="date" title="To date">
+      <input id="q" placeholder="Search no., customer, phone, amount…" aria-label="Search receipts">
+      <select id="fStatus" aria-label="Filter by status"><option value="">All statuses</option><option value="VALID">VALID</option><option value="VOIDED">VOIDED</option></select>
+      <input id="fFrom" type="date" title="From date" aria-label="From date"><input id="fTo" type="date" title="To date" aria-label="To date">
     </div>
     <div class="tblwrap">
       <table>
@@ -1665,8 +1664,8 @@ function paintCreditsBadge() {
   var n = credits.remaining != null ? credits.remaining : 0;
   el.textContent = n + " CREDIT" + (n === 1 ? "" : "S");
   el.style.display = "";
-  el.style.background = n > 0 ? "rgba(154,52,18,.25)" : "rgba(255,138,138,.2)";
-  el.style.color = n > 0 ? "#7ec8e3" : "#ff8a8a";
+  el.style.background = n > 0 ? "rgba(22,131,106,.22)" : "rgba(179,38,30,.18)";
+  el.style.color = n > 0 ? "#eaf6f2" : "#ffb4ab";
 }
 
 /* ---- cloud init ---------------------------------------------------------- */
@@ -2753,22 +2752,22 @@ function staffSettingsHTML() {
 
   if (canManageStaff()) {
     html += '<div class="section-label">Add branch</div>' +
-      '<div class="two"><div class="field"><label>Name</label><input id="br_name" placeholder="e.g. Jinja branch"></div>' +
-      '<div class="field"><label>Code</label><input id="br_code" placeholder="JIN" maxlength="8"></div></div>' +
+      '<div class="two"><div class="field"><label for="br_name">Name</label><input id="br_name" placeholder="e.g. Jinja branch"></div>' +
+      '<div class="field"><label for="br_code">Code</label><input id="br_code" placeholder="JIN" maxlength="8"></div></div>' +
       '<button type="button" class="btn" id="btnAddBranch">Create branch</button>';
 
     html += '<div class="section-label" style="margin-top:16px">Invite staff</div>' +
       '<p class="hint">They must already have signed up with that email, then you invite them.</p>' +
-      '<div class="field"><label>Staff email</label><input id="st_email" type="email" placeholder="cashier@shop.com"></div>' +
-      '<div class="two"><div class="field"><label>Role</label><select id="st_role">' +
+      '<div class="field"><label for="st_email">Staff email</label><input id="st_email" type="email" placeholder="cashier@shop.com"></div>' +
+      '<div class="two"><div class="field"><label for="st_role">Role</label><select id="st_role">' +
         '<option value="cashier">Cashier — issue & print only</option>' +
         '<option value="manager">Manager — issue, void, branch</option></select></div>' +
-      '<div class="field"><label>Branch</label><select id="st_branch"><option value="">All / main</option>';
+      '<div class="field"><label for="st_branch">Branch</label><select id="st_branch"><option value="">All / main</option>';
     branches.forEach(function (b) {
       html += '<option value="' + esc(b.id) + '">' + esc(b.name) + '</option>';
     });
     html += '</select></div></div>' +
-      '<div class="field"><label>Display name</label><input id="st_name" placeholder="Optional name on receipts"></div>' +
+      '<div class="field"><label for="st_name">Display name</label><input id="st_name" placeholder="Optional name on receipts"></div>' +
       '<button type="button" class="btn primary" id="btnInviteStaff">Invite staff</button>';
   } else {
     html += '<p class="hint">Only the <b>Tenant Admin</b> can invite staff or add branches. Ask them to invite your email after you sign up.</p>';
@@ -2892,10 +2891,10 @@ function kycPanelHTML() {
   var form = "";
   if (st === "not_submitted" || st === "rejected") {
     form =
-      '<div class="field"><label>Legal full name</label><input id="kyc_legal" value="' + esc(kycState.legal_name || "") + '" placeholder="As on national ID"></div>' +
-      '<div class="field"><label>National ID / NIN</label><input id="kyc_nin" autocomplete="off" placeholder="Stored privately — never on receipts or QR">' +
+      '<div class="field"><label for="kyc_legal">Legal full name</label><input id="kyc_legal" value="' + esc(kycState.legal_name || "") + '" placeholder="As on national ID"></div>' +
+      '<div class="field"><label for="kyc_nin">National ID / NIN</label><input id="kyc_nin" autocomplete="off" placeholder="Stored privately — never on receipts or QR">' +
         '<div class="hint" style="margin-top:4px">Used only for identity review and abuse protection. Not shown to customers.</div></div>' +
-      '<div class="field"><label>TIN (optional)</label><input id="kyc_tin" value="' + esc(kycState.tin || "") + '" placeholder="Business TIN if any"></div>' +
+      '<div class="field"><label for="kyc_tin">TIN (optional)</label><input id="kyc_tin" value="' + esc(kycState.tin || "") + '" placeholder="Business TIN if any"></div>' +
       (st === "rejected" && kycState.rejection ? '<p class="hint warn">Last rejection: ' + esc(kycState.rejection) + "</p>" : "") +
       '<div class="row-actions"><button type="button" class="btn primary" id="btnSubmitKyc">Submit for review</button></div>';
   } else if (st === "pending") {
@@ -2939,22 +2938,22 @@ function renderSettings() {
     '<div class="card"><div class="card-h"><h2>Business profile</h2>' +
       '<span class="hint">Appears on every receipt you issue</span></div>' +
     '<div class="card-b">' +
-      '<div class="field"><label>Business name</label>' +
+      '<div class="field"><label for="s_name">Business name</label>' +
         '<input id="s_name" value="' + f(biz.name) + '" readonly style="opacity:.85;background:var(--panel-2)">' +
         '<div class="hint" style="margin-top:4px">Shop name is fixed after signup. To change it, contact HandzJ support — a platform admin verifies and updates it.</div></div>' +
-      '<div class="field"><label>Business type</label>' +
+      '<div class="field"><label for="s_category">Business type</label>' +
         '<select id="s_category">' +
           categoryOptionsHtml(biz.category || (biz.receipt_layout && biz.receipt_layout.extras && biz.receipt_layout.extras.category) || "retail") +
         '</select>' +
         '<div class="hint" style="margin-top:4px">Controls receipt wording (goods vs service vs software) for your shop type.</div></div>' +
-      '<div class="field"><label>Tagline</label><input id="s_tagline" value="' + f(biz.tagline) + '"></div>' +
+      '<div class="field"><label for="s_tagline">Tagline</label><input id="s_tagline" value="' + f(biz.tagline) + '"></div>' +
       '<div class="two">' +
-        '<div class="field"><label>Phone</label><input id="s_phone" value="' + f(biz.phone) + '"></div>' +
-        '<div class="field"><label>WhatsApp</label><input id="s_whatsapp" value="' + f(biz.whatsapp) + '"></div>' +
+        '<div class="field"><label for="s_phone">Phone</label><input id="s_phone" value="' + f(biz.phone) + '"></div>' +
+        '<div class="field"><label for="s_whatsapp">WhatsApp</label><input id="s_whatsapp" value="' + f(biz.whatsapp) + '"></div>' +
       '</div>' +
       '<div class="two">' +
-        '<div class="field"><label>Email</label><input id="s_email" value="' + f(biz.email) + '"></div>' +
-        '<div class="field"><label>Receipt prefix</label>' +
+        '<div class="field"><label for="s_email">Email</label><input id="s_email" value="' + f(biz.email) + '"></div>' +
+        '<div class="field"><label for="s_prefix">Receipt prefix</label>' +
           '<input id="s_prefix" maxlength="4" value="' + f(biz.prefix) + '" readonly style="opacity:.85;background:var(--panel-2)">' +
           '<div class="hint" style="margin-top:4px">Prefix is fixed once set. Numbers look like ' +
             esc((biz.prefix || "BIZ") + "-" + new Date().getFullYear() + "-000001") +
@@ -2969,7 +2968,7 @@ function renderSettings() {
             (hasLogo ? '<div style="margin:8px 0"><img src="' + f(biz.logo_url) + '" alt="Logo" style="max-height:56px;max-width:160px;object-fit:contain;border:1px solid var(--line);border-radius:4px;background:#fff;padding:4px"></div>' : '') +
             '<p class="hint">Logo is locked after the first upload. Contact HandzJ support — a platform admin can update it or authorize a one-time change.</p></div>';
         }
-        return '<div class="field"><label>Your logo <span style="text-transform:none;font-weight:400">' +
+        return '<div class="field"><label for="s_logo">Your logo <span style="text-transform:none;font-weight:400">' +
           (grant ? '(one-time change authorized)' : '(optional — set once)') + '</span></label>' +
           '<input id="s_logo" value="' + f(biz.logo_url) + '" placeholder="https://…/logo.png">' +
           '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">' +
@@ -3415,7 +3414,7 @@ async function lookup(no, vid) {
         status: row.status,
         kind: row.kind,
         item: row.item,
-        customer: row.customer_name,
+        customer: row.customer_masked,
         txn: row.txn_masked,
         amount: Number(row.amount) || 0,
         currency: row.currency || "UGX",
@@ -3452,10 +3451,7 @@ async function renderVerify(no, vid) {
 
   var body = "";
   if (r && genuine) {
-    /* verify_receipt() now returns the full customer name (023 migration),
-       matching what the public /verify page and the receipt image show —
-       so this in-app preview no longer masks it on either path. */
-    var custShown = r.customer;
+    var custShown = r._masked ? r.customer : maskName(r.customer);
     var refShown  = r._masked ? r.txn : maskRef(r.txn);
     body = '<div class="block" style="background:transparent;margin-top:16px"><div class="kv">' +
       '<div>Receipt number</div><div>' + esc(r.receiptNo) + '</div>' +
@@ -4491,7 +4487,7 @@ function injectExtras() {
   bar.style.cssText = "display:none;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center";
   bar.style.display = "none";
   bar.innerHTML = '<input id="voidReason" placeholder="Reason for voiding (kept on record)" ' +
-    'style="flex:1 1 280px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:9px 11px">' +
+    'style="flex:1 1 280px;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);padding:9px 11px">' +
     '<button class="btn danger" type="button" id="btnVoidConfirm">Confirm void</button>' +
     '<button class="btn" type="button" id="btnVoidCancel">Cancel</button>';
   var tools = $("btnBack").parentNode;

@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="theme-color" content="#14120f">
+<meta name="theme-color" content="#101820">
 <meta name="description" content="Create professional digital receipts, share them with customers on WhatsApp, and let anyone verify receipts online with a QR code.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://recipting.vercel.app/">
@@ -24,10 +24,11 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/handzj.css">
 <style>
 :root{
-  --bg:#121110; --panel:#1c1917; --ink:#faf8f5; --muted:#c4bdb3;
-  --brand:#9a3412; --ok:#166534; --line:#3f3a34;
+  --bg:#101820; --panel:#1a232b; --ink:#f7f5ef; --muted:#a9b2b8;
+  --brand:#16836a; --brand-deep:#0d5c4a; --accent:#d99a2b; --ok:#3fb897; --line:#33414a;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:"IBM Plex Sans",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
@@ -40,7 +41,7 @@ a{color:var(--brand);text-decoration:none}
 .nav .links{display:flex;gap:8px;flex-wrap:wrap}
 .btn{display:inline-block;padding:10px 16px;border-radius:2px;font-weight:600;font-size:13.5px;border:1px solid var(--line);color:var(--ink);background:transparent;cursor:pointer;letter-spacing:.02em}
 .btn:hover{border-color:var(--brand)}
-.btn.primary{background:var(--brand);border-color:var(--brand);color:#061018}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#052a21}
 .btn.ghost{background:transparent}
 
 .hero{padding:12px 0 40px;text-align:center}
@@ -61,7 +62,7 @@ a{color:var(--brand);text-decoration:none}
 .sample .line:last-child{border-bottom:0}
 .sample .k{color:var(--muted);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase}
 .sample .v{font-weight:600}
-.sample .total{margin-top:12px;padding:12px;background:rgba(13,157,199,.12);border:1px solid rgba(13,157,199,.25);text-align:center}
+.sample .total{margin-top:12px;padding:12px;background:rgba(22,131,106,.14);border:1px solid rgba(22,131,106,.3);text-align:center}
 .sample .total .amt{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:26px;font-weight:700;letter-spacing:.03em}
 .sample .qr{margin-top:14px;text-align:center;font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 .sample .qr span{display:inline-block;padding:8px 14px;border:1px dashed var(--line);margin-top:6px}
@@ -103,9 +104,9 @@ a{color:var(--brand);text-decoration:none}
 @keyframes hjTicker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 @keyframes hjFadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes hjDot{0%,100%{opacity:1}50%{opacity:.4}}
-@keyframes hjPulse{0%,100%{box-shadow:0 0 0 0 rgba(13,157,199,.4)}70%{box-shadow:0 0 0 12px rgba(13,157,199,0)}}
+@keyframes hjPulse{0%,100%{box-shadow:0 0 0 0 rgba(22,131,106,.4)}70%{box-shadow:0 0 0 12px rgba(22,131,106,0)}}
 .live-banner{overflow:hidden;border:1px solid var(--line);background:var(--panel);margin:0 0 28px;border-radius:2px;position:relative}
-.live-banner .lb-label{position:absolute;left:0;top:0;bottom:0;z-index:2;background:var(--brand);color:#061018;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:0 14px;display:flex;align-items:center;gap:6px}
+.live-banner .lb-label{position:absolute;left:0;top:0;bottom:0;z-index:2;background:var(--brand);color:#052a21;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:0 14px;display:flex;align-items:center;gap:6px}
 .live-banner .lb-dot{width:7px;height:7px;border-radius:50%;background:#5fd6a4;animation:hjDot 1.5s ease-in-out infinite}
 .live-banner .lb-track{display:flex;width:max-content;animation:hjTicker 32s linear infinite;padding:11px 0 11px 72px}
 .live-banner .lb-item{white-space:nowrap;padding:0 32px;font-size:13px;color:var(--muted);border-right:1px solid var(--line)}
@@ -150,8 +151,9 @@ a{color:var(--brand);text-decoration:none}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <nav class="nav">
+<a class="hz-skip-link" href="#main">Skip to content</a>
+<main class="wrap" id="main">
+  <nav class="nav" aria-label="Primary">
     <div class="brand">
       <img src="/logo.jpg" alt="HandzJ">
       <div class="name">HandzJ Digital Receipts</div>
@@ -287,7 +289,7 @@ a{color:var(--brand);text-decoration:none}
     </div>
     <div><a href="tel:0781909507">0781 909 507</a> · <a href="https://wa.me/256757632884?text=Hello%20HandzJ%2C%20I%27d%20like%20to%20know%20more%20about%20Digital%20Receipts." target="_blank" rel="noopener">0757 632 884</a> · <a href="mailto:handzj2@gmail.com">handzj2@gmail.com</a></div>
   </footer>
-</div>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
