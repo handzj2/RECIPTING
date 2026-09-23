@@ -3415,7 +3415,7 @@ async function lookup(no, vid) {
         status: row.status,
         kind: row.kind,
         item: row.item,
-        customer: row.customer_masked,
+        customer: row.customer_name,
         txn: row.txn_masked,
         amount: Number(row.amount) || 0,
         currency: row.currency || "UGX",
@@ -3452,7 +3452,10 @@ async function renderVerify(no, vid) {
 
   var body = "";
   if (r && genuine) {
-    var custShown = r._masked ? r.customer : maskName(r.customer);
+    /* verify_receipt() now returns the full customer name (023 migration),
+       matching what the public /verify page and the receipt image show —
+       so this in-app preview no longer masks it on either path. */
+    var custShown = r.customer;
     var refShown  = r._masked ? r.txn : maskRef(r.txn);
     body = '<div class="block" style="background:transparent;margin-top:16px"><div class="kv">' +
       '<div>Receipt number</div><div>' + esc(r.receiptNo) + '</div>' +
