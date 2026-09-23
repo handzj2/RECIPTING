@@ -2742,12 +2742,13 @@ function staffSettingsHTML() {
   html += '<p class="hint" style="margin-top:0">Workers use their own login. They cannot see other businesses. Same shop name elsewhere is a different account.</p>';
 
   if (branches.length) {
-    html += '<div class="section-label">Branches</div><ul style="margin:0 0 12px;padding-left:18px;font-size:13.5px">';
+    html += '<div class="section-label">Branches</div><div class="tblwrap" style="margin-bottom:12px"><table style="width:100%;font-size:13.5px"><tbody>';
     branches.forEach(function (b) {
-      html += '<li>' + esc(b.name) + (b.code ? ' <span class="hint">(' + esc(b.code) + ')</span>' : '') +
-        (staffBranchId && b.id === staffBranchId ? ' — <b>yours</b>' : '') + '</li>';
+      html += '<tr><td style="padding:9px 12px">' + esc(b.name) +
+        (b.code ? ' <span class="hint mono">' + esc(b.code) + '</span>' : '') +
+        (staffBranchId && b.id === staffBranchId ? ' <span class="status valid">yours</span>' : '') + '</td></tr>';
     });
-    html += '</ul>';
+    html += '</tbody></table></div>';
   }
 
   if (canManageStaff()) {
@@ -2775,17 +2776,18 @@ function staffSettingsHTML() {
 
   if (staffList.length) {
     html += '<div class="section-label" style="margin-top:16px">Team members</div>' +
-      '<table style="width:100%;font-size:13px"><thead><tr><th>Email / name</th><th>Role</th><th></th></tr></thead><tbody>';
+      '<div class="tblwrap"><table style="width:100%;font-size:13px"><thead><tr><th>Email / name</th><th>Role</th><th>Branch</th><th></th></tr></thead><tbody>';
     staffList.forEach(function (m) {
+      var br = branches.filter(function (b) { return b.id === m.branch_id; })[0];
       html += '<tr><td>' + esc(m.invited_email || m.display_name || m.user_id) +
         (m.active === false ? ' <span class="status void">off</span>' : '') + '</td><td>' +
-        esc(m.role) + '</td><td>';
+        esc(m.role) + '</td><td>' + esc(br ? br.name : "All / main") + '</td><td>';
       if (canManageStaff() && m.role !== 'owner' && m.active !== false) {
         html += '<button type="button" class="btn" data-deact="' + esc(m.id) + '" style="padding:4px 8px;font-size:12px">Deactivate</button>';
       }
       html += '</td></tr>';
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
   }
 
   html += '</div></div>';
