@@ -10,85 +10,243 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/handzj.css">
 <style>
-:root{
-  --bg:#f0f2f5; --panel:#ffffff; --ink:#101820; --ink-soft:#4b5761;
-  --line:#d8d2c2; --brand:#101820; --ok:#16836a; --ok-soft:#e4f1ec;
-  --bad:#b3261e; --bad-soft:#f6e4e2; --unk:#6b7580; --unk-soft:#edece7;
+/* ==========================================================================
+   Public verification themes — controlled variable system only.
+   Tenant theme (data-theme-key) + visitor mode (data-mode) are separate layers.
+   Semantic VALID/VOIDED/WARNING/ERROR are system-fixed (not themed).
+   ========================================================================== */
+
+/* ---- Semantic status (identical across all themes & modes) ---- */
+:root {
+  --status-valid-bg: #E7F3EF;
+  --status-valid-border: #16836A;
+  --status-valid-text: #0D5C4A;
+  --status-voided-bg: #F5E9E8;
+  --status-voided-border: #8A1F1F;
+  --status-voided-text: #8A1F1F;
+  --status-warn-bg: #FBF1DE;
+  --status-warn-border: #D99A2B;
+  --status-warn-text: #8A5E14;
+  --status-error-bg: #F6E7E6;
+  --status-error-border: #B3261E;
+  --status-error-text: #B3261E;
+  --status-unk-bg: #EDECE7;
+  --status-unk-border: #6B7580;
+  --status-unk-text: #6B7580;
 }
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#101820; --panel:#263238; --ink:#f7f5ef; --ink-soft:#a9b2b8;
-    --line:#33414a; --ok:#3fb897; --ok-soft:#103a30;
-    --bad:#ff8a80; --bad-soft:#3a1614; --unk:#9aa4ab; --unk-soft:#232d33;
-  }
+
+html[data-mode="dark"] {
+  --status-valid-bg: #132921;
+  --status-valid-border: #16836A;
+  --status-valid-text: #4FC7A8;
+  --status-voided-bg: #2A1614;
+  --status-voided-border: #8A1F1F;
+  --status-voided-text: #D97066;
+  --status-warn-bg: #2B2210;
+  --status-warn-border: #D99A2B;
+  --status-warn-text: #E9B95C;
+  --status-error-bg: #2D1613;
+  --status-error-border: #B3261E;
+  --status-error-text: #E0776D;
+  --status-unk-bg: #232D33;
+  --status-unk-border: #9AA4AB;
+  --status-unk-text: #9AA4AB;
 }
+
+/* ---- HandzJ System / default — light ---- */
+html[data-theme-key="default"][data-mode="light"],
+html:not([data-theme-key])[data-mode="light"],
+html[data-theme-key="default"]:not([data-mode]),
+html:not([data-theme-key]):not([data-mode]) {
+  --bg: #F7F5EF;
+  --panel: #FFFFFF;
+  --ink: #101820;
+  --ink-soft: #5C6670;
+  --line: #E4E0D6;
+  --accent: #16836A;
+  --emphasis: #0D5C4A;
+  --receipt-accent: #16836A;
+  --brand: #16836A;
+}
+
+/* ---- HandzJ System / default — dark ---- */
+html[data-theme-key="default"][data-mode="dark"],
+html:not([data-theme-key])[data-mode="dark"] {
+  --bg: #101820;
+  --panel: #182029;
+  --ink: #F7F5EF;
+  --ink-soft: #AAB3B8;
+  --line: #2A3339;
+  --accent: #22A388;
+  --emphasis: #1B8F73;
+  --receipt-accent: #22A388;
+  --brand: #22A388;
+}
+
+/* ---- Forest — light ---- */
+html[data-theme-key="forest"][data-mode="light"],
+html[data-theme-key="forest"]:not([data-mode]) {
+  --bg: #F4F2EA;
+  --panel: #FBFAF5;
+  --ink: #101812;
+  --ink-soft: #7C7566;
+  --line: #DAD5C4;
+  --accent: #16836A;
+  --emphasis: #0D5C4A;
+  --receipt-accent: #0D5C4A;
+  --brand: #0D5C4A;
+}
+
+/* ---- Forest — dark ---- */
+html[data-theme-key="forest"][data-mode="dark"] {
+  --bg: #0F1B16;
+  --panel: #16241E;
+  --ink: #F2F0E6;
+  --ink-soft: #A79C89;
+  --line: #2C3A31;
+  --accent: #2FA98C;
+  --emphasis: #1B8F73;
+  --receipt-accent: #2FA98C;
+  --brand: #2FA98C;
+}
+
+/* ---- Navy Gold — light ---- */
+html[data-theme-key="navy_gold"][data-mode="light"],
+html[data-theme-key="navy_gold"]:not([data-mode]) {
+  --bg: #F5F5F3;
+  --panel: #FFFFFF;
+  --ink: #101820;
+  --ink-soft: #526270;
+  --line: #DCDFE1;
+  --accent: #1C2E3F;
+  --emphasis: #D99A2B;
+  --receipt-accent: #D99A2B;
+  --brand: #1C2E3F;
+}
+
+/* ---- Navy Gold — dark ---- */
+html[data-theme-key="navy_gold"][data-mode="dark"] {
+  --bg: #101820;
+  --panel: #1B242C;
+  --ink: #F5F5F3;
+  --ink-soft: #9AA5AB;
+  --line: #33414A;
+  --accent: #3A5068;
+  --emphasis: #E4AC4C;
+  --receipt-accent: #E4AC4C;
+  --brand: #3A5068;
+}
+
+/* ---- Teal Slate — light ---- */
+html[data-theme-key="teal_slate"][data-mode="light"],
+html[data-theme-key="teal_slate"]:not([data-mode]) {
+  --bg: #F2F5F4;
+  --panel: #FFFFFF;
+  --ink: #1B2A2C;
+  --ink-soft: #5B6B70;
+  --line: #D7E2E1;
+  --accent: #0F6F5C;
+  --emphasis: #263238;
+  --receipt-accent: #0F6F5C;
+  --brand: #0F6F5C;
+}
+
+/* ---- Teal Slate — dark ---- */
+html[data-theme-key="teal_slate"][data-mode="dark"] {
+  --bg: #0E1A1B;
+  --panel: #17262A;
+  --ink: #F0F4F3;
+  --ink-soft: #8FA6A3;
+  --line: #2A3F3F;
+  --accent: #2BA99A;
+  --emphasis: #7C8A90;
+  --receipt-accent: #2BA99A;
+  --brand: #2BA99A;
+}
+
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:14.5px;line-height:1.5}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:14.5px;line-height:1.5;transition:background .15s ease,color .15s ease}
 .wrap{max-width:480px;margin:0 auto;padding:32px 16px 64px}
 .hz-skip-link{position:absolute;left:8px;top:-48px}
 
+/* Visitor mode toggle — compact, accessible, no layout drift */
+.mode-toggle-bar{display:flex;justify-content:flex-end;margin-bottom:12px}
+.mode-toggle{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 10px;border:1px solid var(--line);border-radius:6px;
+  background:var(--panel);color:var(--ink-soft);
+  font-size:12px;font-weight:600;letter-spacing:.04em;
+  cursor:pointer;font-family:inherit;line-height:1;
+  min-height:36px;
+}
+.mode-toggle:hover{color:var(--ink);border-color:var(--accent)}
+.mode-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mode-toggle .mode-icon{font-size:14px;line-height:1}
+
 /* Document-style verification identity */
-.vdoc{background:var(--panel);border:1px solid var(--line);border-radius:0}
-.vdoc-head{padding:20px 22px 16px;border-bottom:3px solid var(--brand);text-align:center}
+.vdoc{background:var(--panel);border:1px solid var(--line);border-radius:0;transition:background .15s ease,border-color .15s ease}
+.vdoc-head{padding:20px 22px 16px;border-bottom:3px solid var(--receipt-accent);text-align:center}
 .vdoc-head .title{font-family:"IBM Plex Serif",Georgia,serif;font-size:15px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:10px}
-.vdoc-head .rno{font-family:"IBM Plex Serif",Georgia,serif;font-size:26px;font-weight:700;letter-spacing:.06em;color:var(--brand)}
+.vdoc-head .rno{font-family:"IBM Plex Serif",Georgia,serif;font-size:26px;font-weight:700;letter-spacing:.06em;color:var(--accent)}
 .vdoc-body{padding:28px 22px 24px;text-align:center}
+
+/* Status marks use semantic (system) colours — not tenant theme */
 .status-mark{width:60px;height:60px;margin:0 auto 14px;border:3px solid;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;line-height:1}
-.status-mark.ok{border-color:var(--ok);color:var(--ok);background:var(--ok-soft)}
-.status-mark.bad{border-color:var(--bad);color:var(--bad);background:var(--bad-soft)}
-.status-mark.unk{border-color:var(--unk);color:var(--unk);background:var(--unk-soft)}
+.status-mark.ok{border-color:var(--status-valid-border);color:var(--status-valid-text);background:var(--status-valid-bg)}
+.status-mark.bad{border-color:var(--status-voided-border);color:var(--status-voided-text);background:var(--status-voided-bg)}
+.status-mark.unk{border-color:var(--status-unk-border);color:var(--status-unk-text);background:var(--status-unk-bg)}
+.status-mark.warn{border-color:var(--status-warn-border);color:var(--status-warn-text);background:var(--status-warn-bg)}
+.status-mark.err{border-color:var(--status-error-border);color:var(--status-error-text);background:var(--status-error-bg)}
+
 .status-label{font-family:"IBM Plex Serif",Georgia,serif;font-size:28px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
-.status-label.ok{color:var(--ok)}
-.status-label.bad{color:var(--bad)}
-.status-label.unk{color:var(--unk)}
+.status-label.ok{color:var(--status-valid-text)}
+.status-label.bad{color:var(--status-voided-text)}
+.status-label.unk{color:var(--status-unk-text)}
+.status-label.warn{color:var(--status-warn-text)}
+.status-label.err{color:var(--status-error-text)}
 .status-sub{font-size:13px;color:var(--ink-soft);margin-bottom:22px}
 
 .block{text-align:left;border-top:1px solid var(--line);padding:16px 0 0;margin-top:4px}
-.block .row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;font-size:13.5px;border-bottom:1px solid #e8edf4}
+.block .row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;font-size:13.5px;border-bottom:1px solid var(--line)}
 .block .row:last-child{border-bottom:0}
 .block .k{color:var(--ink-soft);font-weight:600;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;flex:0 0 120px}
-.block .v{text-align:right;font-weight:500}
-.block .v b{font-weight:700}
+.block .v{color:var(--ink);text-align:right;word-break:break-word}
+.block .v.mono,.mono{font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 
-.issuer-bar{display:flex;align-items:center;gap:12px;padding:14px 22px;border-top:1px solid var(--line);background:var(--panel)}
-.issuer-bar img{width:40px;height:40px;border-radius:2px;object-fit:cover;background:var(--line);border:1px solid var(--line)}
-.issuer-bar .t1{font-family:"IBM Plex Serif",Georgia,serif;font-size:16px;font-weight:700;letter-spacing:.04em}
-.issuer-bar .t2{font-size:11.5px;color:var(--ink-soft);letter-spacing:.03em}
+.summary-line{font-size:15px;font-weight:600;color:var(--ink);margin:0 0 8px}
+.issuer-bar{display:flex;align-items:center;gap:12px;padding:14px 22px;border-top:1px solid var(--line);background:transparent}
+.issuer-bar img{width:36px;height:36px;object-fit:contain;border-radius:4px;background:var(--bg);border:1px solid var(--line)}
+.issuer-bar .t1{font-weight:700;font-size:13.5px;color:var(--ink)}
+.issuer-bar .t2{font-size:11.5px;color:var(--ink-soft)}
 
-.foot{text-align:center;margin-top:18px;font-size:12px;color:var(--ink-soft);line-height:1.65}
-.foot a{color:inherit;text-decoration:underline}
-.mono{font-variant-numeric:tabular-nums;letter-spacing:.03em}
-
-.loading{padding:48px 22px;text-align:center;color:var(--ink-soft);font-size:14px}
-
-/* Subtle growth CTA — secondary to the receipt, not an ad inside the document */
-.growth-cta{
-  margin-top:20px;padding:18px 16px;text-align:center;
-  background:var(--panel);border:1px solid var(--line);border-radius:8px;
-}
-.growth-cta .g-title{font-weight:600;font-size:14.5px;margin-bottom:6px;color:var(--ink)}
-.growth-cta .g-sub{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-bottom:12px;max-width:320px;margin-left:auto;margin-right:auto}
+.growth-cta{margin-top:20px;padding:18px 16px;border:1px solid var(--line);background:var(--panel);text-align:center}
+.growth-cta .g-title{font-weight:700;font-size:14.5px;color:var(--ink);margin-bottom:4px}
+.growth-cta .g-sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:12px}
 .growth-cta .g-btn{
-  display:inline-block;padding:11px 20px;min-height:44px;border-radius:8px;font-size:13.5px;font-weight:600;
-  background:var(--ok);color:#fff;text-decoration:none;border:none;
+  display:inline-block;padding:11px 20px;min-height:44px;line-height:1.2;
+  background:var(--emphasis);color:#fff;text-decoration:none;font-weight:700;font-size:13.5px;
+  border-radius:6px;border:0;cursor:pointer;
 }
-.growth-cta .g-btn:hover{filter:brightness(1.08)}
-.growth-cta .g-btn:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.growth-cta .g-btn:hover{opacity:.92}
+.growth-cta .g-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-/* mobile receipt verify */
-@media (max-width: 560px) {
-  .wrap{padding:16px 12px calc(48px + env(safe-area-inset-bottom,0));max-width:100%}
-  body{font-size:15px;-webkit-text-size-adjust:100%}
-  .card{padding:14px 12px;border-radius:10px}
-  h1{font-size:1.35rem}
-  .status{font-size:1rem;padding:10px 12px}
-  .kv,.meta{font-size:13.5px}
-  .kv div,.row{word-break:break-word}
-  .qr img,.qr canvas{max-width:160px;height:auto}
+.foot{margin-top:28px;text-align:center;font-size:11.5px;color:var(--ink-soft);line-height:1.6}
+.foot a{color:var(--accent);text-decoration:none}
+.foot a:hover{text-decoration:underline}
+.loading{padding:48px 22px;text-align:center;color:var(--ink-soft)}
+
+@media (max-width:480px){
+  .wrap{padding:20px 12px 48px}
+  .vdoc-head{padding:16px 14px 12px}
+  .vdoc-body{padding:22px 14px 18px}
+  .vdoc-head .rno{font-size:22px}
+  .status-label{font-size:22px}
+  .block .k{flex:0 0 96px;font-size:11px}
+  .issuer-bar{padding:12px 14px}
+  .mode-toggle-bar{margin-bottom:8px}
   .growth-cta{padding:14px 12px}
-  .growth-cta .g-btn{display:block;width:100%;box-sizing:border-box;min-height:48px;padding:13px 16px;line-height:1.2}
-  .btn,a.btn{display:block;width:100%;text-align:center;padding:14px;min-height:48px;box-sizing:border-box}
+  .growth-cta .g-btn{display:block;width:100%;box-sizing:border-box;min-height:48px;padding:13px 16px}
 }
 </style>
 <script src="/config.js"></script>
@@ -100,6 +258,48 @@ body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui
 </div>
 <script>
 "use strict";
+
+/* ---- Visitor light/dark preference (local only; never writes tenant theme) ---- */
+var MODE_KEY = "hzr_visitor_mode";
+var ALLOWED_THEMES = { default: 1, forest: 1, navy_gold: 1, teal_slate: 1 };
+
+function resolveVisitorMode() {
+  try {
+    var stored = localStorage.getItem(MODE_KEY);
+    if (stored === "light" || stored === "dark") return stored;
+  } catch (e) { /* private mode / blocked storage */ }
+  if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    return "dark";
+  }
+  return "light";
+}
+
+function applyMode(mode) {
+  var m = mode === "dark" ? "dark" : "light";
+  document.documentElement.setAttribute("data-mode", m);
+  return m;
+}
+
+function setVisitorMode(mode) {
+  var m = applyMode(mode);
+  try { localStorage.setItem(MODE_KEY, m); } catch (e) { /* ignore */ }
+  return m;
+}
+
+function resolveThemeKey(raw) {
+  var k = String(raw == null ? "" : raw).trim().toLowerCase();
+  return ALLOWED_THEMES[k] ? k : "default";
+}
+
+function applyThemeKey(raw) {
+  var k = resolveThemeKey(raw);
+  document.documentElement.setAttribute("data-theme-key", k);
+  return k;
+}
+
+/* Apply visitor mode immediately (before RPC) so first paint respects preference */
+applyMode(resolveVisitorMode());
+applyThemeKey("default");
 
 function esc(s) {
   return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -128,15 +328,9 @@ function fmtStamp(ts) {
   if (isNaN(d.getTime())) return String(ts);
   return fmtDate(ts) + " · " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
-function maskRef(ref) {
-  var s = String(ref || "").trim();
-  if (!s) return "—";
-  return s.length <= 4 ? "••" + s.slice(-2) : "••••" + s.slice(-4);
-}
 function qs(k) {
   return new URLSearchParams(location.search).get(k) || "";
 }
-
 function cfg() { return window.HANDZJ_CONFIG || {}; }
 
 async function lookup(no, id) {
@@ -159,48 +353,115 @@ function appOrigin() {
   return location.origin;
 }
 
+function modeToggleHtml() {
+  var mode = document.documentElement.getAttribute("data-mode") || "light";
+  var next = mode === "dark" ? "light" : "dark";
+  var label = mode === "dark" ? "Light mode" : "Dark mode";
+  var icon = mode === "dark" ? "☀" : "☾";
+  return (
+    '<div class="mode-toggle-bar">' +
+      '<button type="button" class="mode-toggle" id="hz-mode-toggle" aria-label="' + esc(label) + '" title="' + esc(label) + '">' +
+        '<span class="mode-icon" aria-hidden="true">' + icon + '</span>' +
+        '<span>' + esc(label) + '</span>' +
+      '</button>' +
+    '</div>'
+  );
+}
+
+function wireModeToggle() {
+  var btn = document.getElementById("hz-mode-toggle");
+  if (!btn) return;
+  btn.addEventListener("click", function () {
+    var cur = document.documentElement.getAttribute("data-mode") || "light";
+    var next = cur === "dark" ? "light" : "dark";
+    setVisitorMode(next);
+    /* Refresh toggle label without full re-render */
+    var label = next === "dark" ? "Light mode" : "Dark mode";
+    var icon = next === "dark" ? "☀" : "☾";
+    btn.setAttribute("aria-label", label);
+    btn.setAttribute("title", label);
+    btn.innerHTML = '<span class="mode-icon" aria-hidden="true">' + icon + '</span><span>' + esc(label) + '</span>';
+  });
+}
+
 function render(no, id, row, err) {
   var root = document.getElementById("root");
-  /* Clear, distinct states — never leave the user on "Retrieving…" */
-  var status = "unk", mark = "?", label = "RECEIPT NOT FOUND", sub = "No matching record was found for this receipt number.";
-
-  if (err) {
-    status = "unk"; mark = "!"; label = "VERIFICATION UNAVAILABLE"; sub = "The verification service could not be reached. Try again in a moment.";
-  } else if (row) {
-    if (row.status === "VOIDED") {
-      status = "bad"; mark = "✕"; label = "RECEIPT VOIDED"; sub = "This receipt was voided by the issuer and is no longer valid.";
-    } else {
-      status = "ok"; mark = "✓"; label = "VALID RECEIPT"; sub = "This record was retrieved from the issuing platform.";
-    }
-  }
-
-  var logo = (row && row.business_logo) || "/logo.jpg";
-  var who = (row && row.business_name) || "HandzJ Digital Receipts";
   var origin = appOrigin();
   var signup = origin + "/login.html?mode=signup";
+  var logo = origin + "/logo-64.png";
 
+  /* Apply tenant theme from RPC (safe fallback to default) */
+  if (row && row.theme_key != null) {
+    applyThemeKey(row.theme_key);
+  } else {
+    applyThemeKey("default");
+  }
+
+  var status = "unk";
+  var mark = "?";
+  var label = "UNKNOWN";
+  var sub = "Unable to confirm this receipt.";
+  var who = "—";
   var body = "";
   var summary = "";
-  if (row) {
-    var buyer = row.customer_name && row.customer_name !== "—" ? row.customer_name : "the customer";
-    summary = status === "ok"
-      ? '<p class="status-sub" style="margin-top:-10px">This receipt was issued by <b>' + esc(who) + '</b> to <b>' + esc(buyer) + '</b>.</p>'
-      : "";
+
+  if (err) {
+    status = "err";
+    mark = "!";
+    label = "ERROR";
+    if (String(err.message || "").indexOf("timeout") >= 0) {
+      sub = "Verification timed out. Check your connection and try again.";
+    } else {
+      sub = "Verification service could not be reached.";
+    }
+  } else if (row) {
+    who = row.business_name || "Merchant";
+    if (row.business_logo) logo = row.business_logo;
+
+    var st = String(row.status || "").toUpperCase();
+    if (st === "VALID" || st === "ISSUED" || st === "PAID") {
+      status = "ok";
+      mark = "✓";
+      label = "VALID";
+      sub = "This receipt is authentic and currently valid.";
+    } else if (st === "VOIDED" || st === "VOID" || st === "CANCELLED") {
+      status = "bad";
+      mark = "✕";
+      label = "VOIDED";
+      sub = "This receipt has been voided by the issuer.";
+    } else {
+      status = "unk";
+      mark = "?";
+      label = st || "UNKNOWN";
+      sub = "Receipt status could not be classified.";
+    }
+
+    summary =
+      '<p class="summary-line">' + esc(row.item || row.kind || "Receipt") + "</p>" +
+      '<p class="summary-line" style="font-size:20px;color:var(--receipt-accent)">' +
+        esc(money(row.amount, row.currency)) +
+      "</p>";
+
+    var sellerBits = [];
+    if (row.business_name) sellerBits.push(esc(row.business_name));
+    if (row.branch_name) sellerBits.push(esc(row.branch_name));
+    if (row.branch_address) sellerBits.push(esc(row.branch_address));
+    var contact = row.branch_phone || row.business_phone || "";
+    if (contact) sellerBits.push(esc(contact));
+    if (row.business_email) sellerBits.push(esc(row.business_email));
+
     body =
       '<div class="block">' +
-        '<div class="row"><span class="k">Issued by</span><span class="v">' + esc(who) + '</span></div>' +
-        (row.branch_name ? '<div class="row"><span class="k">Branch</span><span class="v">' + esc(row.branch_name) + '</span></div>' : '') +
-        (row.branch_address ? '<div class="row"><span class="k">Location</span><span class="v">' + esc(row.branch_address) + '</span></div>' : '') +
-        ((row.business_phone || row.branch_phone) ? '<div class="row"><span class="k">Contact</span><span class="v">' + esc(row.branch_phone || row.business_phone) + '</span></div>' : '') +
         '<div class="row"><span class="k">Customer</span><span class="v">' + esc(row.customer_name || "—") + '</span></div>' +
-        '<div class="row"><span class="k">Date issued</span><span class="v mono">' + esc(fmtDate(row.paid_on || row.created_at)) + '</span></div>' +
-        '<div class="row"><span class="k">Amount</span><span class="v"><b>' + esc(money(row.amount, row.currency)) + '</b></span></div>' +
-        '<div class="row"><span class="k">Payment</span><span class="v">' + esc(row.method || "—") + '</span></div>' +
-        (row.item ? '<div class="row"><span class="k">Item</span><span class="v">' + esc(row.item) + '</span></div>' : '') +
-        '<div class="row"><span class="k">Reference</span><span class="v mono">' + esc(row.txn_masked || maskRef(row.txn)) + '</span></div>' +
+        '<div class="row"><span class="k">Paid on</span><span class="v">' + esc(fmtDate(row.paid_on)) + '</span></div>' +
+        '<div class="row"><span class="k">Method</span><span class="v">' + esc(row.method || "—") + '</span></div>' +
+        '<div class="row"><span class="k">Reference</span><span class="v mono">' + esc(row.txn_masked || "—") + '</span></div>' +
+        '<div class="row"><span class="k">Issued</span><span class="v">' + esc(fmtStamp(row.created_at)) + '</span></div>' +
+        '<div class="row"><span class="k">Seller</span><span class="v">' + (sellerBits.length ? sellerBits.join("<br>") : "—") + '</span></div>' +
       '</div>';
-    if (row.status === "VOIDED" && row.voided_at) {
-      body += '<p style="margin:14px 0 0;font-size:12.5px;color:var(--bad)">Voided: ' + esc(fmtStamp(row.voided_at)) + '</p>';
+
+    if (row.voided_at) {
+      body += '<p style="margin:14px 0 0;font-size:12.5px;color:var(--status-voided-text)">Voided: ' + esc(fmtStamp(row.voided_at)) + '</p>';
     }
   } else if (!err) {
     body =
@@ -210,7 +471,6 @@ function render(no, id, row, err) {
       '</div>';
   }
 
-  /* Growth CTA — secondary to the receipt, does not claim HandzJ made the sale */
   var cta =
     '<div class="growth-cta">' +
       '<div class="g-title">Digital receipts for your business?</div>' +
@@ -219,6 +479,7 @@ function render(no, id, row, err) {
     '</div>';
 
   root.innerHTML =
+    modeToggleHtml() +
     '<div class="vdoc">' +
       '<div class="vdoc-head">' +
         '<div class="title">Receipt Verification</div>' +
@@ -242,6 +503,8 @@ function render(no, id, row, err) {
       'Receipt identity: <span class="mono">' + esc(no || "—") + '</span><br>' +
       'This is not a government or tax authority certification.' +
     '</p>';
+
+  wireModeToggle();
 }
 
 (async function () {
@@ -251,7 +514,6 @@ function render(no, id, row, err) {
     render("", "", null, null);
     return;
   }
-  /* Hard timeout so the UI never stays on "Retrieving record…" indefinitely */
   var timedOut = false;
   var timer = setTimeout(function () {
     timedOut = true;
