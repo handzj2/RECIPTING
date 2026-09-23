@@ -80,6 +80,11 @@ tr.selected{background:var(--accent-soft)}
 .pill.ended{background:var(--bad-soft);color:var(--bad)}
 .pill.soon{background:var(--warn-soft);color:var(--warn)}
 .pill.new{background:var(--accent);color:#04222c;margin-left:4px}
+.pill.wait{background:var(--line-soft);color:var(--ink-soft)}
+.review-grid{display:grid;grid-template-columns:1fr;gap:2px 14px;margin-top:2px}
+.review-grid .kv{padding:8px 0;border-bottom:1px solid var(--line-soft)}
+.review-grid .kv .k{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+.review-grid .kv .v{font-size:14px;margin-top:2px;white-space:pre-line}
 .hint{font-size:12.5px;color:var(--ink-soft)}
 .msg{border-radius:10px;padding:11px 13px;font-size:13.5px;margin-top:12px;display:none;border:1px solid transparent}
 .msg.warn{display:block;background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
@@ -115,7 +120,7 @@ tr.selected{background:var(--accent-soft)}
     position:fixed;left:0;right:0;bottom:0;z-index:30;
     margin:0;border-radius:0;border-left:0;border-right:0;border-bottom:0;
     padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));
-    display:grid;grid-template-columns:repeat(4,1fr);gap:4px;
+    display:grid;grid-template-columns:repeat(5,1fr);gap:4px;
     box-shadow:0 -4px 20px rgba(16,24,38,.12);
   }
   .tabs button{
@@ -144,6 +149,16 @@ tr.selected{background:var(--accent-soft)}
   #tab-businesses td{display:block;border:0;padding:2px 0}
   #tab-businesses td:last-child{margin-top:10px}
   #tab-businesses td:last-child .btn{width:100%}
+  #tab-verify .tablewrap thead{display:none}
+  #tab-verify table{min-width:0;display:block}
+  #tab-verify tbody{display:block}
+  #tab-verify tr{
+    display:block;border:1px solid var(--line);border-radius:12px;
+    padding:12px;margin-bottom:10px;background:var(--panel-2);
+  }
+  #tab-verify td{display:block;border:0;padding:2px 0}
+  #tab-verify td:last-child{margin-top:10px}
+  #tab-verify td:last-child .btn{width:100%}
   #tab-packs .tablewrap{margin:0 -4px}
   #tab-packs table{min-width:520px}
   #tab-sales table{min-width:560px}
@@ -176,9 +191,10 @@ tr.selected{background:var(--accent-soft)}
 
   <div class="tabs" role="tablist">
     <button type="button" data-tab="businesses" aria-selected="true"><span class="tab-full">1. Businesses</span><span class="tab-short">Businesses</span></button>
-    <button type="button" data-tab="activate" aria-selected="false"><span class="tab-full">2. Activate payment</span><span class="tab-short">Activate</span></button>
-    <button type="button" data-tab="packs" aria-selected="false"><span class="tab-full">3. Pack prices</span><span class="tab-short">Packs</span></button>
-    <button type="button" data-tab="sales" aria-selected="false"><span class="tab-full">4. Sales history</span><span class="tab-short">Sales</span></button>
+    <button type="button" data-tab="verify" aria-selected="false"><span class="tab-full">2. Business verification</span><span class="tab-short">Verify</span></button>
+    <button type="button" data-tab="activate" aria-selected="false"><span class="tab-full">3. Activate payment</span><span class="tab-short">Activate</span></button>
+    <button type="button" data-tab="packs" aria-selected="false"><span class="tab-full">4. Pack prices</span><span class="tab-short">Packs</span></button>
+    <button type="button" data-tab="sales" aria-selected="false"><span class="tab-full">5. Sales history</span><span class="tab-short">Sales</span></button>
   </div>
 
   <div class="stats" id="stats"></div>
@@ -218,7 +234,42 @@ tr.selected{background:var(--accent-soft)}
           </table>
         </div>
         <div id="empty" class="empty">Loading…</div>
-        <p class="hint" style="margin-top:12px;margin-bottom:0">Click <b>Manage</b> for KYC, trial, suspend, rename. Use tab <b>2. Activate payment</b> after Mobile Money.</p>
+        <p class="hint" style="margin-top:12px;margin-bottom:0">Click <b>Manage</b> for trial, suspend, rename. Business approval now lives in tab <b>2. Business verification</b>. Use tab <b>3. Activate payment</b> after Mobile Money.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: BUSINESS VERIFICATION ========== -->
+  <div class="panel-tab" id="tab-verify">
+    <div class="card">
+      <div class="card-h">
+        <h2>Business verification</h2>
+        <span class="hint" id="verifyCount"></span>
+      </div>
+      <div class="card-b">
+        <p class="hint" style="margin-top:0">
+          A registered business needs a platform decision before it's treated as fully verified.
+          <b>Email confirmed</b> only proves the owner controls that inbox — it is not an approval.
+        </p>
+        <div class="filters">
+          <select id="vfState">
+            <option value="">All — needs attention first</option>
+            <option value="PENDING">Pending (email not confirmed)</option>
+            <option value="EMAIL_CONFIRMED">Email confirmed</option>
+            <option value="UNDER_REVIEW">Under review</option>
+            <option value="APPROVED">Approved</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr>
+              <th>Business</th><th>Email</th><th>Email status</th><th>Submitted</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody id="verifyRows"></tbody>
+          </table>
+        </div>
+        <div id="verifyEmpty" class="empty">Loading…</div>
       </div>
     </div>
   </div>
@@ -338,10 +389,9 @@ tr.selected{background:var(--accent-soft)}
     </div>
   </div>
   <div class="section">
-    <h4>KYC &amp; account</h4>
+    <h4>Account</h4>
+    <p class="hint" style="margin-top:0">Approve/reject business verification from the <b>Business verification</b> tab.</p>
     <div class="acts">
-      <button class="btn tiny" data-act="kyc_ok" type="button">KYC approve</button>
-      <button class="btn tiny" data-act="kyc_no" type="button">KYC reject</button>
       <button class="btn tiny danger" data-act="suspend" type="button">Suspend</button>
       <button class="btn tiny" data-act="reinstate" type="button">Reinstate</button>
     </div>
@@ -361,12 +411,50 @@ tr.selected{background:var(--accent-soft)}
   </div>
 </aside>
 
+<!-- Verification review drawer -->
+<div class="drawer-bg" id="vDrawerBg"></div>
+<aside class="drawer" id="vDrawer" aria-hidden="true">
+  <button class="btn tiny" type="button" id="vDrawerClose" style="float:right">Close</button>
+  <h3 id="vDrawerTitle">Business</h3>
+  <p class="hint" id="vDrawerStatus"></p>
+
+  <div class="section" style="margin-top:14px;border-top:none;padding-top:0">
+    <h4>Business</h4>
+    <div class="review-grid" id="vDrawerBusiness"></div>
+  </div>
+  <div class="section">
+    <h4>Owner / account</h4>
+    <div class="review-grid" id="vDrawerOwner"></div>
+  </div>
+  <div class="section">
+    <h4>Email</h4>
+    <div class="review-grid" id="vDrawerEmail"></div>
+  </div>
+  <div class="section">
+    <h4>Branches</h4>
+    <div class="review-grid" id="vDrawerBranch"></div>
+  </div>
+  <div class="section">
+    <h4>Verification history</h4>
+    <p class="hint" style="margin:0" id="vDrawerPrevDecision"></p>
+  </div>
+  <div class="section">
+    <h4>Actions</h4>
+    <div class="acts">
+      <button class="btn tiny" data-vact="review" type="button">Start review</button>
+      <button class="btn tiny primary" data-vact="approve" type="button">Approve</button>
+      <button class="btn tiny danger" data-vact="reject" type="button">Reject</button>
+    </div>
+  </div>
+</aside>
+
 <script>
 "use strict";
 
 var $ = function (id) { return document.getElementById(id); };
 var cfg = window.HANDZJ_CONFIG || {};
 var sb = null, list = [], packCatalog = [], selectedId = null;
+var verifyList = [], verifyPendingCount = 0, vSelectedId = null;
 var lastSeenKey = "handzj_admin_last_seen", lastSeen = null;
 
 function esc(s) {
@@ -437,6 +525,7 @@ function goTab(name) {
 })();
 
 async function loadAll() {
+  await loadVerification();
   await load();
   await loadPacks();
 }
@@ -463,6 +552,7 @@ function renderStats(s) {
   if (!s) { $("stats").innerHTML = ""; return; }
   var cards = [
     { n: s.businesses_total, l: "Businesses" },
+    { n: verifyPendingCount, l: "Verification pending", cls: verifyPendingCount ? "hot" : "good" },
     { n: s.subscribed, l: "Subscribed", cls: "good" },
     { n: s.on_trial, l: "On trial" },
     { n: s.trials_ending_3d, l: "Trials ≤3d", cls: "hot" },
@@ -586,12 +676,7 @@ $("drawer").addEventListener("click", async function (e) {
     var res;
     if (act === "trial5") res = await sb.rpc("admin_extend_trial", { p_business: id, p_days: 5 });
     else if (act === "cancel") res = await sb.rpc("admin_cancel_subscription", { p_business: id });
-    else if (act === "kyc_ok") res = await sb.rpc("admin_review_kyc", { p_business: id, p_decision: "approved", p_reason: null });
-    else if (act === "kyc_no") {
-      var reason = prompt("Rejection reason (required):");
-      if (!reason || reason.trim().length < 3) { btn.disabled = false; return; }
-      res = await sb.rpc("admin_review_kyc", { p_business: id, p_decision: "rejected", p_reason: reason.trim() });
-    } else if (act === "suspend") {
+    else if (act === "suspend") {
       var sreason = prompt("Suspend reason:");
       res = await sb.rpc("admin_set_account_status", { p_business: id, p_status: "suspended", p_reason: (sreason || "Suspended by admin").trim() });
     } else if (act === "reinstate") res = await sb.rpc("admin_set_account_status", { p_business: id, p_status: "active", p_reason: null });
@@ -612,6 +697,142 @@ $("drawer").addEventListener("click", async function (e) {
     msg("<b>" + esc(label) + "</b> updated.", "good");
     await load();
     openDrawer(id);
+  } catch (err) {
+    msg("Action failed: " + esc(err && err.message ? err.message : err), "warn");
+  }
+  btn.disabled = false;
+});
+
+/* ---- business verification ---- */
+function verifyStatusOf(row) {
+  // Platform-approval decision and email-ownership confirmation are kept as
+  // two separate signals, per the review requirement — never collapsed into
+  // "email confirmed = verified".
+  if (row.kyc_status === "approved") return { code: "APPROVED", label: "APPROVED", pill: "sub" };
+  if (row.kyc_status === "rejected") return { code: "REJECTED", label: "REJECTED", pill: "ended" };
+  if (row.account_status === "under_review") return { code: "UNDER_REVIEW", label: "UNDER REVIEW", pill: "soon" };
+  if (row.email_confirmed) return { code: "EMAIL_CONFIRMED", label: "EMAIL CONFIRMED", pill: "trial" };
+  return { code: "PENDING", label: "PENDING", pill: "wait" };
+}
+
+async function loadVerification() {
+  try {
+    var res = await Promise.all([sb.rpc("admin_list_kyc"), sb.rpc("admin_verification_pending_count")]);
+    if (res[0].error) throw res[0].error;
+    verifyList = res[0].data || [];
+    verifyPendingCount = res[1].error ? 0 : (res[1].data || 0);
+    renderVerify();
+  } catch (e) {
+    verifyList = []; verifyPendingCount = 0;
+    var el = $("verifyEmpty");
+    if (el) { el.style.display = ""; el.textContent = "Could not load verification queue: " + esc(e && e.message ? e.message : e); }
+  }
+}
+
+function renderVerify() {
+  var f = $("vfState") ? $("vfState").value : "";
+  var rows = verifyList.filter(function (r) {
+    return !f || verifyStatusOf(r).code === f;
+  });
+  $("verifyCount").textContent = verifyPendingCount + " pending";
+  $("verifyEmpty").style.display = rows.length ? "none" : "";
+  if (!rows.length) $("verifyEmpty").textContent = f ? "No businesses match this filter." : "No businesses currently require verification.";
+  $("verifyRows").innerHTML = rows.map(function (r) {
+    var st = verifyStatusOf(r);
+    return '<tr data-vid="' + esc(r.business_id) + '">' +
+      '<td><div class="sub-name">' + esc(r.business_name) + '</div>' +
+        '<div class="hint">' + esc(r.legal_name || "—") + '</div></td>' +
+      '<td>' + esc(r.owner_email || "—") + '<div class="hint">' + esc(r.phone || "—") + '</div></td>' +
+      '<td>' + (r.email_confirmed ? '<span class="pill sub">CONFIRMED</span>' : '<span class="pill ended">NOT CONFIRMED</span>') + '</td>' +
+      '<td>' + esc(fmtDate(r.signed_up_at)) + '<div class="hint">' + esc(ago(r.signed_up_at)) + '</div></td>' +
+      '<td><span class="pill ' + st.pill + '">' + st.label + '</span></td>' +
+      '<td><button class="btn tiny primary" type="button" data-vreview="' + esc(r.business_id) + '">Review</button></td>' +
+    '</tr>';
+  }).join("");
+}
+
+$("vfState").addEventListener("change", renderVerify);
+
+$("verifyRows").addEventListener("click", function (e) {
+  var btn = e.target.closest("[data-vreview]");
+  if (btn) openVerifyReview(btn.dataset.vreview);
+});
+
+function kv(k, v) {
+  return '<div class="kv"><div class="k">' + esc(k) + '</div><div class="v">' + esc(v == null || v === "" ? "—" : v) + '</div></div>';
+}
+
+async function openVerifyReview(id) {
+  vSelectedId = id;
+  var row = verifyList.filter(function (x) { return x.business_id === id; })[0];
+  $("vDrawerTitle").textContent = row ? row.business_name : "Business";
+  $("vDrawerStatus").textContent = "Loading full submission…";
+  $("vDrawer").classList.add("open");
+  $("vDrawerBg").classList.add("open");
+  $("vDrawer").setAttribute("aria-hidden", "false");
+  document.querySelectorAll("#verifyRows tr").forEach(function (tr) {
+    tr.classList.toggle("selected", tr.dataset.vid === id);
+  });
+  try {
+    var res = await sb.rpc("admin_get_kyc_detail", { p_business: id });
+    if (res.error) throw res.error;
+    var d = (res.data || [])[0];
+    if (!d) { $("vDrawerStatus").textContent = "Not found."; return; }
+    var st = verifyStatusOf({ kyc_status: d.kyc_status, account_status: d.account_status, email_confirmed: d.email_confirmed });
+    $("vDrawerTitle").textContent = d.business_name || "Business";
+    $("vDrawerStatus").innerHTML = '<span class="pill ' + st.pill + '">' + st.label + '</span> · Registered ' + esc(fmtDate(d.signed_up_at));
+    $("vDrawerBusiness").innerHTML =
+      kv("Business name", d.business_name) +
+      kv("Trading tagline", d.tagline) +
+      kv("Category", d.category) +
+      kv("Legal name", d.legal_name) +
+      kv("TIN", d.tin);
+    $("vDrawerOwner").innerHTML =
+      kv("Owner / login email", d.owner_email) +
+      kv("Phone", d.phone) +
+      kv("WhatsApp", d.whatsapp) +
+      kv("Account status", d.account_status);
+    $("vDrawerEmail").innerHTML =
+      kv("Email", d.owner_email) +
+      kv("Email status", d.email_confirmed ? "Confirmed" : "Not confirmed");
+    $("vDrawerBranch").innerHTML = kv("Branches", d.branches);
+    $("vDrawerPrevDecision").textContent = d.kyc_status === "rejected" && d.kyc_rejection_reason
+      ? "Previously rejected: " + d.kyc_rejection_reason
+      : (d.kyc_reviewed_at ? "Last reviewed " + fmtDate(d.kyc_reviewed_at) : "Not yet reviewed.");
+  } catch (e) {
+    $("vDrawerStatus").textContent = "Could not load: " + (e && e.message ? e.message : e);
+  }
+}
+function closeVDrawer() {
+  $("vDrawer").classList.remove("open");
+  $("vDrawerBg").classList.remove("open");
+  $("vDrawer").setAttribute("aria-hidden", "true");
+}
+$("vDrawerClose").addEventListener("click", closeVDrawer);
+$("vDrawerBg").addEventListener("click", closeVDrawer);
+
+$("vDrawer").addEventListener("click", async function (e) {
+  var btn = e.target.closest("button[data-vact]");
+  if (!btn || !vSelectedId) return;
+  var id = vSelectedId, act = btn.dataset.vact;
+  var row = verifyList.filter(function (x) { return x.business_id === id; })[0];
+  var label = row ? row.business_name : "this business";
+  btn.disabled = true;
+  try {
+    var res;
+    if (act === "review") {
+      res = await sb.rpc("admin_set_account_status", { p_business: id, p_status: "under_review", p_reason: "Verification opened by admin" });
+    } else if (act === "approve") {
+      res = await sb.rpc("admin_review_kyc", { p_business: id, p_decision: "approved", p_reason: null });
+    } else if (act === "reject") {
+      var reason = prompt("Rejection reason (required):");
+      if (!reason || reason.trim().length < 3) { btn.disabled = false; return; }
+      res = await sb.rpc("admin_review_kyc", { p_business: id, p_decision: "rejected", p_reason: reason.trim() });
+    } else res = { error: { message: "Unknown action" } };
+    if (res.error) throw res.error;
+    msg("<b>" + esc(label) + "</b> " + (act === "approve" ? "approved." : act === "reject" ? "rejected." : "marked under review.") , "good");
+    await loadVerification();
+    openVerifyReview(id);
   } catch (err) {
     msg("Action failed: " + esc(err && err.message ? err.message : err), "warn");
   }
