@@ -22,6 +22,7 @@
   --radius:4px;
   --on-brand:#f7f5ef;
   --on-brand-soft:#a9b2b8;
+  --on-accent:#ffffff;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -31,6 +32,7 @@
     --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
     --on-brand:#f5f0e8;
     --on-brand-soft:#8a95a0;
+    --on-accent:#101820;
   }
 }
 :root[data-theme="dark"]{
@@ -40,6 +42,7 @@
   --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
   --on-brand:#f5f0e8;
   --on-brand-soft:#8a95a0;
+  --on-accent:#101820;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -307,10 +310,8 @@ tbody tr:last-child td{border-bottom:0}
 .btn-wa{background:#25D366!important;border-color:#1da851!important;color:#fff!important}
 .btn-wa:hover{filter:brightness(1.05)}
 .btn-wa:disabled,.btn-ico:disabled{opacity:.4;cursor:not-allowed;filter:none}
-.btn-mail{background:#1a73e8!important;border-color:#1557b0!important;color:#fff!important}
+.btn-mail,.btn-pdf,.btn-share{background:var(--panel-2);border-color:var(--line);color:var(--ink)}
 .btn-print{background:var(--panel-2);border-color:var(--line)}
-.btn-pdf{background:#b91c1c!important;border-color:#991b1b!important;color:#fff!important}
-.btn-share{background:#6366f1!important;border-color:#4f46e5!important;color:#fff!important}
 .btn-copy{background:var(--panel-2);border-color:var(--line)}
 .share-bar-icos{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .issued-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
@@ -621,7 +622,7 @@ tbody tr:last-child td{border-bottom:0}
   .bottom-nav .bn-create .bn-ico{
     width:42px;height:42px;border-radius:50%;background:var(--accent);
     display:flex;align-items:center;justify-content:center;margin-top:-16px;
-    box-shadow:0 2px 8px rgba(13,92,74,.4);color:#fff;
+    box-shadow:0 2px 8px rgba(13,92,74,.4);color:var(--on-accent);
   }
   .bottom-nav .bn-create[aria-selected="true"] .bn-ico{background:var(--brand)}
 }
@@ -630,7 +631,7 @@ tbody tr:last-child td{border-bottom:0}
 .home-create-btn{
   display:flex;align-items:center;justify-content:center;gap:8px;
   width:100%;padding:16px;border-radius:12px;border:0;
-  background:var(--accent);color:#fff;font-size:16px;font-weight:700;
+  background:var(--accent);color:var(--on-accent);font-size:16px;font-weight:700;
   letter-spacing:.01em;min-height:54px;box-shadow:var(--shadow);
 }
 .home-create-btn:active{filter:brightness(.95)}
@@ -675,7 +676,7 @@ tbody tr:last-child td{border-bottom:0}
   .ready-actions .btn{
     width:100%;min-height:50px;font-size:15px;font-weight:700;justify-content:center;
   }
-  .ready-actions .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .ready-actions .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 }
 
 
@@ -715,9 +716,6 @@ tbody tr:last-child td{border-bottom:0}
 .rcpt-toolbar-group{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .rcpt-toolbar-group + .rcpt-toolbar-group{padding-left:14px;border-left:1px solid var(--line)}
 .rcpt-toolbar .btn{padding:8px 12px;font-size:12.5px;font-weight:600;border-radius:8px;min-height:40px}
-.rcpt-toolbar .btn-wa{background:#128C7E;border-color:#128C7E;color:#fff}
-.rcpt-toolbar .btn-pdf{background:#14120f;border-color:#14120f;color:#fff}
-.rcpt-toolbar .btn-mail{background:#1a56a8;border-color:#1a56a8;color:#fff}
 .rcpt-toolbar label.fmt{display:flex;align-items:center;gap:6px;margin:0;font-size:12px;color:var(--ink-soft);font-weight:600}
 .rcpt-toolbar select{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);font:inherit;font-size:12.5px;min-height:40px}
 .rcpt-toolbar .btn-danger-ghost{background:transparent;border-color:var(--line);color:var(--bad)}
@@ -1096,9 +1094,9 @@ tbody tr:last-child td{border-bottom:0}
   <div id="tab-verify" class="noprint" style="display:none"></div>
 
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1.11.17/bundle/libphonenumber-min.js"></script>
 
 <script>
@@ -3399,8 +3397,9 @@ async function lookup(no, vid) {
 
   /* Anyone else (a customer following the QR/link): the receipts table is
      closed to them by row level security, so go through the verification RPC,
-     which needs BOTH the number and the verification id and returns masked
-     fields only. */
+     which needs BOTH the number and the verification id. It returns the full
+     customer name for this specific receipt (see sql/023, "WHY THE CUSTOMER
+     NAME IS NO LONGER MASKED HERE") and the masked payment reference only. */
   if (sb || supabaseConfigured()) {
     try {
       if (!sb) sb = window.supabase.createClient(cfg().SUPABASE_URL, cfg().SUPABASE_ANON_KEY);
@@ -3416,7 +3415,7 @@ async function lookup(no, vid) {
         status: row.status,
         kind: row.kind,
         item: row.item,
-        customer: row.customer_masked,
+        customer: row.customer_name,
         txn: row.txn_masked,
         amount: Number(row.amount) || 0,
         currency: row.currency || "UGX",

@@ -180,10 +180,19 @@ function render(no, id, row, err) {
   var signup = origin + "/login.html?mode=signup";
 
   var body = "";
+  var summary = "";
   if (row) {
+    var buyer = row.customer_name && row.customer_name !== "—" ? row.customer_name : "the customer";
+    summary = status === "ok"
+      ? '<p class="status-sub" style="margin-top:-10px">This receipt was issued by <b>' + esc(who) + '</b> to <b>' + esc(buyer) + '</b>.</p>'
+      : "";
     body =
       '<div class="block">' +
         '<div class="row"><span class="k">Issued by</span><span class="v">' + esc(who) + '</span></div>' +
+        (row.branch_name ? '<div class="row"><span class="k">Branch</span><span class="v">' + esc(row.branch_name) + '</span></div>' : '') +
+        (row.branch_address ? '<div class="row"><span class="k">Location</span><span class="v">' + esc(row.branch_address) + '</span></div>' : '') +
+        ((row.business_phone || row.branch_phone) ? '<div class="row"><span class="k">Contact</span><span class="v">' + esc(row.branch_phone || row.business_phone) + '</span></div>' : '') +
+        '<div class="row"><span class="k">Customer</span><span class="v">' + esc(row.customer_name || "—") + '</span></div>' +
         '<div class="row"><span class="k">Date issued</span><span class="v mono">' + esc(fmtDate(row.paid_on || row.created_at)) + '</span></div>' +
         '<div class="row"><span class="k">Amount</span><span class="v"><b>' + esc(money(row.amount, row.currency)) + '</b></span></div>' +
         '<div class="row"><span class="k">Payment</span><span class="v">' + esc(row.method || "—") + '</span></div>' +
@@ -219,6 +228,7 @@ function render(no, id, row, err) {
         '<div class="status-mark ' + status + '" aria-hidden="true">' + mark + '</div>' +
         '<h1 class="status-label ' + status + '">' + label + '</h1>' +
         '<div class="status-sub">' + esc(sub) + '</div>' +
+        summary +
         body +
       '</div>' +
       '<div class="issuer-bar">' +
