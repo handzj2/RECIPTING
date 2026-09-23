@@ -1,24 +1,19 @@
-# HandzJ — Theme pipeline + owner Appearance control
+# HandzJ — deployment package
 
-## Status
-Public verification theme pipeline confirmed working.
-Owner settings UI added so a business can pick a preset.
+**Theme system + marketing images + responsive homepage.**
 
-## Deploy
+See **DEPLOY.md** for step-by-step apply order.
 
-1. If not already applied: run `sql/025_theme_key.sql` in Supabase SQL Editor.
-2. Deploy:
-   - `public/verify.html` (public verification)
-   - `public/app.html` (Business → Verification appearance)
+### Includes
 
-## Owner path
-Business tab → **Verification appearance**
-- HandzJ System / Forest / Navy Gold / Teal Slate
-- Click saves `businesses.theme_key` immediately
-- Public verification links reflect the change on next load
+- Migrations `025` / `026` (theme_key + set_business_theme_key)
+- `verify.html` — public verification themes + visitor mode
+- `app.html` — Verification appearance picker
+- `index.html` — responsive marketing gallery
+- Optimized marketing assets (WebP + progressive JPEG)
 
-## Scope notes
-- Owner (and managers with settings access) can change appearance; RLS still allows **owner** update only on `businesses` — managers may see the same RLS limit as other profile fields.
-- Does not recolor owner/manager/cashier chrome.
-- Does not change receipt PNG/PDF/print layout (that remains Receipt layout presets).
-- Visitor light/dark remains browser-local (`hzr_visitor_mode`).
+### Not included
+
+- `.env`, Supabase keys, `config.js`
+- Full historical migrations (only new theme SQL)
+- Node build step (static HTML deploy)

@@ -3100,13 +3100,25 @@ async function applyVerifyTheme(key) {
   }
   var next = resolveVerifyThemeKey(key);
   try {
-    var { data, error } = await sb.from("businesses")
-      .update({ theme_key: next })
-      .eq("id", biz.id)
-      .select("*")
-      .single();
-    if (error) throw error;
-    applyBusiness(data);
+    /* Prefer controlled RPC (owner + manager). Fall back to direct update for owners if RPC not migrated yet. */
+    var rpc = await sb.rpc("set_business_theme_key", { p_theme_key: next });
+    if (rpc.error) {
+      var msg = (rpc.error.message || "") + "";
+      if (/function.*set_business_theme_key|does not exist|schema cache/i.test(msg)) {
+        var res = await sb.from("businesses")
+          .update({ theme_key: next })
+          .eq("id", biz.id)
+          .select("*")
+          .single();
+        if (res.error) throw res.error;
+        applyBusiness(res.data);
+      } else {
+        throw rpc.error;
+      }
+    } else {
+      biz.theme_key = (rpc.data != null ? rpc.data : next);
+      applyBusiness(Object.assign({}, biz, { theme_key: biz.theme_key }));
+    }
     renderSettings();
     say("Verification appearance set to <b>" + esc(themeLabel(next)) + "</b>. Customer verification links use this theme immediately.", "good");
   } catch (e) {

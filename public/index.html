@@ -148,6 +148,19 @@ a{color:var(--brand);text-decoration:none}
   .wa-float{padding:14px;border-radius:50%}
 }
 
+
+/* Marketing / brand visuals — responsive */
+.visuals{margin:40px 0 48px}
+.visuals h2{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:24px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;text-align:center}
+.visuals .sub{color:var(--muted);text-align:center;margin-bottom:22px;font-size:14.5px}
+.visual-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:720px){.visual-grid{grid-template-columns:1fr}}
+.visual-card{margin:0;border:1px solid var(--line);border-radius:2px;overflow:hidden;background:var(--panel)}
+.visual-card img{display:block;width:100%;height:auto;aspect-ratio:1168/784;object-fit:cover;vertical-align:middle}
+.visual-card figcaption{padding:10px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+.hero-visual{margin:28px auto 8px;max-width:720px}
+.hero-visual img{display:block;width:100%;height:auto;aspect-ratio:1168/784;object-fit:cover;border:1px solid var(--line);border-radius:2px}
+
 </style>
 </head>
 <body>
@@ -155,7 +168,7 @@ a{color:var(--brand);text-decoration:none}
 <main class="wrap" id="main">
   <nav class="nav" aria-label="Primary">
     <div class="brand">
-      <img src="/logo.jpg" alt="HandzJ">
+      <img src="/logo.jpg" alt="HandzJ" width="42" height="42" decoding="async">
       <div class="name">HandzJ Digital Receipts</div>
     </div>
     <div class="links">
@@ -177,6 +190,27 @@ a{color:var(--brand);text-decoration:none}
       <a class="btn" href="/verify?no=HJT-2026-00421">See verification</a>
     </div>
     <p class="note">5 free credits + 5-day trial · Packs from UGX 5,000 · Works without a printer</p>
+  
+    <figure class="hero-visual">
+      <picture>
+        <source type="image/webp"
+          srcset="/assets/marketing/hero-verify-phone-640.webp 640w,
+                  /assets/marketing/hero-verify-phone-960.webp 960w,
+                  /assets/marketing/hero-verify-phone-1168.webp 1168w"
+          sizes="(max-width:720px) 100vw, 720px">
+        <img
+          src="/assets/marketing/hero-verify-phone-960.jpg"
+          srcset="/assets/marketing/hero-verify-phone-640.jpg 640w,
+                  /assets/marketing/hero-verify-phone-960.jpg 960w,
+                  /assets/marketing/hero-verify-phone-1168.jpg 1168w"
+          sizes="(max-width:720px) 100vw, 720px"
+          width="1168" height="784"
+          alt="HandzJ public receipt verification on a phone — VALID status"
+          decoding="async"
+          fetchpriority="high">
+      </picture>
+    </figure>
+
   </header>
 
   <!-- Product demonstration -->
@@ -205,6 +239,91 @@ a{color:var(--brand);text-decoration:none}
       <div class="sub">Retrieved from the issuing platform</div>
     </div>
   </div>
+
+
+  <!-- Brand / product visuals -->
+  <section class="visuals section" id="product-visuals" aria-label="Product visuals">
+    <h2>See it in use</h2>
+    <p class="sub">Real receipt records. Online verification. Built for shops that run on mobile money.</p>
+    <div class="visual-grid">
+      <figure class="visual-card">
+        <picture>
+          <source type="image/webp"
+            srcset="/assets/marketing/hands-verify-valid-640.webp 640w,
+                    /assets/marketing/hands-verify-valid-960.webp 960w,
+                    /assets/marketing/hands-verify-valid-1168.webp 1168w"
+            sizes="(max-width:720px) 100vw, 50vw">
+          <img
+            src="/assets/marketing/hands-verify-valid-960.jpg"
+            srcset="/assets/marketing/hands-verify-valid-640.jpg 640w,
+                    /assets/marketing/hands-verify-valid-960.jpg 960w,
+                    /assets/marketing/hands-verify-valid-1168.jpg 1168w"
+            sizes="(max-width:720px) 100vw, 50vw"
+            width="1168" height="784"
+            alt="Customer verifying a HandzJ receipt — VALID"
+            loading="lazy" decoding="async">
+        </picture>
+        <figcaption>Customer verification — VALID on the public page</figcaption>
+      </figure>
+      <figure class="visual-card">
+        <picture>
+          <source type="image/webp"
+            srcset="/assets/marketing/receipt-phone-and-print-640.webp 640w,
+                    /assets/marketing/receipt-phone-and-print-960.webp 960w,
+                    /assets/marketing/receipt-phone-and-print-1168.webp 1168w"
+            sizes="(max-width:720px) 100vw, 50vw">
+          <img
+            src="/assets/marketing/receipt-phone-and-print-960.jpg"
+            srcset="/assets/marketing/receipt-phone-and-print-640.jpg 640w,
+                    /assets/marketing/receipt-phone-and-print-960.jpg 960w,
+                    /assets/marketing/receipt-phone-and-print-1168.jpg 1168w"
+            sizes="(max-width:720px) 100vw, 50vw"
+            width="1168" height="784"
+            alt="HandzJ digital receipt on phone next to printed card"
+            loading="lazy" decoding="async">
+        </picture>
+        <figcaption>Digital receipt with QR — same record as paper</figcaption>
+      </figure>
+      <figure class="visual-card">
+        <picture>
+          <source type="image/webp"
+            srcset="/assets/marketing/desk-owner-and-verify-640.webp 640w,
+                    /assets/marketing/desk-owner-and-verify-960.webp 960w,
+                    /assets/marketing/desk-owner-and-verify-1168.webp 1168w"
+            sizes="(max-width:720px) 100vw, 50vw">
+          <img
+            src="/assets/marketing/desk-owner-and-verify-960.jpg"
+            srcset="/assets/marketing/desk-owner-and-verify-640.jpg 640w,
+                    /assets/marketing/desk-owner-and-verify-960.jpg 960w,
+                    /assets/marketing/desk-owner-and-verify-1168.jpg 1168w"
+            sizes="(max-width:720px) 100vw, 50vw"
+            width="1168" height="784"
+            alt="Owner receipt list and customer VALID verification on a desk"
+            loading="lazy" decoding="async">
+        </picture>
+        <figcaption>Owner issues · customer verifies</figcaption>
+      </figure>
+      <figure class="visual-card">
+        <picture>
+          <source type="image/webp"
+            srcset="/assets/marketing/hero-verify-phone-640.webp 640w,
+                    /assets/marketing/hero-verify-phone-960.webp 960w,
+                    /assets/marketing/hero-verify-phone-1168.webp 1168w"
+            sizes="(max-width:720px) 100vw, 50vw">
+          <img
+            src="/assets/marketing/hero-verify-phone-960.jpg"
+            srcset="/assets/marketing/hero-verify-phone-640.jpg 640w,
+                    /assets/marketing/hero-verify-phone-960.jpg 960w,
+                    /assets/marketing/hero-verify-phone-1168.jpg 1168w"
+            sizes="(max-width:720px) 100vw, 50vw"
+            width="1168" height="784"
+            alt="HandzJ verification on phone with brand message"
+            loading="lazy" decoding="async">
+        </picture>
+        <figcaption>Public verification — one record, every view</figcaption>
+      </figure>
+    </div>
+  </section>
 
   <section class="section" id="how" data-animate="section">
     <h2>How it works</h2>
