@@ -2933,6 +2933,7 @@ function renderSettings() {
   var f = function (v) { return esc(v || ""); };
   var L = resolveLayout(biz);
   var currentTheme = L.theme || "classic";
+  var currentVerifyTheme = resolveVerifyThemeKey(biz && biz.theme_key);
   var layoutJson = biz.receipt_layout ? JSON.stringify(biz.receipt_layout, null, 2) : "";
   host.innerHTML =
     '<div class="card"><div class="card-h"><h2>Business profile</h2>' +
@@ -2983,6 +2984,19 @@ function renderSettings() {
       })() +
 
       '<div class="row-actions"><button class="btn primary" id="btnSaveBiz" type="button">Save profile</button></div>' +
+    '</div></div>' +
+
+    '<div class="card" style="margin-top:18px"><div class="card-h"><h2>Verification appearance</h2>' +
+      '<span class="hint">Customer-facing theme on the public verification page</span></div>' +
+    '<div class="card-b">' +
+      '<p class="hint" style="margin-top:0">Choose one controlled preset. Customers still pick their own light or dark mode in the browser — that preference is not stored on your business.</p>' +
+      '<div class="row-actions" style="flex-wrap:wrap;gap:8px;margin-bottom:8px">' +
+        themePresetBtn("default", "HandzJ System", currentVerifyTheme) +
+        themePresetBtn("forest", "Forest", currentVerifyTheme) +
+        themePresetBtn("navy_gold", "Navy Gold", currentVerifyTheme) +
+        themePresetBtn("teal_slate", "Teal Slate", currentVerifyTheme) +
+      '</div>' +
+      '<p class="hint" style="margin:0">Current: <b>' + esc(themeLabel(currentVerifyTheme)) + '</b>. Applies to public verification only — not to issued receipt images or the owner app chrome.</p>' +
     '</div></div>' +
 
     '<div class="card" style="margin-top:18px"><div class="card-h"><h2>Receipt layout</h2>' +
@@ -3051,8 +3065,53 @@ function renderSettings() {
   Array.prototype.forEach.call(host.querySelectorAll("[data-preset]"), function (btn) {
     btn.addEventListener("click", function () { applyLayoutPreset(btn.getAttribute("data-preset")); });
   });
+  Array.prototype.forEach.call(host.querySelectorAll("[data-verify-theme]"), function (btn) {
+    btn.addEventListener("click", function () { applyVerifyTheme(btn.getAttribute("data-verify-theme")); });
+  });
   var saveLayoutBtn = $("btnSaveLayout");
   if (saveLayoutBtn) saveLayoutBtn.addEventListener("click", saveLayoutJson);
+}
+
+
+/* ---------- public verification theme (businesses.theme_key) ---------- */
+var VERIFY_THEME_LABELS = {
+  default: "HandzJ System",
+  forest: "Forest",
+  navy_gold: "Navy Gold",
+  teal_slate: "Teal Slate"
+};
+function resolveVerifyThemeKey(raw) {
+  var k = String(raw == null ? "" : raw).trim().toLowerCase();
+  return VERIFY_THEME_LABELS[k] ? k : "default";
+}
+function themeLabel(key) {
+  return VERIFY_THEME_LABELS[resolveVerifyThemeKey(key)] || "HandzJ System";
+}
+function themePresetBtn(key, label, current) {
+  var active = resolveVerifyThemeKey(current) === key;
+  return '<button class="btn' + (active ? " primary" : "") + '" type="button" data-verify-theme="' + key + '">' +
+    esc(label) + (active ? " ✓" : "") + "</button>";
+}
+async function applyVerifyTheme(key) {
+  if (!sb || !biz) return;
+  if (!canEditSettings()) {
+    say("Only the Tenant Admin or a manager can change verification appearance.", "warn");
+    return;
+  }
+  var next = resolveVerifyThemeKey(key);
+  try {
+    var { data, error } = await sb.from("businesses")
+      .update({ theme_key: next })
+      .eq("id", biz.id)
+      .select("*")
+      .single();
+    if (error) throw error;
+    applyBusiness(data);
+    renderSettings();
+    say("Verification appearance set to <b>" + esc(themeLabel(next)) + "</b>. Customer verification links use this theme immediately.", "good");
+  } catch (e) {
+    say("Could not save appearance: " + esc(e && e.message ? e.message : "unknown"), "warn");
+  }
 }
 
 async function applyLayoutPreset(name) {
