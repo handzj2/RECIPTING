@@ -90,17 +90,42 @@ a{color:var(--brand);text-decoration:none}
 .sample .issued{margin-top:10px;font-size:10px;color:#4a586e;line-height:1.45;border-top:1px solid #eee;padding-top:8px}
 .sample .stamp{position:absolute;top:56px;right:12px;border:2px solid var(--ok,#16836a);color:var(--ok,#16836a);font-weight:700;font-size:11px;letter-spacing:.12em;padding:4px 8px;border-radius:2px;transform:rotate(-8deg);opacity:.85;pointer-events:none}
 
-.vcard{background:var(--panel);border:1px solid var(--line);text-align:left;padding:0;overflow:hidden}
-.vcard .t{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel-2,#f1eee5)}
-.vcard .body{padding:18px 16px 16px}
-.vcard .rno{font-family:"IBM Plex Serif",Georgia,serif;font-size:16px;font-weight:700;letter-spacing:.04em;margin-bottom:12px;color:var(--ink)}
-.vcard .status-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.vcard .mark{width:36px;height:36px;border:2.5px solid var(--ok);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ok);font-weight:700;flex:none}
-.vcard .label{font-family:"IBM Plex Serif",Georgia,serif;font-size:22px;font-weight:700;letter-spacing:.1em;color:var(--ok)}
-.vcard .vkv{display:grid;grid-template-columns:34% 1fr;gap:5px 10px;font-size:12.5px;line-height:1.4}
-.vcard .vkv div:nth-child(odd){color:var(--muted)}
-.vcard .vkv div:nth-child(even){color:var(--ink);font-weight:600}
-.vcard .sub{font-size:11.5px;color:var(--muted);margin-top:12px;line-height:1.4}
+.vcard{
+  background:#182029;border:1px solid #2A3339;text-align:left;padding:0;overflow:hidden;
+  color:#F7F5EF;border-radius:2px;
+}
+.vcard .t{
+  font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#AAB3B8;
+  font-weight:700;padding:12px 16px 0;text-align:center;
+}
+.vcard .rno-head{
+  font-family:"IBM Plex Serif",Georgia,serif;font-size:18px;font-weight:700;
+  letter-spacing:.04em;text-align:center;padding:6px 16px 12px;border-bottom:2px solid #22A388;color:#F7F5EF;
+}
+.vcard .body{padding:20px 18px 16px}
+.vcard .status-mark{
+  width:52px;height:52px;margin:0 auto 10px;border:2.5px solid #22A388;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:26px;color:#22A388;font-weight:700;
+}
+.vcard .label{
+  font-family:"IBM Plex Serif",Georgia,serif;font-size:26px;font-weight:700;
+  letter-spacing:.14em;color:#4FC7A8;text-align:center;margin-bottom:6px;
+}
+.vcard .status-sub{text-align:center;font-size:12.5px;color:#AAB3B8;margin-bottom:14px}
+.vcard .summary{text-align:center;margin-bottom:14px}
+.vcard .summary .item{font-size:14px;font-weight:600;color:#F7F5EF}
+.vcard .summary .amt{font-size:18px;font-weight:700;color:#22A388;margin-top:4px}
+.vcard .vkv{display:grid;grid-template-columns:34% 1fr;gap:8px 12px;font-size:12.5px;line-height:1.35;border-top:1px solid #2A3339;padding-top:12px}
+.vcard .vkv div:nth-child(odd){color:#AAB3B8;text-transform:uppercase;font-size:10.5px;letter-spacing:.06em;font-weight:600}
+.vcard .vkv div:nth-child(even){color:#F7F5EF;font-weight:600;text-align:right}
+.vcard .issuer-bar{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;border-top:1px solid #2A3339;
+  background:#141c24;
+}
+.vcard .issuer-bar img{width:36px;height:36px;border-radius:4px;object-fit:cover;flex:none}
+.vcard .issuer-bar .t1{font-size:13px;font-weight:700;color:#F7F5EF}
+.vcard .issuer-bar .t2{font-size:11px;color:#AAB3B8}
+.vcard .sub{font-size:11px;color:#AAB3B8;margin-top:10px;line-height:1.4;text-align:center}
 
 .section{padding:28px 0}
 .section h2{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:24px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
@@ -183,11 +208,27 @@ a{color:var(--brand);text-decoration:none}
 .visuals .sub{color:var(--muted);text-align:center;margin-bottom:22px;font-size:14.5px}
 .visual-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:720px){.visual-grid{grid-template-columns:1fr}}
-.visual-card{margin:0;border:1px solid var(--line);border-radius:2px;overflow:hidden;background:var(--panel)}
-.visual-card img{display:block;width:100%;height:auto;aspect-ratio:1168/784;object-fit:cover;vertical-align:middle}
+.visual-card{margin:0;border:1px solid var(--line);border-radius:2px;overflow:hidden;background:var(--panel);position:relative}
+.visual-card img,.hero-visual img{
+  display:block;width:100%;height:auto;max-height:min(70vh,520px);
+  object-fit:contain;object-position:center;background:#0c0b0a0a;
+  vertical-align:middle;cursor:zoom-in;
+}
+/* Portrait shots keep natural ratio — do not force landscape box */
+.visual-card img[height="1168"],.visual-card img[data-orient="portrait"]{
+  max-height:min(75vh,560px);width:auto;max-width:100%;margin:0 auto;
+}
 .visual-card figcaption{padding:10px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
 .hero-visual{margin:28px auto 8px;max-width:720px}
-.hero-visual img{display:block;width:100%;height:auto;aspect-ratio:1168/784;object-fit:cover;border:1px solid var(--line);border-radius:2px}
+.hero-visual img{border:1px solid var(--line);border-radius:2px}
+
+/* Lightbox: pan + zoom */
+.hz-lb{position:fixed;inset:0;z-index:10000;background:rgba(10,12,14,.92);display:none;align-items:center;justify-content:center;padding:16px;touch-action:none}
+.hz-lb.open{display:flex}
+.hz-lb img{max-width:min(96vw,1200px);max-height:90vh;object-fit:contain;transform-origin:center center;transition:transform .15s ease;cursor:grab;user-select:none;-webkit-user-drag:none}
+.hz-lb img.dragging{cursor:grabbing;transition:none}
+.hz-lb .hz-lb-close{position:absolute;top:12px;right:14px;background:var(--panel,#fff);border:1px solid #ccc;color:#111;border-radius:6px;padding:8px 12px;font:600 13px/1 "IBM Plex Sans",system-ui,sans-serif;cursor:pointer;z-index:2}
+.hz-lb .hz-lb-hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);color:#ccc;font-size:12px;letter-spacing:.04em}
 
 </style>
 </head>
@@ -327,22 +368,32 @@ a{color:var(--brand);text-decoration:none}
           Verification ID: DEMO-VERIFY · Document status: VALID (illustrative)</div>
       </div>
     </div>
-    <div class="vcard">
-      <div class="t">Public verification</div>
+    <div class="vcard" aria-label="Demonstration of public receipt verification">
+      <div class="t">Receipt verification</div>
+      <div class="rno-head mono">HJT-2026-00421</div>
       <div class="body">
-        <div class="rno">HJT-2026-00421</div>
-        <div class="status-row">
-          <div class="mark" aria-hidden="true">✓</div>
-          <div class="label">VALID</div>
+        <div class="status-mark" aria-hidden="true">✓</div>
+        <div class="label">VALID</div>
+        <div class="status-sub">This receipt is authentic and currently valid.</div>
+        <div class="summary">
+          <div class="item">20 bags maize</div>
+          <div class="amt">UGX 1,800,000</div>
         </div>
         <div class="vkv">
-          <div>Business</div><div>Mirembe Agro Supplies</div>
-          <div>Issued to</div><div>Amina Nantale</div>
-          <div>Amount</div><div>UGX 1,800,000</div>
-          <div>Payment</div><div>Mobile Money</div>
-          <div>Date</div><div>19 Sep 2026</div>
+          <div>Customer</div><div>Amina Nantale</div>
+          <div>Paid on</div><div>19 Sep 2026</div>
+          <div>Method</div><div>Mobile Money</div>
+          <div>Reference</div><div>MM-DEMO-88421</div>
+          <div>Issued</div><div>19 Sep 2026 · 14:32</div>
+          <div>Seller</div><div>Mirembe Agro Supplies</div>
         </div>
-        <p class="sub">Illustrative verification card — same fields the public verify page shows for a real receipt.</p>
+      </div>
+      <div class="issuer-bar">
+        <img src="/logo-64.png" width="36" height="36" alt="HandzJ">
+        <div>
+          <div class="t1">HandzJ Digital Receipts</div>
+          <div class="t2">Issuing platform · demo layout</div>
+        </div>
       </div>
     </div>
   </div>
@@ -379,7 +430,7 @@ a{color:var(--brand);text-decoration:none}
             <img src="/assets/marketing/businesses/beauty-lounge-valid-960.jpg"
               srcset="/assets/marketing/businesses/beauty-lounge-valid-640.jpg 640w,/assets/marketing/businesses/beauty-lounge-valid-960.jpg 960w,/assets/marketing/businesses/beauty-lounge-valid-1168.jpg 1168w"
               sizes="(max-width:720px) 100vw, 50vw"
-              width="784" height="1168"
+              width="784" height="1168" data-orient="portrait"
               alt="Service business: valid HandzJ digital receipt on phone"
               loading="lazy" decoding="async">
           </picture>
@@ -450,7 +501,7 @@ a{color:var(--brand);text-decoration:none}
             <img src="/assets/marketing/verification/phone-repair-valid-960.jpg"
               srcset="/assets/marketing/verification/phone-repair-valid-640.jpg 640w,/assets/marketing/verification/phone-repair-valid-960.jpg 960w,/assets/marketing/verification/phone-repair-valid-1168.jpg 1168w"
               sizes="(max-width:720px) 100vw, 50vw"
-              width="784" height="1168"
+              width="784" height="1168" data-orient="portrait"
               alt="Public verification screen showing VALID RECEIPT for a phone repair"
               loading="lazy" decoding="async">
           </picture>
@@ -675,6 +726,134 @@ a{color:var(--brand);text-decoration:none}
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
   <span class="wa-label">Chat on WhatsApp</span>
 </a>
+
+
+<script>
+(function () {
+  "use strict";
+  var lb = document.createElement("div");
+  lb.className = "hz-lb";
+  lb.setAttribute("role", "dialog");
+  lb.setAttribute("aria-modal", "true");
+  lb.setAttribute("aria-label", "Image preview");
+  lb.innerHTML = '<button type="button" class="hz-lb-close" aria-label="Close">Close</button><img alt=""><p class="hz-lb-hint">Scroll to zoom · drag to move · Esc to close</p>';
+  document.body.appendChild(lb);
+  var img = lb.querySelector("img");
+  var scale = 1, tx = 0, ty = 0, dragging = false, lx = 0, ly = 0;
+
+  function apply() {
+    img.style.transform = "translate(" + tx + "px," + ty + "px) scale(" + scale + ")";
+  }
+  function open(src, alt) {
+    img.src = src;
+    img.alt = alt || "";
+    scale = 1; tx = 0; ty = 0; apply();
+    lb.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function close() {
+    lb.classList.remove("open");
+    document.body.style.overflow = "";
+    img.removeAttribute("src");
+  }
+  lb.querySelector(".hz-lb-close").addEventListener("click", close);
+  lb.addEventListener("click", function (e) { if (e.target === lb) close(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+
+  img.addEventListener("wheel", function (e) {
+    e.preventDefault();
+    var delta = e.deltaY > 0 ? -0.1 : 0.1;
+    scale = Math.min(4, Math.max(1, scale + delta));
+    if (scale === 1) { tx = 0; ty = 0; }
+    apply();
+  }, { passive: false });
+
+  img.addEventListener("pointerdown", function (e) {
+    if (scale <= 1) return;
+    dragging = true;
+    img.classList.add("dragging");
+    lx = e.clientX; ly = e.clientY;
+    try { img.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  img.addEventListener("pointermove", function (e) {
+    if (!dragging) return;
+    tx += e.clientX - lx; ty += e.clientY - ly;
+    lx = e.clientX; ly = e.clientY;
+    apply();
+  });
+  function endDrag() { dragging = false; img.classList.remove("dragging"); }
+  img.addEventListener("pointerup", endDrag);
+  img.addEventListener("pointercancel", endDrag);
+
+  document.querySelectorAll(".visual-card img, .hero-visual img").forEach(function (el) {
+    el.addEventListener("click", function () {
+      open(el.currentSrc || el.src, el.alt);
+    });
+  });
+
+  /* Rotate within role pools so message stays clear */
+  var pools = {
+    issue: [
+      { base: "/assets/marketing/product/hardware-phone-print", orient: "landscape", caption: "Hardware & retail — digital receipt, optional paper" },
+      { base: "/assets/marketing/businesses/beauty-lounge-valid", orient: "portrait", caption: "Salons & service businesses — clean digital proof" },
+      { base: "/assets/marketing/businesses/market-vendor-valid", orient: "landscape", caption: "Small retail — receipt the customer can keep" }
+    ],
+    verify: [
+      { base: "/assets/marketing/verification/hands-verify-valid", orient: "landscape", caption: "Customer scans the QR (or opens the link) → sees VALID" },
+      { base: "/assets/marketing/verification/phone-repair-valid", orient: "portrait", caption: "Public verification — business, amount, status" }
+    ]
+  };
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function setPicture(figure, item) {
+    if (!figure || !item) return;
+    var pic = figure.querySelector("picture");
+    var im = figure.querySelector("img");
+    var cap = figure.querySelector("figcaption");
+    if (!im) return;
+    var b = item.base;
+    var jpg = b + "-640.jpg 640w, " + b + "-960.jpg 960w, " + b + "-1168.jpg 1168w";
+    if (pic) {
+      pic.querySelectorAll("source").forEach(function (s) {
+        var t = s.getAttribute("type") || "";
+        if (t.indexOf("avif") >= 0)
+          s.setAttribute("srcset", b + "-640.avif 640w, " + b + "-960.avif 960w, " + b + "-1168.avif 1168w");
+        else if (t.indexOf("webp") >= 0)
+          s.setAttribute("srcset", b + "-640.webp 640w, " + b + "-960.webp 960w, " + b + "-1168.webp 1168w");
+      });
+    }
+    im.setAttribute("src", b + "-960.jpg");
+    im.setAttribute("srcset", jpg);
+    if (item.orient === "portrait") {
+      im.setAttribute("width", "784");
+      im.setAttribute("height", "1168");
+      im.setAttribute("data-orient", "portrait");
+    } else {
+      im.setAttribute("width", "1168");
+      im.setAttribute("height", "784");
+      im.removeAttribute("data-orient");
+    }
+    if (cap && item.caption) cap.textContent = item.caption;
+  }
+
+  var issueGrid = document.querySelector("#product-visuals .story-block .visual-grid");
+  if (issueGrid) {
+    var cards = issueGrid.querySelectorAll(".visual-card");
+    var a = pick(pools.issue);
+    var rest = pools.issue.filter(function (x) { return x.base !== a.base; });
+    var b = rest.length ? pick(rest) : a;
+    if (cards[0]) setPicture(cards[0], a);
+    if (cards[1]) setPicture(cards[1], b);
+  }
+  document.querySelectorAll("#product-visuals .story-block").forEach(function (block) {
+    var h = block.querySelector("h3");
+    if (!h || h.textContent.indexOf("Verify") < 0) return;
+    var cards = block.querySelectorAll(".visual-card");
+    var shuffled = pools.verify.slice().sort(function () { return Math.random() - 0.5; });
+    if (cards[0] && shuffled[0]) setPicture(cards[0], shuffled[0]);
+    if (cards[1] && shuffled[1]) setPicture(cards[1], shuffled[1]);
+  });
+})();
+</script>
 
 </body>
 </html>
