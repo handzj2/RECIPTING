@@ -826,6 +826,12 @@ tbody tr:last-child td{border-bottom:0}
   .btn.primary:not(:disabled):hover { transform: none; }
 }
 
+
+/* Empty register — purposeful product moment */
+.empty-visual{max-width:280px;margin:16px auto 8px;border:1px solid var(--line);border-radius:2px;overflow:hidden;background:var(--panel)}
+.empty-visual img{display:block;width:100%;height:auto}
+.empty-visual + .empty-msg{text-align:center;font-size:13.5px;color:var(--ink-soft);max-width:28em;margin:0 auto 8px;line-height:1.45}
+
 </style>
   <script src="/config.js"></script>
 
@@ -1038,7 +1044,17 @@ tbody tr:last-child td{border-bottom:0}
       </table>
     </div>
     <div id="logCards" class="log-cards"></div>
-    <div id="logEmpty" class="empty" style="margin-top:12px">No receipts recorded yet. Issue your first receipt to begin the register.</div>
+    <div id="logEmpty" class="empty" style="margin-top:12px">
+      <div class="empty-visual">
+        <img src="/assets/marketing/product/hardware-phone-print-640.jpg"
+          srcset="/assets/marketing/product/hardware-phone-print-640.jpg 640w"
+          sizes="280px"
+          width="640" height="430"
+          alt="Example: digital receipt ready for a customer"
+          loading="lazy" decoding="async">
+      </div>
+      <p class="empty-msg">No receipts recorded yet. Issue your first receipt — your customer can keep, share, and verify it.</p>
+    </div>
   </div>
 
   <!-- ===== single receipt view (also used for print) ===== -->

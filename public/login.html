@@ -33,6 +33,27 @@
 html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5}
 .wrap{max-width:420px;margin:0 auto;padding:36px 18px 56px}
+/* Login shell: form primary, image companion */
+.wrap{max-width:420px;margin:0 auto;padding:36px 18px 56px}
+@media (min-width:900px){
+  .wrap{max-width:880px;display:grid;grid-template-columns:minmax(320px,400px) minmax(280px,1fr);gap:28px;align-items:start;padding-top:48px}
+  .brandbar,.foot{grid-column:1 / -1}
+  .login-main{grid-column:1}
+  .product-proof{grid-column:2;grid-row:2;margin-top:0;align-self:start}
+}
+.login-main{min-width:0}
+.product-proof{margin-top:16px;border:1px solid var(--line);border-radius:2px;overflow:hidden;background:var(--panel);max-width:100%}
+.product-proof picture,.product-proof img{display:block;width:100%;height:auto;max-height:220px;object-fit:cover;object-position:center}
+.product-proof figcaption{padding:8px 10px;font-size:12px;color:var(--ink-soft);border-top:1px solid var(--line);line-height:1.35}
+@media (max-width:899px){
+  .product-proof{max-width:320px;margin-left:auto;margin-right:auto}
+  .product-proof img{max-height:160px}
+}
+@media (max-width:560px){
+  .product-proof{margin-top:12px;max-width:100%}
+  .product-proof img{max-height:120px}
+}
+
 .brandbar{display:flex;align-items:center;gap:16px;background:var(--brand);color:#f7f5ef;border-radius:2px;padding:18px 20px;border-bottom:3px solid var(--accent)}.brandbar img{width:56px;height:56px;border-radius:2px;object-fit:cover;flex:none;border:1px solid rgba(255,255,255,.12);background:#0c0b0a}.brandbar .t1{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:22px;font-weight:600;letter-spacing:.04em;line-height:1.15}.brandbar .t2{font-size:12.5px;color:#c8d6d2;letter-spacing:.02em;margin-top:3px;font-weight:500}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:2px;margin-top:16px}
 .card-b{padding:24px}
@@ -103,6 +124,7 @@ h1{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:19px;mar
     </div>
   </div>
 
+  <div class="login-main">
   <div class="card">
     <div class="card-b">
 
@@ -222,6 +244,25 @@ h1{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:19px;mar
 
     </div>
   </div>
+  </div><!-- /.login-main -->
+
+  <figure class="product-proof">
+    <picture>
+      <source type="image/webp"
+        srcset="/assets/marketing/product/receipt-phone-and-print-640.webp 640w,
+                /assets/marketing/product/receipt-phone-and-print-960.webp 960w"
+        sizes="(max-width:899px) 280px, 360px">
+      <img
+        src="/assets/marketing/product/receipt-phone-and-print-640.jpg"
+        srcset="/assets/marketing/product/receipt-phone-and-print-640.jpg 640w,
+                /assets/marketing/product/receipt-phone-and-print-960.jpg 960w"
+        sizes="(max-width:899px) 280px, 360px"
+        width="640" height="430"
+        alt="HandzJ digital receipt on phone next to printed copy"
+        loading="lazy" decoding="async">
+    </picture>
+    <figcaption>Digital receipt your customer can keep, share, and verify.</figcaption>
+  </figure>
 
   <div class="foot"><a href="/">← Back to the website</a></div>
 </div>
