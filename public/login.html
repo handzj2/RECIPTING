@@ -32,26 +32,129 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5}
-.wrap{max-width:420px;margin:0 auto;padding:36px 18px 56px}
-/* Login shell: form primary, image companion */
-.wrap{max-width:420px;margin:0 auto;padding:36px 18px 56px}
-@media (min-width:900px){
-  .wrap{max-width:880px;display:grid;grid-template-columns:minmax(320px,400px) minmax(280px,1fr);gap:28px;align-items:start;padding-top:48px}
-  .brandbar,.foot{grid-column:1 / -1}
-  .login-main{grid-column:1}
-  .product-proof{grid-column:2;grid-row:2;margin-top:0;align-self:start}
-}
+/* ============================================================
+   Login layout + breakpoints
+   ------------------------------------------------------------
+   Mobile-first. Form is always primary.
+   Breakpoints (CSS px ≈ common devices):
+     ≤360   small phones
+     ≤390   iPhone 12/13/14 standard width zone
+     ≤480   large phones / small phablets
+     ≤560   large phones landscape-ish / narrow tablets
+     ≤768   tablets portrait
+     ≤899   below side-by-side layout
+     ≥900   desktop: form | image side-by-side, matched height
+   ============================================================ */
+.wrap{max-width:420px;margin:0 auto;padding:24px 16px 48px}
 .login-main{min-width:0}
-.product-proof{margin-top:16px;border:1px solid var(--line);border-radius:2px;overflow:hidden;background:var(--panel);max-width:100%}
-.product-proof picture,.product-proof img{display:block;width:100%;height:auto;max-height:220px;object-fit:cover;object-position:center}
-.product-proof figcaption{padding:8px 10px;font-size:12px;color:var(--ink-soft);border-top:1px solid var(--line);line-height:1.35}
-@media (max-width:899px){
-  .product-proof{max-width:320px;margin-left:auto;margin-right:auto}
-  .product-proof img{max-height:160px}
+.product-proof{
+  margin-top:14px;
+  border:1px solid var(--line);
+  border-radius:2px;
+  overflow:hidden;
+  background:var(--panel);
+  max-width:100%;
 }
+.product-proof picture,
+.product-proof img{
+  display:block;
+  width:100%;
+  height:auto;
+  object-fit:cover;
+  object-position:center;
+}
+.product-proof figcaption{
+  padding:8px 10px;
+  font-size:12px;
+  color:var(--ink-soft);
+  border-top:1px solid var(--line);
+  line-height:1.35;
+  flex-shrink:0;
+}
+
+/* --- ≤360px : compact phones --- */
+@media (max-width:360px){
+  .wrap{padding:16px 12px 40px}
+  .brandbar{padding:14px 14px;gap:12px}
+  .brandbar img{width:44px;height:44px}
+  .brandbar .t1{font-size:18px}
+  .brandbar .t2{font-size:11.5px}
+  .card-b{padding:18px 14px}
+  .product-proof{margin-top:10px}
+  .product-proof img{max-height:100px}
+  .product-proof figcaption{font-size:11px;padding:6px 8px}
+}
+
+/* --- ≤390px : common Android / iPhone width --- */
+@media (min-width:361px) and (max-width:390px){
+  .wrap{padding:20px 14px 44px}
+  .product-proof img{max-height:110px}
+}
+
+/* --- ≤480px : large phones --- */
+@media (min-width:391px) and (max-width:480px){
+  .wrap{padding:22px 16px 48px}
+  .product-proof{max-width:100%}
+  .product-proof img{max-height:120px}
+}
+
+/* --- ≤560px : mobile login form comfort (16px inputs) --- */
 @media (max-width:560px){
+  body{-webkit-text-size-adjust:100%}
+  .wrap,.shell,.card{max-width:100%}
+  input,select,button{font-size:16px!important;min-height:46px}
+  .btn.primary,button.btn{width:100%;padding:14px}
   .product-proof{margin-top:12px;max-width:100%}
   .product-proof img{max-height:120px}
+}
+
+/* --- ≤768px : tablet portrait — still stacked --- */
+@media (min-width:561px) and (max-width:768px){
+  .wrap{max-width:480px;padding:28px 20px 52px}
+  .product-proof{max-width:360px;margin-left:auto;margin-right:auto}
+  .product-proof img{max-height:150px}
+}
+
+/* --- ≤899px : below split layout --- */
+@media (min-width:769px) and (max-width:899px){
+  .wrap{max-width:520px;padding:32px 20px 56px}
+  .product-proof{max-width:380px;margin-left:auto;margin-right:auto}
+  .product-proof img{max-height:170px}
+}
+
+/* --- ≥900px : desktop split — image height matches form --- */
+@media (min-width:900px){
+  .wrap{
+    max-width:880px;
+    display:grid;
+    grid-template-columns:minmax(320px,400px) minmax(280px,1fr);
+    gap:28px;
+    align-items:stretch;
+    padding:48px 24px 56px;
+  }
+  .brandbar,.foot{grid-column:1 / -1}
+  .login-main{grid-column:1;display:flex;flex-direction:column}
+  .login-main .card{flex:1;margin-top:0;display:flex;flex-direction:column}
+  .product-proof{
+    grid-column:2;
+    grid-row:2;
+    margin-top:0;
+    align-self:stretch;
+    display:flex;
+    flex-direction:column;
+    height:100%;
+    min-height:0;
+    max-width:none;
+  }
+  .product-proof picture{flex:1;display:flex;min-height:0}
+  .product-proof img{
+    flex:1;
+    width:100%;
+    height:100%;
+    max-height:none;
+    object-fit:cover;
+    object-position:center;
+  }
 }
 
 .brandbar{display:flex;align-items:center;gap:16px;background:var(--brand);color:#f7f5ef;border-radius:2px;padding:18px 20px;border-bottom:3px solid var(--accent)}.brandbar img{width:56px;height:56px;border-radius:2px;object-fit:cover;flex:none;border:1px solid rgba(255,255,255,.12);background:#0c0b0a}.brandbar .t1{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:22px;font-weight:600;letter-spacing:.04em;line-height:1.15}.brandbar .t2{font-size:12.5px;color:#c8d6d2;letter-spacing:.02em;margin-top:3px;font-weight:500}
@@ -102,13 +205,7 @@ h1{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:19px;mar
 }
 
 
-/* mobile login */
-@media (max-width: 560px) {
-  body{-webkit-text-size-adjust:100%}
-  .wrap,.shell,.card{max-width:100%}
-  input,select,button{font-size:16px!important;min-height:46px}
-  .btn.primary,button.btn{width:100%;padding:14px}
-}
+/* mobile form rules folded into breakpoint section above */
 </style>
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -251,12 +348,12 @@ h1{font-family:"IBM Plex Serif","IBM Plex Sans",Georgia,serif;font-size:19px;mar
       <source type="image/webp"
         srcset="/assets/marketing/product/receipt-phone-and-print-640.webp 640w,
                 /assets/marketing/product/receipt-phone-and-print-960.webp 960w"
-        sizes="(max-width:899px) 280px, 360px">
+        sizes="(max-width:360px) 100vw, (max-width:560px) 100vw, (max-width:899px) 360px, 400px">
       <img
         src="/assets/marketing/product/receipt-phone-and-print-640.jpg"
         srcset="/assets/marketing/product/receipt-phone-and-print-640.jpg 640w,
                 /assets/marketing/product/receipt-phone-and-print-960.jpg 960w"
-        sizes="(max-width:899px) 280px, 360px"
+        sizes="(max-width:360px) 100vw, (max-width:560px) 100vw, (max-width:899px) 360px, 400px"
         width="640" height="430"
         alt="HandzJ digital receipt on phone next to printed copy"
         loading="lazy" decoding="async">
