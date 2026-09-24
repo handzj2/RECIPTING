@@ -194,15 +194,15 @@ a{color:var(--brand);text-decoration:none}
     <figure class="hero-visual">
       <picture>
         <source type="image/webp"
-          srcset="/assets/marketing/hero-verify-phone-640.webp 640w,
-                  /assets/marketing/hero-verify-phone-960.webp 960w,
-                  /assets/marketing/hero-verify-phone-1168.webp 1168w"
+          srcset="/assets/marketing/hero/hero-verify-phone-640.webp 640w,
+                  /assets/marketing/hero/hero-verify-phone-960.webp 960w,
+                  /assets/marketing/hero/hero-verify-phone-1168.webp 1168w"
           sizes="(max-width:720px) 100vw, 720px">
         <img
-          src="/assets/marketing/hero-verify-phone-960.jpg"
-          srcset="/assets/marketing/hero-verify-phone-640.jpg 640w,
-                  /assets/marketing/hero-verify-phone-960.jpg 960w,
-                  /assets/marketing/hero-verify-phone-1168.jpg 1168w"
+          src="/assets/marketing/hero/hero-verify-phone-960.jpg"
+          srcset="/assets/marketing/hero/hero-verify-phone-640.jpg 640w,
+                  /assets/marketing/hero/hero-verify-phone-960.jpg 960w,
+                  /assets/marketing/hero/hero-verify-phone-1168.jpg 1168w"
           sizes="(max-width:720px) 100vw, 720px"
           width="1168" height="784"
           alt="HandzJ public receipt verification on a phone — VALID status"
@@ -215,12 +215,12 @@ a{color:var(--brand);text-decoration:none}
 
   <!-- Product demonstration -->
   <div class="demo" data-animate="demo">
-    <div class="sample">
-      <div class="sample-h">Receipt</div>
+    <div class="sample" aria-label="Demonstration receipt">
+      <div class="sample-h">Receipt <span style="font-size:10px;font-weight:normal;letter-spacing:.06em;color:var(--muted);margin-left:8px">DEMO</span></div>
       <div class="sample-b">
         <div class="biz">MIREMBE AGRO SUPPLIES</div>
         <div class="rno">HJT-2026-00421</div>
-        <div class="line"><span class="k">Customer</span><span class="v">Customer</span></div>
+        <div class="line"><span class="k">Customer</span><span class="v">Amina Nantale</span></div>
         <div class="line"><span class="k">Item</span><span class="v">20 bags maize</span></div>
         <div class="line"><span class="k">Payment</span><span class="v">Mobile Money</span></div>
         <div class="line"><span class="k">Date</span><span class="v">19 Sep 2026</span></div>
@@ -241,186 +241,118 @@ a{color:var(--brand);text-decoration:none}
   </div>
 
 
-  <!-- Brand / product visuals -->
-  <section class="visuals section" id="product-visuals" aria-label="Product visuals">
-    <h2>See it in use</h2>
-    <p class="sub">Real receipt records. Online verification. Built for shops that run on mobile money.</p>
-    <div class="visual-grid">
-      <figure class="visual-card">
-        <picture>
-          <source type="image/webp"
-            srcset="/assets/marketing/hands-verify-valid-640.webp 640w,
-                    /assets/marketing/hands-verify-valid-960.webp 960w,
-                    /assets/marketing/hands-verify-valid-1168.webp 1168w"
-            sizes="(max-width:720px) 100vw, 50vw">
-          <img
-            src="/assets/marketing/hands-verify-valid-960.jpg"
-            srcset="/assets/marketing/hands-verify-valid-640.jpg 640w,
-                    /assets/marketing/hands-verify-valid-960.jpg 960w,
-                    /assets/marketing/hands-verify-valid-1168.jpg 1168w"
-            sizes="(max-width:720px) 100vw, 50vw"
-            width="1168" height="784"
-            alt="Customer verifying a HandzJ receipt — VALID"
-            loading="lazy" decoding="async">
-        </picture>
-        <figcaption>Customer verification — VALID on the public page</figcaption>
-      </figure>
-      <figure class="visual-card">
-        <picture>
-          <source type="image/webp"
-            srcset="/assets/marketing/receipt-phone-and-print-640.webp 640w,
-                    /assets/marketing/receipt-phone-and-print-960.webp 960w,
-                    /assets/marketing/receipt-phone-and-print-1168.webp 1168w"
-            sizes="(max-width:720px) 100vw, 50vw">
-          <img
-            src="/assets/marketing/receipt-phone-and-print-960.jpg"
-            srcset="/assets/marketing/receipt-phone-and-print-640.jpg 640w,
-                    /assets/marketing/receipt-phone-and-print-960.jpg 960w,
-                    /assets/marketing/receipt-phone-and-print-1168.jpg 1168w"
-            sizes="(max-width:720px) 100vw, 50vw"
-            width="1168" height="784"
-            alt="HandzJ digital receipt on phone next to printed card"
-            loading="lazy" decoding="async">
-        </picture>
-        <figcaption>Digital receipt with QR — same record as paper</figcaption>
-      </figure>
-      <figure class="visual-card">
-        <picture>
-          <source type="image/webp"
-            srcset="/assets/marketing/desk-owner-and-verify-640.webp 640w,
-                    /assets/marketing/desk-owner-and-verify-960.webp 960w,
-                    /assets/marketing/desk-owner-and-verify-1168.webp 1168w"
-            sizes="(max-width:720px) 100vw, 50vw">
-          <img
-            src="/assets/marketing/desk-owner-and-verify-960.jpg"
-            srcset="/assets/marketing/desk-owner-and-verify-640.jpg 640w,
-                    /assets/marketing/desk-owner-and-verify-960.jpg 960w,
-                    /assets/marketing/desk-owner-and-verify-1168.jpg 1168w"
-            sizes="(max-width:720px) 100vw, 50vw"
-            width="1168" height="784"
-            alt="Owner receipt list and customer VALID verification on a desk"
-            loading="lazy" decoding="async">
-        </picture>
-        <figcaption>Owner issues · customer verifies</figcaption>
-      </figure>
-      <figure class="visual-card">
-        <picture>
-          <source type="image/webp"
-            srcset="/assets/marketing/hero-verify-phone-640.webp 640w,
-                    /assets/marketing/hero-verify-phone-960.webp 960w,
-                    /assets/marketing/hero-verify-phone-1168.webp 1168w"
-            sizes="(max-width:720px) 100vw, 50vw">
-          <img
-            src="/assets/marketing/hero-verify-phone-960.jpg"
-            srcset="/assets/marketing/hero-verify-phone-640.jpg 640w,
-                    /assets/marketing/hero-verify-phone-960.jpg 960w,
-                    /assets/marketing/hero-verify-phone-1168.jpg 1168w"
-            sizes="(max-width:720px) 100vw, 50vw"
-            width="1168" height="784"
-            alt="HandzJ verification on phone with brand message"
-            loading="lazy" decoding="async">
-        </picture>
-        <figcaption>Public verification — one record, every view</figcaption>
-      </figure>
 
-      <figure class="visual-card">
+  <!-- Visual story: Issue → Receipt → Share → Verify -->
+  <section class="visuals section" id="product-visuals" aria-label="How HandzJ works in real businesses">
+    <h2>Built for real businesses</h2>
+    <p class="sub">From the counter to the customer’s phone — one permanent receipt record.</p>
+
+    <!-- ISSUE -->
+    <div class="story-block" style="margin-top:32px">
+      <h3 style="font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Issue</h3>
+      <p style="margin:0 0 16px;max-width:42em">Customer pays. Merchant creates a professional digital receipt in seconds. No thermal printer required.</p>
+      <div class="visual-grid" style="grid-template-columns:1fr 1fr;gap:16px">
+        <figure class="visual-card">
+          <picture>
+            <source type="image/avif" srcset="/assets/marketing/product/hardware-phone-print-640.avif 640w,/assets/marketing/product/hardware-phone-print-960.avif 960w,/assets/marketing/product/hardware-phone-print-1168.avif 1168w" sizes="(max-width:720px) 100vw, 50vw">
+            <source type="image/webp" srcset="/assets/marketing/product/hardware-phone-print-640.webp 640w,/assets/marketing/product/hardware-phone-print-960.webp 960w,/assets/marketing/product/hardware-phone-print-1168.webp 1168w" sizes="(max-width:720px) 100vw, 50vw">
+            <img src="/assets/marketing/product/hardware-phone-print-960.jpg"
+              srcset="/assets/marketing/product/hardware-phone-print-640.jpg 640w,/assets/marketing/product/hardware-phone-print-960.jpg 960w,/assets/marketing/product/hardware-phone-print-1168.jpg 1168w"
+              sizes="(max-width:720px) 100vw, 50vw"
+              width="1168" height="784"
+              alt="Hardware shop: HandzJ digital receipt on phone next to matching printed receipt"
+              loading="lazy" decoding="async">
+          </picture>
+          <figcaption>Hardware &amp; retail — digital receipt, optional paper</figcaption>
+        </figure>
+        <figure class="visual-card">
+          <picture>
+            <source type="image/avif" srcset="/assets/marketing/businesses/beauty-lounge-valid-640.avif 640w,/assets/marketing/businesses/beauty-lounge-valid-960.avif 960w,/assets/marketing/businesses/beauty-lounge-valid-1168.avif 1168w" sizes="(max-width:720px) 100vw, 50vw">
+            <source type="image/webp" srcset="/assets/marketing/businesses/beauty-lounge-valid-640.webp 640w,/assets/marketing/businesses/beauty-lounge-valid-960.webp 960w,/assets/marketing/businesses/beauty-lounge-valid-1168.webp 1168w" sizes="(max-width:720px) 100vw, 50vw">
+            <img src="/assets/marketing/businesses/beauty-lounge-valid-960.jpg"
+              srcset="/assets/marketing/businesses/beauty-lounge-valid-640.jpg 640w,/assets/marketing/businesses/beauty-lounge-valid-960.jpg 960w,/assets/marketing/businesses/beauty-lounge-valid-1168.jpg 1168w"
+              sizes="(max-width:720px) 100vw, 50vw"
+              width="784" height="1168"
+              alt="Service business: valid HandzJ digital receipt on phone"
+              loading="lazy" decoding="async">
+          </picture>
+          <figcaption>Salons &amp; service businesses — clean digital proof</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <!-- THE RECEIPT (product star) -->
+    <div class="story-block" style="margin-top:40px">
+      <h3 style="font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">The receipt</h3>
+      <p style="margin:0 0 16px;max-width:42em">One permanent record: business identity, customer, items, total, payment method, and a QR the customer can scan later. The sample above is a live demonstration of the HandzJ receipt layout (not a real transaction).</p>
+      <figure class="visual-card" style="max-width:520px;margin:0 auto">
         <picture>
-          <source type="image/avif"
-            srcset="/assets/marketing/market-vendor-valid-640.avif 640w,
-                    /assets/marketing/market-vendor-valid-960.avif 960w,
-                    /assets/marketing/market-vendor-valid-1168.avif 1168w"
-            sizes="(max-width:720px) 100vw, 50vw">
-          <source type="image/webp"
-            srcset="/assets/marketing/market-vendor-valid-640.webp 640w,
-                    /assets/marketing/market-vendor-valid-960.webp 960w,
-                    /assets/marketing/market-vendor-valid-1168.webp 1168w"
-            sizes="(max-width:720px) 100vw, 50vw">
-          <img
-            src="/assets/marketing/market-vendor-valid-960.jpg"
-            srcset="/assets/marketing/market-vendor-valid-640.jpg 640w,
-                    /assets/marketing/market-vendor-valid-960.jpg 960w,
-                    /assets/marketing/market-vendor-valid-1168.jpg 1168w"
-            sizes="(max-width:720px) 100vw, 50vw"
+          <source type="image/webp" srcset="/assets/marketing/product/receipt-phone-and-print-640.webp 640w,/assets/marketing/product/receipt-phone-and-print-960.webp 960w,/assets/marketing/product/receipt-phone-and-print-1168.webp 1168w" sizes="(max-width:720px) 100vw, 520px">
+          <img src="/assets/marketing/product/receipt-phone-and-print-960.jpg"
+            srcset="/assets/marketing/product/receipt-phone-and-print-640.jpg 640w,/assets/marketing/product/receipt-phone-and-print-960.jpg 960w,/assets/marketing/product/receipt-phone-and-print-1168.jpg 1168w"
+            sizes="(max-width:720px) 100vw, 520px"
             width="1168" height="784"
-            alt="Market vendor in Uganda verifying a HandzJ digital receipt — VALID for Nakasero Fresh Market"
+            alt="HandzJ digital receipt on phone next to printed version with QR code"
             loading="lazy" decoding="async">
         </picture>
-        <figcaption>Real market use — vendor verifies on the spot</figcaption>
-      </figure>
-      <figure class="visual-card">
-        <picture>
-          <source type="image/avif"
-            srcset="/assets/marketing/hardware-phone-print-640.avif 640w,
-                    /assets/marketing/hardware-phone-print-960.avif 960w,
-                    /assets/marketing/hardware-phone-print-1168.avif 1168w"
-            sizes="(max-width:720px) 100vw, 50vw">
-          <source type="image/webp"
-            srcset="/assets/marketing/hardware-phone-print-640.webp 640w,
-                    /assets/marketing/hardware-phone-print-960.webp 960w,
-                    /assets/marketing/hardware-phone-print-1168.webp 1168w"
-            sizes="(max-width:720px) 100vw, 50vw">
-          <img
-            src="/assets/marketing/hardware-phone-print-960.jpg"
-            srcset="/assets/marketing/hardware-phone-print-640.jpg 640w,
-                    /assets/marketing/hardware-phone-print-960.jpg 960w,
-                    /assets/marketing/hardware-phone-print-1168.jpg 1168w"
-            sizes="(max-width:720px) 100vw, 50vw"
-            width="1168" height="784"
-            alt="HandzJ digital receipt on phone next to matching printed thermal receipt at hardware store"
-            loading="lazy" decoding="async">
-        </picture>
-        <figcaption>Digital + paper — same trusted record</figcaption>
-      </figure>
-      <figure class="visual-card">
-        <picture>
-          <source type="image/avif"
-            srcset="/assets/marketing/beauty-lounge-valid-640.avif 640w,
-                    /assets/marketing/beauty-lounge-valid-960.avif 960w,
-                    /assets/marketing/beauty-lounge-valid-1168.avif 1168w"
-            sizes="(max-width:720px) 100vw, 50vw">
-          <source type="image/webp"
-            srcset="/assets/marketing/beauty-lounge-valid-640.webp 640w,
-                    /assets/marketing/beauty-lounge-valid-960.webp 960w,
-                    /assets/marketing/beauty-lounge-valid-1168.webp 1168w"
-            sizes="(max-width:720px) 100vw, 50vw">
-          <img
-            src="/assets/marketing/beauty-lounge-valid-960.jpg"
-            srcset="/assets/marketing/beauty-lounge-valid-640.jpg 640w,
-                    /assets/marketing/beauty-lounge-valid-960.jpg 960w,
-                    /assets/marketing/beauty-lounge-valid-1168.jpg 1168w"
-            sizes="(max-width:720px) 100vw, 50vw"
-            width="784" height="1168"
-            alt="Valid HandzJ digital receipt for beauty lounge hair treatment shown on phone"
-            loading="lazy" decoding="async">
-        </picture>
-        <figcaption>Service businesses — clean valid receipt</figcaption>
-      </figure>
-      <figure class="visual-card">
-        <picture>
-          <source type="image/avif"
-            srcset="/assets/marketing/phone-repair-valid-640.avif 640w,
-                    /assets/marketing/phone-repair-valid-960.avif 960w,
-                    /assets/marketing/phone-repair-valid-1168.avif 1168w"
-            sizes="(max-width:720px) 100vw, 50vw">
-          <source type="image/webp"
-            srcset="/assets/marketing/phone-repair-valid-640.webp 640w,
-                    /assets/marketing/phone-repair-valid-960.webp 960w,
-                    /assets/marketing/phone-repair-valid-1168.webp 1168w"
-            sizes="(max-width:720px) 100vw, 50vw">
-          <img
-            src="/assets/marketing/phone-repair-valid-960.jpg"
-            srcset="/assets/marketing/phone-repair-valid-640.jpg 640w,
-                    /assets/marketing/phone-repair-valid-960.jpg 960w,
-                    /assets/marketing/phone-repair-valid-1168.jpg 1168w"
-            sizes="(max-width:720px) 100vw, 50vw"
-            width="784" height="1168"
-            alt="Public verification of a valid HandzJ digital receipt for phone repair"
-            loading="lazy" decoding="async">
-        </picture>
-        <figcaption>Public verification — secure and trusted</figcaption>
+        <figcaption>Digital receipt + optional paper — same trusted record</figcaption>
       </figure>
     </div>
+
+    <!-- SEND -->
+    <div class="story-block" style="margin-top:40px">
+      <h3 style="font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Send</h3>
+      <p style="margin:0 0 16px;max-width:42em">Generate the actual receipt image, then share it via the device share sheet (WhatsApp, email, download, or other apps). The customer keeps proof without paper. Delivery uses the native share flow — not automatic background sending.</p>
+      <figure class="visual-card" style="max-width:420px">
+        <picture>
+          <source type="image/avif" srcset="/assets/marketing/sharing/share-receipt-sheet-640.avif 640w,/assets/marketing/sharing/share-receipt-sheet-960.avif 960w,/assets/marketing/sharing/share-receipt-sheet-1168.avif 1168w" sizes="(max-width:720px) 100vw, 420px">
+          <source type="image/webp" srcset="/assets/marketing/sharing/share-receipt-sheet-640.webp 640w,/assets/marketing/sharing/share-receipt-sheet-960.webp 960w,/assets/marketing/sharing/share-receipt-sheet-1168.webp 1168w" sizes="(max-width:720px) 100vw, 420px">
+          <img src="/assets/marketing/sharing/share-receipt-sheet-960.jpg"
+            srcset="/assets/marketing/sharing/share-receipt-sheet-640.jpg 640w,/assets/marketing/sharing/share-receipt-sheet-960.jpg 960w,/assets/marketing/sharing/share-receipt-sheet-1168.jpg 1168w"
+            sizes="(max-width:720px) 100vw, 420px"
+            width="1024" height="1024"
+            alt="HandzJ receipt image open on phone with native share sheet showing WhatsApp, Email and Download"
+            loading="lazy" decoding="async">
+        </picture>
+        <figcaption>Share the receipt image via WhatsApp, email, download or other apps — using the device share sheet</figcaption>
+      </figure>
+    </div>
+
+    <!-- VERIFY -->
+    <div class="story-block" style="margin-top:40px">
+      <h3 style="font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Verify</h3>
+      <p style="margin:0 0 16px;max-width:42em">Anyone with the link or QR can check the receipt. No HandzJ account required. Status shows VALID, VOIDED, or NOT FOUND.</p>
+      <p style="margin:0 0 12px;font-size:13px;color:var(--muted)">Customer scans the QR on the receipt → HandzJ shows verification status.</p>
+      <div class="visual-grid" style="grid-template-columns:1fr 1fr;gap:16px">
+        <figure class="visual-card">
+          <picture>
+            <source type="image/webp" srcset="/assets/marketing/verification/hands-verify-valid-640.webp 640w,/assets/marketing/verification/hands-verify-valid-960.webp 960w,/assets/marketing/verification/hands-verify-valid-1168.webp 1168w" sizes="(max-width:720px) 100vw, 50vw">
+            <img src="/assets/marketing/verification/hands-verify-valid-960.jpg"
+              srcset="/assets/marketing/verification/hands-verify-valid-640.jpg 640w,/assets/marketing/verification/hands-verify-valid-960.jpg 960w,/assets/marketing/verification/hands-verify-valid-1168.jpg 1168w"
+              sizes="(max-width:720px) 100vw, 50vw"
+              width="1168" height="784"
+              alt="Customer verifying a HandzJ receipt — VALID status on public page"
+              loading="lazy" decoding="async">
+          </picture>
+          <figcaption>Customer scans the QR (or opens the link) → sees VALID</figcaption>
+        </figure>
+        <figure class="visual-card">
+          <picture>
+            <source type="image/avif" srcset="/assets/marketing/verification/phone-repair-valid-640.avif 640w,/assets/marketing/verification/phone-repair-valid-960.avif 960w,/assets/marketing/verification/phone-repair-valid-1168.avif 1168w" sizes="(max-width:720px) 100vw, 50vw">
+            <source type="image/webp" srcset="/assets/marketing/verification/phone-repair-valid-640.webp 640w,/assets/marketing/verification/phone-repair-valid-960.webp 960w,/assets/marketing/verification/phone-repair-valid-1168.webp 1168w" sizes="(max-width:720px) 100vw, 50vw">
+            <img src="/assets/marketing/verification/phone-repair-valid-960.jpg"
+              srcset="/assets/marketing/verification/phone-repair-valid-640.jpg 640w,/assets/marketing/verification/phone-repair-valid-960.jpg 960w,/assets/marketing/verification/phone-repair-valid-1168.jpg 1168w"
+              sizes="(max-width:720px) 100vw, 50vw"
+              width="784" height="1168"
+              alt="Public verification screen showing VALID RECEIPT for a phone repair"
+              loading="lazy" decoding="async">
+          </picture>
+          <figcaption>Public verification — business, amount, status</figcaption>
+        </figure>
+      </div>
+    </div>
   </section>
+
 
   <section class="section" id="how" data-animate="section">
     <h2>How it works</h2>
@@ -434,7 +366,7 @@ a{color:var(--brand);text-decoration:none}
       <div class="step" data-animate="step">
         <div class="n">02</div>
         <h3>Send</h3>
-        <p>Share a real receipt <b>image</b> on WhatsApp, download PNG/PDF, or email. No thermal printer required.</p>
+        <p>Share a real receipt <b>image</b> via WhatsApp, download, or the device share sheet. No thermal printer required.</p>
       </div>
       <div class="step" data-animate="step">
         <div class="n">03</div>
