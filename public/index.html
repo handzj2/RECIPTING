@@ -418,10 +418,10 @@ a{color:var(--brand);text-decoration:none}
               srcset="/assets/marketing/product/hardware-phone-print-640.jpg 640w,/assets/marketing/product/hardware-phone-print-960.jpg 960w,/assets/marketing/product/hardware-phone-print-1168.jpg 1168w"
               sizes="(max-width:720px) 100vw, 50vw"
               width="1168" height="784"
-              alt="Hardware shop: HandzJ digital receipt on phone next to matching printed receipt"
+              alt="Phone and electronics shop: digital receipt on phone next to matching printed copy"
               loading="lazy" decoding="async">
           </picture>
-          <figcaption>Hardware &amp; retail — digital receipt, optional paper</figcaption>
+          <figcaption>Shop counter — digital receipt on phone, optional paper copy</figcaption>
         </figure>
         <figure class="visual-card">
           <picture>
@@ -431,7 +431,7 @@ a{color:var(--brand);text-decoration:none}
               srcset="/assets/marketing/businesses/beauty-lounge-valid-640.jpg 640w,/assets/marketing/businesses/beauty-lounge-valid-960.jpg 960w,/assets/marketing/businesses/beauty-lounge-valid-1168.jpg 1168w"
               sizes="(max-width:720px) 100vw, 50vw"
               width="784" height="1168" data-orient="portrait"
-              alt="Service business: valid HandzJ digital receipt on phone"
+              alt="Beauty or salon service: valid digital receipt on phone"
               loading="lazy" decoding="async">
           </picture>
           <figcaption>Salons &amp; service businesses — clean digital proof</figcaption>
@@ -502,10 +502,10 @@ a{color:var(--brand);text-decoration:none}
               srcset="/assets/marketing/verification/phone-repair-valid-640.jpg 640w,/assets/marketing/verification/phone-repair-valid-960.jpg 960w,/assets/marketing/verification/phone-repair-valid-1168.jpg 1168w"
               sizes="(max-width:720px) 100vw, 50vw"
               width="784" height="1168" data-orient="portrait"
-              alt="Public verification screen showing VALID RECEIPT for a phone repair"
+              alt="Phone showing public HandzJ verification — VALID receipt status"
               loading="lazy" decoding="async">
           </picture>
-          <figcaption>Public verification — business, amount, status</figcaption>
+          <figcaption>Public verification screen — business, amount, status</figcaption>
         </figure>
       </div>
     </div>
@@ -794,13 +794,13 @@ a{color:var(--brand);text-decoration:none}
   /* Rotate within role pools so message stays clear */
   var pools = {
     issue: [
-      { base: "/assets/marketing/product/hardware-phone-print", orient: "landscape", caption: "Hardware & retail — digital receipt, optional paper" },
-      { base: "/assets/marketing/businesses/beauty-lounge-valid", orient: "portrait", caption: "Salons & service businesses — clean digital proof" },
-      { base: "/assets/marketing/businesses/market-vendor-valid", orient: "landscape", caption: "Small retail — receipt the customer can keep" }
+      { base: "/assets/marketing/product/hardware-phone-print", orient: "landscape", caption: "Shop counter — digital receipt on phone, optional paper copy" },
+      { base: "/assets/marketing/businesses/beauty-lounge-valid", orient: "portrait", caption: "Service business — customer can keep a valid digital receipt" },
+      { base: "/assets/marketing/businesses/market-vendor-valid", orient: "landscape", caption: "Everyday retail — receipt the customer can keep and verify" }
     ],
     verify: [
       { base: "/assets/marketing/verification/hands-verify-valid", orient: "landscape", caption: "Customer scans the QR (or opens the link) → sees VALID" },
-      { base: "/assets/marketing/verification/phone-repair-valid", orient: "portrait", caption: "Public verification — business, amount, status" }
+      { base: "/assets/marketing/verification/phone-repair-valid", orient: "portrait", caption: "Public verification screen — business, amount, status" }
     ]
   };
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
